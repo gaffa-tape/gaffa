@@ -1,6 +1,5 @@
 //	Properties:
 (function(undefined)) {
-	window.gaffa = window.gaffa || newGaffa();
 	window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views.container = window.gaffa.views.container || newView();
 

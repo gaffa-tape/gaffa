@@ -1,7 +1,6 @@
 //	Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined)) {
-	window.gaffa = window.gaffa || newGaffa();
 	window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views.container = window.gaffa.views.container || newView();
 
@@ -22,8 +21,13 @@
 		
 		view.prototype = {
 			render: function(viewModel) {
-				var element = viewModel.renderedElement = createElement(viewModel);
-				return element;
+				if (viewModel.renderedElement) {
+					return viewModel.renderedElement;
+				}
+
+				viewModel = $.extend(true, defaults, viewModel);
+
+				return viewModel.renderedElement = createElement(viewModel);
 			},
 			update: function(viewModel) {
 				var element = viewModel.renderedElement;
