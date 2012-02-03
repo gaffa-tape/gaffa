@@ -15,7 +15,7 @@
     
     //internal functions
     
-    //Lost of similarities between get and set, refactor later to reuse code.
+    //Lots of similarities between get and set, refactor later to reuse code.
     function get(path, model){
         var keys = path.split(gaffa.pathSeparator()),
             reference = model;
@@ -24,7 +24,7 @@
             
             //Up a level string. if encountered, knock out the previous key and the current one.
             if(keys[keyIndex] === gaffa.upALevel()){
-                keys.splice(Math.max(keyIndex-1,0), keyIndex);
+                keys.splice(Math.max(keyIndex-1,0), 2);
                 keyIndex--;
                                 
             }else{
@@ -69,7 +69,7 @@
         for(keyIndex = 0; keyIndex < keys.length; keyIndex++){
             //Up a level.
             if(keys[keyIndex] === gaffa.upALevel()){
-                keys.splice(Math.max(keyIndex-1,0), keyIndex);
+                keys.splice(Math.max(keyIndex-1,0), 2);
                 keyIndex--;
             }
         }
