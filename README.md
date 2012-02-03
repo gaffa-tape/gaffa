@@ -1,10 +1,16 @@
-#Gaffa
+# gaffa
 
-##Overivew
+## Overivew
 
-##Build
+## Bundles
+A Bundle is a collection of Actions and Views that gaffa will use to render views in the browser and control interations.
 
-##License
+## Examples
+Examples included:
+
+## Build
+
+## License
 (The MIT License)
 
 Copyright (C) 2012 Kory Nunn & Matt Ginty
