@@ -7,11 +7,12 @@
     // functions to make it 'getter only'
     gaffa.pathSeparator = function(){return "/";};
     gaffa.upALevel = function(){return "..";};
+    gaffa.relativePath = function(){return "~";};
 
     
     //internal varaibles
-    var internalDataModel = {}, //these must always be objects.
-        internalPresModel = {};
+    var internalmodel = {}, //these must always be instantiated.
+        internalViews = [];
     
     //internal functions
     
@@ -60,9 +61,7 @@
     }
     
     function set(path, value, model){
-        var currentValue = get(path, model),
-            fireChanged = false,
-            keys = path.split(gaffa.pathSeparator()),
+        var keys = path.split(gaffa.pathSeparator()),
             reference = model,
             keyIndex;
             
@@ -97,16 +96,43 @@
             }
         }
         
-        if(typeof currentValue === "object"){
-            fireChanged = true; 
-            //to begin with we won't do a smart compare on objects, just fire changed every time.
-            //ToDo: smart compare, and fire events only for changed props.
-        }else if(currentValue === value){
-            fireChanged = true;
+        $(gaffa.model).trigger("change." + keys.join("."));        
+    }
+    
+    function renderView(view, parent){
+        setTimeout(function(){
+            if(gaffa.views[view.type] !== undefined){
+                var renderedElement = gaffa.views[view.type].render(view);
+                if(parent){
+                    parent.append(renderedElement);
+                }
+                for(var key in view.views){
+                    for(var i = 0; i < view.views[key].length; i ++){                        
+                        renderView(view.views[key][i], view.viewContainers[key]);
+                    }
+                }
+            }
+        },0);
+    }
+    
+    function bindView(view, parentView){
+        for( var key in view.properties){
+            if(parentView && view.properties[key] && view.properties[key].binding){
+                view.properties[key].binding = gaffa.paths.getAbsolutePath(parentView.binding ,view.properties[key].binding);
+            }
+            // this function is to create a closure so that 'key' is still the same key when the event fires.
+            (function(key){
+                view.properties[key].value = gaffa.model.get(view.properties[key].binding);
+                $(gaffa.model).bind(["change"].concat( view.properties[key].binding.split(gaffa.pathSeparator())).join("."), function(){
+                    gaffa.views[view.type].update[key](view, gaffa.model.get(view.properties[key].binding));
+                });
+            })(key);
         }
         
-        if(fireChanged){
-            $(gaffa.model).trigger("change." + keys.join("."));
+        for( var key in view.views){
+            for(var i = 0; i < view.views[key].length; i++){
+                bindView(view.views[key][i], view);
+            }
         }
     }
     
@@ -116,34 +142,66 @@
         }
         
         gaffa.prototype = {
-            presModel:{
+            paths: {
+                getAbsolutePath: function(parentBinding, childBinding){
+                    if(childBinding.indexOf(gaffa.relativePath) === 0){
+                        childBinding.replace(gaffa.relativePath, "");
+                        return parentBinding + gaffa.pathSeparator + childBinding;
+                    }else{
+                        return childBinding;
+                    }
+                }
+            },
+            model: {
                 get: function(path){
-                    return get(path, internalPresModel);
+                    return get(path, internalmodel);
                 },
                 set: function(path, value){
-                    return set(path, value, internalPresModel);                    
+                    return set(path, value, internalmodel);      
                 },
                 update: function(path, value){
                     
-                },
+                }
             },
-            dataModel: {
-                get: function(path){
-                    return get(path, internalDataModel);
+            views: {
+                render: function(views, parent){ //parameters optional.
+                   if(views && views.length){
+                       for(var i = 0; i < views.length; i ++){
+                            renderView(views[i], parent);
+                       }
+                   }else if(views){
+                       renderView(views, parent);
+                   }else{
+                       for(var i = 0; i < internalViews.length; i ++){
+                            renderView(internalViews[i], $("body"));
+                       }
+                   }
                 },
-                set: function(path, value){
-                    return set(path, value, internalDataModel);      
-                },
-                update: function(path, value){
+                add: function(views, parentView, parentViewChildArray){
+                    if(views && !views.length){
+                       views = [views];
+                    }
                     
-                },
-            },
-            view: {
-                render: function(views){ //parameter optional.
-                    
-                },
-                add: function(views){
-                    
+                    for(var i = 0; i < views.length; i ++){
+                        if(parentView && parentViewChildArray){
+                            
+                            //bind ALL the things!
+                            bindView(views[i], parentView);
+                            
+                            parentViewChildArray.push(views[i]);
+                        }else{
+                            
+                            //top level views, can't exactly recurse bind to nothin' now can we...
+                            bindView(views[i]);
+                            
+                            for(var key in views[i].views){
+                                for(var j = 0; j < views[i].views[key].length; j++){
+                                    bindView(views[i].views[key][j], views[i]);
+                                }
+                            }
+                            internalViews.push(views[i]);
+                        }
+                   }
                 }
             }
         };

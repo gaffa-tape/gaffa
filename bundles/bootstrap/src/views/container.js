@@ -3,15 +3,20 @@
 (function(undefined)) {
 	window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views.container = window.gaffa.views.container || newView();
+    
+    var defaults = {};
 
 	function createElement(viewModel) {
-		var style = "container";
-		if (viewModel.properties && viewModel.properties.style) {
-			if (viewModel.properties.style.value) {
-				style = viewModel.properties.style.value;
-			}
+		var classes = "container";
+		if (
+            //ToDo: make a function that does this automaticaly
+            viewModel.properties
+            && viewModel.properties.classes
+            && viewModel.properties.classes.value
+        ) {
+		    classes = viewModel.properties.classes.value;
 		}
-		return $(document.createElement('div')).addClass(style);
+		return $(document.createElement('div')).addClass(classes);
 	}
 
 	function newView() {
@@ -25,7 +30,7 @@
 					return viewModel.renderedElement;
 				}
 
-				viewModel = $.extend(true, defaults, viewModel);
+				viewModel = $.extend(true, {}, defaults, viewModel);
 
 				return viewModel.renderedElement = createElement(viewModel);
 			},
