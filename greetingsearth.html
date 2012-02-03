@@ -3,6 +3,7 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
 <script src="gaffa.js" type="text/javascript"></script>
 <script src="views/container.js" type="text/javascript"></script>
+<script src="views/textbox.js" type="text/javascript"></script>
 <script type="text/javascript">
 
     gaffa.model.set("stuff/property/object/property", "stuff");
@@ -35,6 +36,18 @@
                 properties: {
                     visible: { binding: "stuff/someOtherBool" }
                 }
+            },
+            {
+                type: "textbox",
+                properties: {
+                    text: { binding: "stuff/property/object/property2" }
+                }
+            },
+            {
+                type: "textbox",
+                properties: {
+                    text: { binding: "stuff/property/object/property2" }
+                }
             }] 
         },
         properties: {
@@ -55,7 +68,10 @@
 </head>
 <body>
 Nothin but a test page.
-
+<br />
 Run it again, but breakpoint on the above code to see the different outcomes.
+<br />
+<br />
+The two textboxes are bound to the same property on the model, change one the other changes.
 </body>
 </html>

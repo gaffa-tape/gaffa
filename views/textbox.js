@@ -1,31 +1,71 @@
-(function(undefined){
+//    Properties:
+//		styles: container | container-fluid | row | row-fluid | span* | offset*
+(function(undefined) {
+	window.gaffa.views = window.gaffa.views || {};
+	var thisView = window.gaffa.views.textbox = window.gaffa.views.textbox || newView();
     
-    //Create view
-    window.views = window.views || {};
-    window.views.textbox = window.views.textbox || newView();
-    
-    function createElement(){
-        var element = $(document.createElement("input"));
-        return element;
-    }
-    
-    function newView(){
-        
-        function view(){            
-        }
-        
-        view.prototype = {
-            render: function(viewModel){
-                var element = viewModel.renderedElement = createElement;
-                
-                return element;
-            },
-            update: function(viewModel){
-                var element = viewModel.renderedElement;
-                
+    var defaults = {
+            viewContainers:{},
+            properties: {
+                text: {}   
             }
         };
+
+	function createElement(viewModel) {
+		var classes = "textbox";
+		if (
+            //ToDo: make a function that does this automaticaly
+            viewModel.properties
+            && viewModel.properties.classes
+            && viewModel.properties.classes.value
+        ) {
+		    classes = viewModel.properties.classes.value;
+		}
         
-        return new newView();
-    }
+        var renderedElement = $(document.createElement('input')).attr('type', 'text').addClass(classes);
+        
+        $(renderedElement).bind("change", function(){
+            gaffa.model.set(viewModel.properties.text.binding, $(this).val());    
+        });
+        
+        viewModel.viewContainers.content = renderedElement;
+        
+		return renderedElement;
+	}
+
+	function newView() {
+		
+		function view() {
+		}	
+		
+		view.prototype = {
+			render: function(viewModel) {
+        		if (viewModel.renderedElement) {
+					return viewModel.renderedElement;
+				}
+
+				$.extend(true, viewModel, defaults, viewModel);
+                
+                viewModel.renderedElement = createElement(viewModel);
+                
+                for(var key in viewModel.properties){
+                    thisView.update[key](viewModel, viewModel.properties[key].value, true);
+                }
+
+				return viewModel.renderedElement;
+            },
+			update: {
+                text: function(viewModel, value, firstRun) {
+                    if(viewModel.properties.text.value !== value || firstRun){
+                        viewModel.properties.text.value = value;
+                        var element = viewModel.renderedElement;
+                        if(element){
+                            element.val(value);
+                        }
+                    }                    
+                }
+			}
+		};
+		return new view();
+	}
 })();
