@@ -1,0 +1,28 @@
+<html>
+<head>
+<script src="gaffa.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+    gaffa.dataModel.set("stuff/property/object/property", "stuff");
+    console.log(gaffa.dataModel.get("stuff"));
+    
+    
+    gaffa.dataModel.set("stuff/property/object/property2", "stuff2");
+    console.log(gaffa.dataModel.get("stuff"));
+    
+    
+    gaffa.dataModel.set("stuff/property/object/property/forceparenttobeanobject", "stuff");
+    console.log(gaffa.dataModel.get("stuff"));
+    
+    
+    gaffa.dataModel.set("stuff/property/object/property3/4/", "im in an array :D");
+    console.log(gaffa.dataModel.get("stuff"));
+
+</script>
+</head>
+<body>
+Nothin but a test page.
+
+Run it again, but breakpoint on the above code to see the different outcomes.
+</body>
+</html>
