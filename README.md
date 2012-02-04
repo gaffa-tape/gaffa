@@ -1,9 +1,18 @@
 # gaffa
 
-## Overivew
+## Overview
+gaffa is a client-side javascript framework that handles bindings and interactions between views and models. Both are loaded in to gaffa via a JSON object and may be manipulated at any time.
+
+### Models
+
+### Views
+
+### Actions
+
+### Behaviours
 
 ## Bundles
-A Bundle is a collection of Actions and Views that gaffa will use to render views in the browser and control interations.
+A Bundle is a collection of Actions and Views that gaffa uses to render.
 
 ## Examples
 Examples included:
