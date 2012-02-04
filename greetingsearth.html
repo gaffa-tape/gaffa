@@ -1,15 +1,26 @@
 <html>
     <head>
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+        
+        <!-- the tape -->
         <script src="gaffa.js" type="text/javascript"></script>
+        
+        <!-- views -->
         <script src="views/container.js" type="text/javascript"></script>
         <script src="views/textbox.js" type="text/javascript"></script>
         <script src="views/checkbox.js" type="text/javascript"></script>
         <script src="views/paragraph.js" type="text/javascript"></script>
         <script src="views/heading.js" type="text/javascript"></script>
         <script src="views/list.js" type="text/javascript"></script>
+        <script src="views/button.js" type="text/javascript"></script>
+        
+        <!-- actions -->
+        <script src="actions/toggle.js" type="text/javascript"></script>
+        
+        <!-- the application -->
         <script type="text/javascript">
         
+            /* page model */
             gaffa.model.set("stuff", {
                 someBool: true,
                 someOtherBool: false,
@@ -21,13 +32,7 @@
                 ]
             });
             
-            
-            
-            
-            
-            gaffa.model.set("stuff/someBool", true);
-            gaffa.model.set("stuff/someOtherBool", false);
-            
+            /* page view */
             gaffa.views.add({
                 type: "container",
                 views: {
@@ -55,9 +60,25 @@
                             views: {
                                 content: [
                                     {
-                                        type: "checkbox",
+                                        type: "heading",
                                         properties: {
-                                            checked: { binding: "stuff/someOtherBool" }
+                                            text: { binding: "stuff/someProperty" }
+                                        }
+                                    },
+                                    {
+                                        type: "button",
+                                        properties: {
+                                            text: { value: "Hide this container" }
+                                        },
+                                        actions:{
+                                            click: [
+                                                {
+                                                    type: "toggle",
+                                                    bindings: {
+                                                        toggle: "stuff/someOtherBool"
+                                                    }
+                                                }
+                                            ]
                                         }
                                     }
                                 ] 
@@ -120,7 +141,23 @@
                                     }
                                 ] 
                             }
-                        }                        
+                        },
+                        {
+                            type: "button",
+                            properties: {
+                                text: { value: "Toggle model property" }
+                            },
+                            actions:{
+                                click: [
+                                    {
+                                        type: "toggle",
+                                        bindings: {
+                                            toggle: "stuff/someOtherBool"
+                                        }
+                                    }
+                                ]
+                            }
+                        }                   
                     ] 
                 },
                 properties: {
@@ -128,6 +165,7 @@
                 }
             });
             
+            /* Webpage++ */
             $(document).ready(function(){
                 gaffa.views.renderTarget = $(".renderHere");
                 gaffa.views.render();

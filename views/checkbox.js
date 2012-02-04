@@ -2,25 +2,15 @@
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
         
-    var viewType = "checkbox",
-        defaults = {
-            properties: {
-                checked:{}
-            }
-        };
+    var viewType = "checkbox";
     
     window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
 
 	function createElement(viewModel) {
 		var classes = viewType;
-		if (
-            //ToDo: make a function that does this automaticaly
-            viewModel.properties
-            && viewModel.properties.classes
-            && viewModel.properties.classes.value
-        ) {
-		    classes += " " + viewModel.properties.classes.value;
+		if (gaffa.utils.propExists(viewModel, "properties.classes.value")) {
+    	    classes += " " + viewModel.properties.classes.value;
 		}
         
         var renderedElement = $(document.createElement('input')).attr('type', 'checkbox').addClass(classes);
@@ -52,10 +42,15 @@
                         }
                     }                    
                 }
-			}
+			},
+            defaults: {
+                properties: {
+                    checked:{}
+                }
+            }
 		};
         
-        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement, defaults));
+        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
         
 		return new view();
 	}

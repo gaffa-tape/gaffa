@@ -1,29 +1,15 @@
 //	Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "list",
-        defaults = {
-            viewContainers:{
-                list: []
-            },
-            properties: {
-                visible: {},                
-                list: {}
-            }
-        };
+    var viewType = "list";
     
 	window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
     
 	function createElement(viewModel) {
 		var classes = viewType;
-		if (
-            //ToDo: make a function that does this automaticaly
-            viewModel.properties
-            && viewModel.properties.classes
-            && viewModel.properties.classes.value
-        ) {
-		    classes += " " + viewModel.properties.classes.value;
+		if (gaffa.utils.propExists(viewModel, "properties.classes.value")) {
+    	    classes += " " + viewModel.properties.classes.value;
 		}
         
         var renderedElement = $(document.createElement('div')).addClass(classes);
@@ -39,22 +25,9 @@
 		}	
 		
 		view.prototype = {
-			update: {
-                visible: function(viewModel, value, firstRun) {
-                    if(viewModel.properties.visible.value !== value || firstRun){
-                        viewModel.properties.visible.value = value;
-                        var element = viewModel.renderedElement;
-                        if(element){
-                            if(value !== false){
-                                element.show();
-                            }else{
-                                element.hide();
-                            }
-                        }
-                    }                    
-                },                
+			update: {             
                 list: function(viewModel, value, firstRun) {
-                    if(value && value.length && (viewModel.properties.list.length !== value.length || firstRun)){
+                    if(value && value.length && (viewModel.properties.list.value.length !== value.length || firstRun)){
                         viewModel.properties.list.value = value;
                         var element = viewModel.renderedElement;
                         if(element && viewModel.properties.list.template){
@@ -67,12 +40,25 @@
                             }
                             window.gaffa.views.render(viewModel.viewContainers.list, viewModel.viewContainers.list.element);
                         }
-                    }                    
+                    }else{
+                        while(viewModel.viewContainers.list.length){
+                            viewModel.viewContainers.list.pop().renderedElement.remove();
+                        }
+                    }
                 }
-			}
+			},
+            defaults: {
+                viewContainers:{
+                    list: []
+                },
+                properties: {
+                    visible: {},                
+                    list: {}
+                }
+            }
 		};
         
-        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement, defaults));
+        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
                 
 		return new view();
 	}
