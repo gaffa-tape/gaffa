@@ -18,46 +18,48 @@
     
     //Lots of similarities between get and set, refactor later to reuse code.
     function get(path, model){
-        var keys = path.split(gaffa.pathSeparator()),
-            reference = model;
-            
-        for(var keyIndex = 0; keyIndex < keys.length; keyIndex++){
-            
-            //Up a level string. if encountered, knock out the previous key and the current one.
-            if(keys[keyIndex] === gaffa.upALevel()){
-                keys.splice(Math.max(keyIndex-1,0), 2);
-                keyIndex--;
-                                
-            }else{
+        if(path){
+            var keys = path.split(gaffa.pathSeparator()),
+                reference = model;
                 
-                /*  
-                    if the thing at the current key in the model is an object
-                    or an array (both typeof to object),
-                    set it as the thing we want to look into next.
-                */
-                if(typeof reference[keys[keyIndex]] === "object"){
-                    reference = reference[keys[keyIndex]];
-                    
-                /* 
-                    else if there isn't anything at this key, exit the loop,
-                    and return undefined.
-                */   
-                }else if(reference[keys[keyIndex]] === undefined){
-                    reference = undefined;
-                    break;
-                    
-                /*  
-                    otherwise, we're at the end of the line. return whatever's
-                    there
-                */
+            for(var keyIndex = 0; keyIndex < keys.length; keyIndex++){
+                
+                //Up a level string. if encountered, knock out the previous key and the current one.
+                if(keys[keyIndex] === gaffa.upALevel()){
+                    keys.splice(Math.max(keyIndex-1,0), 2);
+                    keyIndex--;
+                                    
                 }else{
-                    reference = reference[keys[keyIndex]];
-                    break;
+                    
+                    /*  
+                        if the thing at the current key in the model is an object
+                        or an array (both typeof to object),
+                        set it as the thing we want to look into next.
+                    */
+                    if(typeof reference[keys[keyIndex]] === "object"){
+                        reference = reference[keys[keyIndex]];
+                        
+                    /* 
+                        else if there isn't anything at this key, exit the loop,
+                        and return undefined.
+                    */   
+                    }else if(reference[keys[keyIndex]] === undefined){
+                        reference = undefined;
+                        break;
+                        
+                    /*  
+                        otherwise, we're at the end of the line. return whatever's
+                        there
+                    */
+                    }else{
+                        reference = reference[keys[keyIndex]];
+                        break;
+                    }
                 }
             }
-        }
                 
-        return reference;   
+        return reference;  
+        }
     }
     
     function set(path, value, model){
@@ -122,10 +124,12 @@
             }
             // this function is to create a closure so that 'key' is still the same key when the event fires.
             (function(key){
-                view.properties[key].value = gaffa.model.get(view.properties[key].binding);
-                $(gaffa.model).bind(["change"].concat( view.properties[key].binding.split(gaffa.pathSeparator())).join("."), function(){
-                    gaffa.views[view.type].update[key](view, gaffa.model.get(view.properties[key].binding));
-                });
+                if(view.properties[key].binding){
+                    view.properties[key].value = gaffa.model.get(view.properties[key].binding);
+                    $(gaffa.model).bind(["change"].concat( view.properties[key].binding.split(gaffa.pathSeparator())).join("."), function(){
+                        gaffa.views[view.type].update[key](view, gaffa.model.get(view.properties[key].binding));
+                    });
+                }
             })(key);
         }
         
@@ -215,7 +219,10 @@
                         viewModel.renderedElement = createElement(viewModel);
                         
                         for(var key in viewModel.properties){
-                            window.gaffa.views[viewType].update[key](viewModel, viewModel.properties[key].value, true);
+                            var updateFunction = window.gaffa.views[viewType].update[key];
+                            if(updateFunction && typeof updateFunction === "function"){
+                                updateFunction(viewModel, viewModel.properties[key].value, true);
+                            }
                         }
         
         				return viewModel.renderedElement;

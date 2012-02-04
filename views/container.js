@@ -40,7 +40,7 @@
                 visible: function(viewModel, value, firstRun) {
                     if(viewModel.properties.visible.value !== value || firstRun){
                         viewModel.properties.visible.value = value;
-    				    var element = viewModel.renderedElement;
+                        var element = viewModel.renderedElement;
                         if(element){
                             if(value){
                                 element.show();

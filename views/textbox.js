@@ -26,7 +26,7 @@
         var renderedElement = $(document.createElement('input')).attr('type', 'text').addClass(classes);
         
         $(renderedElement).bind("change", function(){
-            gaffa.model.set(viewModel.properties.text.binding, $(this).val());    
+            window.gaffa.model.set(viewModel.properties.text.binding, $(this).val());    
         });
         
         viewModel.viewContainers.content = renderedElement;
