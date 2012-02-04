@@ -178,6 +178,7 @@
                 }
             },
             views: {
+                renderTarget: null,            
                 render: function(views, parent){ //parameters optional.
                    if(views && views.length){
                        for(var i = 0; i < views.length; i ++){
@@ -187,7 +188,7 @@
                        renderView(views, parent);
                    }else{
                        for(var i = 0; i < internalViews.length; i ++){
-                            renderView(internalViews[i], $("body"));
+                            renderView(internalViews[i], this.renderTarget || $("body"));
                        }
                    }
                 },

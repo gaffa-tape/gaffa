@@ -129,7 +129,8 @@
             });
             
             $(document).ready(function(){
-                gaffa.views.render()
+                gaffa.views.renderTarget = $(".renderHere");
+                gaffa.views.render();
             });
         
         </script>
@@ -142,5 +143,6 @@
         </style>
     </head>
     <body>
+        <div class="renderHere"></div>
     </body>
 </html>
