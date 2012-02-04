@@ -1,26 +1,26 @@
 //    Properties:
-//		styles: container | container-fluid | row | row-fluid | span* | offset*
+//    	styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
         
-    var defaults = {
-        viewContainers:{},
-        properties: {
-            text: {}   
-        }
-    };
+    var viewType = "textbox",
+        defaults = {
+            properties: {
+                text: {}
+            }
+        };
     
     window.gaffa.views = window.gaffa.views || {};
-	window.gaffa.views.textbox = window.gaffa.views.textbox || newView();
+	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
 
 	function createElement(viewModel) {
-		var classes = "textbox";
+		var classes = viewType;
 		if (
             //ToDo: make a function that does this automaticaly
             viewModel.properties
             && viewModel.properties.classes
             && viewModel.properties.classes.value
         ) {
-		    classes = viewModel.properties.classes.value;
+		    classes += " " + viewModel.properties.classes.value;
 		}
         
         var renderedElement = $(document.createElement('input')).attr('type', 'text').addClass(classes);
@@ -28,9 +28,7 @@
         $(renderedElement).bind("change", function(){
             window.gaffa.model.set(viewModel.properties.text.binding, $(this).val());    
         });
-        
-        viewModel.viewContainers.content = renderedElement;
-        
+                
 		return renderedElement;
 	}
 
@@ -53,7 +51,7 @@
 			}
 		};
         
-        $.extend(true, view.prototype, window.gaffa.views.base("textbox", createElement, defaults));
+        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement, defaults));
         
 		return new view();
 	}

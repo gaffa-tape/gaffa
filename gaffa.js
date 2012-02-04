@@ -91,6 +91,9 @@
             // if we are at the end of the line, set to the model
             }else if(keyIndex === keys.length - 1){
                 reference[keys[keyIndex]] = value;
+                if(!isNaN(reference.length)){
+                    $(gaffa.model).trigger("change." + keys.slice(0, keys.length - 2).join("."));
+                }
                 
             //otherwise, RECURSANIZE!
             }else{
@@ -110,17 +113,21 @@
                 }
                 for(var key in view.views){
                     for(var i = 0; i < view.views[key].length; i ++){                        
-                        renderView(view.views[key][i], view.viewContainers[key]);
+                        renderView(view.views[key][i], view.viewContainers[key].element);
                     }
                 }
             }
         },0);
     }
     
-    function bindView(view, parentView){
+    function bindView(view, parentView, index){
         for( var key in view.properties){
             if(parentView && view.properties[key] && view.properties[key].binding){
-                view.properties[key].binding = gaffa.paths.getAbsolutePath(parentView.binding ,view.properties[key].binding);
+                var parentViewBinding = parentView.binding; 
+                if(index !== undefined && !isNaN(index)){
+                    parentViewBinding+= gaffa.pathSeparator() + index;
+                }
+                view.properties[key].binding = gaffa.paths.getAbsolutePath(parentViewBinding , view.properties[key].binding);
             }
             // this function is to create a closure so that 'key' is still the same key when the event fires.
             (function(key){
@@ -148,9 +155,12 @@
         gaffa.prototype = {
             paths: {
                 getAbsolutePath: function(parentBinding, childBinding){
-                    if(childBinding.indexOf(gaffa.relativePath) === 0){
-                        childBinding.replace(gaffa.relativePath, "");
-                        return parentBinding + gaffa.pathSeparator + childBinding;
+                    if(childBinding.indexOf(window.gaffa.relativePath()) === 0){
+                        childBinding = childBinding.replace(window.gaffa.relativePath(), "");
+                        if(childBinding === ""){
+                            return parentBinding;
+                        }
+                        return parentBinding + window.gaffa.pathSeparator() + childBinding;
                     }else{
                         return childBinding;
                     }
@@ -181,7 +191,7 @@
                        }
                    }
                 },
-                add: function(views, parentView, parentViewChildArray){
+                add: function(views, parentView, parentViewChildArray, index){
                     if(views && !views.length){
                        views = [views];
                     }
@@ -190,7 +200,7 @@
                         if(parentView && parentViewChildArray){
                             
                             //bind ALL the things!
-                            bindView(views[i], parentView);
+                            bindView(views[i], parentView, index);
                             
                             parentViewChildArray.push(views[i]);
                         }else{
@@ -200,7 +210,7 @@
                             
                             for(var key in views[i].views){
                                 for(var j = 0; j < views[i].views[key].length; j++){
-                                    bindView(views[i].views[key][j], views[i]);
+                                    bindView(views[i].views[key][j], views[i], index);
                                 }
                             }
                             internalViews.push(views[i]);

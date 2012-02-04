@@ -1,13 +1,14 @@
 //	Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "container",
+    var viewType = "list",
         defaults = {
             viewContainers:{
-                content:[]
+                list: []
             },
             properties: {
-                visible: {}
+                visible: {},                
+                list: {}
             }
         };
     
@@ -27,7 +28,7 @@
         
         var renderedElement = $(document.createElement('div')).addClass(classes);
         
-        viewModel.viewContainers.content.element = renderedElement;
+        viewModel.viewContainers.list.element = renderedElement;
         
 		return renderedElement;
 	}
@@ -49,6 +50,22 @@
                             }else{
                                 element.hide();
                             }
+                        }
+                    }                    
+                },                
+                list: function(viewModel, value, firstRun) {
+                    if(value && value.length && (viewModel.properties.list.length !== value.length || firstRun)){
+                        viewModel.properties.list.value = value;
+                        var element = viewModel.renderedElement;
+                        if(element && viewModel.properties.list.template){
+                            var listViews = viewModel.viewContainers.list;
+                            while(value.length < listViews.length){
+                                viewModel.viewContainers.list.pop().renderedElement.remove();
+                            }
+                            while(value.length > listViews.length){
+                                window.gaffa.views.add($.extend(true, {}, viewModel.properties.list.template), viewModel, listViews, listViews.length);
+                            }
+                            window.gaffa.views.render(viewModel.viewContainers.list, viewModel.viewContainers.list.element);
                         }
                     }                    
                 }

@@ -1,13 +1,11 @@
 //	Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "container",
+    var viewType = "heading",
         defaults = {
-            viewContainers:{
-                content:[]
-            },
             properties: {
-                visible: {}
+                visible: {},
+                text: {}
             }
         };
     
@@ -25,10 +23,8 @@
 		    classes += " " + viewModel.properties.classes.value;
 		}
         
-        var renderedElement = $(document.createElement('div')).addClass(classes);
-        
-        viewModel.viewContainers.content.element = renderedElement;
-        
+        var renderedElement = $(document.createElement('h1')).addClass(classes);
+                
 		return renderedElement;
 	}
 
@@ -49,6 +45,15 @@
                             }else{
                                 element.hide();
                             }
+                        }
+                    }                    
+                },
+                text: function(viewModel, value, firstRun) {
+                    if(viewModel.properties.text.value !== value || firstRun){
+                        viewModel.properties.text.value = value;
+                        var element = viewModel.renderedElement;
+                        if(element){
+                            element.text(value);
                         }
                     }                    
                 }

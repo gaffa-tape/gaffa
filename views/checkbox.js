@@ -1,19 +1,17 @@
-//	Properties:
+//    Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "container",
+        
+    var viewType = "checkbox",
         defaults = {
-            viewContainers:{
-                content:[]
-            },
             properties: {
-                visible: {}
+                checked:{}
             }
         };
     
-	window.gaffa.views = window.gaffa.views || {};
+    window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
-    
+
 	function createElement(viewModel) {
 		var classes = viewType;
 		if (
@@ -25,10 +23,12 @@
 		    classes += " " + viewModel.properties.classes.value;
 		}
         
-        var renderedElement = $(document.createElement('div')).addClass(classes);
+        var renderedElement = $(document.createElement('input')).attr('type', 'checkbox').addClass(classes);
         
-        viewModel.viewContainers.content.element = renderedElement;
-        
+        $(renderedElement).bind("change", function(){
+            window.gaffa.model.set(viewModel.properties.checked.binding, renderedElement.attr("checked") === "checked");    
+        });
+                
 		return renderedElement;
 	}
 
@@ -39,15 +39,15 @@
 		
 		view.prototype = {
 			update: {
-                visible: function(viewModel, value, firstRun) {
-                    if(viewModel.properties.visible.value !== value || firstRun){
-                        viewModel.properties.visible.value = value;
+                checked: function(viewModel, value, firstRun) {
+                    if(viewModel.properties.checked.value !== value || firstRun){
+                        viewModel.properties.checked.value = value;
                         var element = viewModel.renderedElement;
                         if(element){
-                            if(value !== false){
-                                element.show();
+                            if(value){
+                                element.attr("checked", "checked");
                             }else{
-                                element.hide();
+                                element.removeAttr("checked");
                             }
                         }
                     }                    
@@ -56,7 +56,7 @@
 		};
         
         $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement, defaults));
-                
+        
 		return new view();
 	}
 })();
