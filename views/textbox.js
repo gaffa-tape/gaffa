@@ -1,15 +1,16 @@
 //    Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-	window.gaffa.views = window.gaffa.views || {};
-	var thisView = window.gaffa.views.textbox = window.gaffa.views.textbox || newView();
-    
+        
     var defaults = {
-            viewContainers:{},
-            properties: {
-                text: {}   
-            }
-        };
+        viewContainers:{},
+        properties: {
+            text: {}   
+        }
+    };
+    
+    window.gaffa.views = window.gaffa.views || {};
+	window.gaffa.views.textbox = window.gaffa.views.textbox || newView();
 
 	function createElement(viewModel) {
 		var classes = "textbox";
@@ -39,21 +40,6 @@
 		}	
 		
 		view.prototype = {
-			render: function(viewModel) {
-        		if (viewModel.renderedElement) {
-					return viewModel.renderedElement;
-				}
-
-				$.extend(true, viewModel, defaults, viewModel);
-                
-                viewModel.renderedElement = createElement(viewModel);
-                
-                for(var key in viewModel.properties){
-                    thisView.update[key](viewModel, viewModel.properties[key].value, true);
-                }
-
-				return viewModel.renderedElement;
-            },
 			update: {
                 text: function(viewModel, value, firstRun) {
                     if(viewModel.properties.text.value !== value || firstRun){
@@ -66,6 +52,9 @@
                 }
 			}
 		};
+        
+        $.extend(true, view.prototype, window.gaffa.views.base("textbox", createElement, defaults));
+        
 		return new view();
 	}
 })();

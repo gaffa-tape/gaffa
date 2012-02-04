@@ -202,7 +202,26 @@
                             internalViews.push(views[i]);
                         }
                    }
-                }
+                },
+                base: function(viewType, createElement, defaults){
+                    return {
+                        render: function(viewModel) {
+            			if (viewModel.renderedElement) {
+        					return viewModel.renderedElement;
+        				}
+        
+        				$.extend(true, viewModel, defaults, viewModel);
+                        
+                        viewModel.renderedElement = createElement(viewModel);
+                        
+                        for(var key in viewModel.properties){
+                            window.gaffa.views[viewType].update[key](viewModel, viewModel.properties[key].value, true);
+                        }
+        
+        				return viewModel.renderedElement;
+                        }
+                    }
+    			}
             }
         };
         

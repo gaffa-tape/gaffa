@@ -1,16 +1,17 @@
 //	Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-	window.gaffa.views = window.gaffa.views || {};
-	var thisView = window.gaffa.views.container = window.gaffa.views.container || newView();
     
     var defaults = {
-            viewContainers:{},
-            properties: {
-                visible: {}   
-            }
-        };
-
+        viewContainers:{},
+        properties: {
+            visible: {}   
+        }
+    };
+    
+	window.gaffa.views = window.gaffa.views || {};
+	window.gaffa.views.container = window.gaffa.views.container || newView();
+    
 	function createElement(viewModel) {
 		var classes = "container";
 		if (
@@ -35,21 +36,6 @@
 		}	
 		
 		view.prototype = {
-			render: function(viewModel) {
-				if (viewModel.renderedElement) {
-					return viewModel.renderedElement;
-				}
-
-				$.extend(true, viewModel, defaults, viewModel);
-                
-                viewModel.renderedElement = createElement(viewModel);
-                
-                for(var key in viewModel.properties){
-                    thisView.update[key](viewModel, viewModel.properties[key].value, true);
-                }
-
-				return viewModel.renderedElement;
-			},
 			update: {
                 visible: function(viewModel, value, firstRun) {
                     if(viewModel.properties.visible.value !== value || firstRun){
@@ -66,6 +52,9 @@
                 }
 			}
 		};
+        
+        $.extend(true, view.prototype, window.gaffa.views.base("container", createElement, defaults));
+                
 		return new view();
 	}
 })();
