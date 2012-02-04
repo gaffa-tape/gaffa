@@ -1,7 +1,7 @@
 //	Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "paragraph";
+    var viewType = "linebreak";
     
 	window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
@@ -12,9 +12,7 @@
     	    classes += " " + viewModel.properties.classes.value;
 		}
         
-        var renderedElement = $(document.createElement('p')).addClass(classes);
-        
-        viewModel.viewContainers.content.element = renderedElement;
+        var renderedElement = $(document.createElement('br')).addClass(classes);
                 
 		return renderedElement;
 	}
@@ -28,11 +26,10 @@
 			update: {
 			},
             defaults: {
-                viewContainers:{
-                    content:[]
-                },
                 properties: {
-                    visible: {}
+                    visible: {},
+                    text: {},
+                    href: {}
                 }
             }
 		};
