@@ -1,0 +1,172 @@
+<html>
+    <head>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+        <link href="site.css" media="screen" rel="stylesheet" type="text/css">
+        
+        <!-- the tape -->
+        <script src="gaffa.js" type="text/javascript"></script>
+        
+        <!-- views -->
+        <script src="views/container.js" type="text/javascript"></script>
+        <script src="views/textbox.js" type="text/javascript"></script>
+        <script src="views/checkbox.js" type="text/javascript"></script>
+        <script src="views/paragraph.js" type="text/javascript"></script>
+        <script src="views/text.js" type="text/javascript"></script>
+        <script src="views/linebreak.js" type="text/javascript"></script>
+        <script src="views/anchor.js" type="text/javascript"></script>
+        <script src="views/label.js" type="text/javascript"></script>
+        <script src="views/heading.js" type="text/javascript"></script>
+        <script src="views/list.js" type="text/javascript"></script>
+        <script src="views/button.js" type="text/javascript"></script>
+        <script src="views/quote.js" type="text/javascript"></script>
+        <script src="views/nav.js" type="text/javascript"></script>
+        
+        <!-- actions -->
+        <script src="actions/toggle.js" type="text/javascript"></script>
+        
+        <!-- the application -->
+        <script type="text/javascript">
+        
+            /* page model */
+            gaffa.model.set("stuff", {
+                someBool: true,
+                someOtherBool: false,
+                someProperty: "a heading",
+                anArray: [
+                    "value1",
+                    "value2",
+                    "value3"
+                ]
+            });
+            
+            /* page view */
+            gaffa.views.add([
+                {
+                    type: "nav",
+                    properties: {
+                        text: { value: "gaffa.js" },
+                        fixed: { value: true }
+                    }
+                },
+                {
+                    type: "container",
+                    properties: {
+                        classes: { value: "container"}    
+                    },
+                    views: {
+                        content: [
+                        {
+                            type: "container",
+                            properties: {
+                                classes: { value: "row" }
+                            },
+                            views: {
+                                content: [
+                                    {
+                                        type: "container",  
+                                        properties: {
+                                            classes: { value: "span12" }
+                                        },
+                                        views: {
+                                            content: [
+                                                {
+                                                    type: "heading",
+                                                    properties: {
+                                                        text: { value: "What is Gaffa?" }
+                                                    }
+                                                },
+                                                {
+                                                    type: "quote",
+                                                    properties: {
+                                                        text: { value: "Gaffer tape, gaffer's tape, gaff tape[1] or gaffa tape[2] is a strong, tough, cotton cloth pressure sensitive tape with strong adhesive properties." },
+                                                        cite: { value: "Wikipedia" },
+                                                        citeHref: { value: "http://en.wikipedia.org/wiki/Gaffer_tape" }
+                                                        //alignment: { value: "right" }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            type: "container",
+                            properties: {
+                                classes: { value: "row" }
+                            },
+                            views: {
+                                content: [
+                                    {
+                                        type: "container",  
+                                        properties: {
+                                            classes: { value: "span12" }
+                                        },
+                                        views: {
+                                            content: [
+                                                {
+                                                    type: "heading",
+                                                    properties: {
+                                                        text: { value: "but seriously..." }
+                                                    }
+                                                },
+                                                {
+                                                    type:"paragraph",
+                                                    views:{
+                                                        content: [
+                                                            {
+                                                                type: "text",
+                                                                properties: {
+                                                                    text: { value: "gaffa.js sticks your DOM to your models. Just set your model to any javascript object, and bind your pages views to properties on it, using paths." }
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                },
+                                                {
+                                                    type:"paragraph",
+                                                    views:{
+                                                        content:[
+                                                            {
+                                                                type: "text",
+                                                                properties: {
+                                                                    text: { value: "100% of all the things are JSON, the page is made up of JSON 'views'" }
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                },
+                                                {
+                                                    type:"paragraph",
+                                                    views:{
+                                                        content:[
+                                                            {
+                                                                type: "text",
+                                                                properties: {
+                                                                    text: { value: "Because everything is made up of these 'views', reusing layout is a must. This helps create a consitant UI." }
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }]);
+
+            /* Webpage++ */
+            $(document).ready(function(){
+                gaffa.views.renderTarget = $("body");
+                gaffa.views.render();
+            });
+        
+        </script>
+    </head>
+    <body>
+    </body>
+</html>

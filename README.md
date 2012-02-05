@@ -1,7 +1,7 @@
 # gaffa
 
 ## Overview
-gaffa is a client-side javascript framework that handles bindings and interactions between views and models. Both are loaded in to gaffa via a JSON object and may be manipulated at any time.
+gaffa.js is a client-side javascript framework that is the glue between views and models. Both are loaded in to gaffa via a JSON object where values, behaviours, and bindings may be set.
 
 ### Models
 
