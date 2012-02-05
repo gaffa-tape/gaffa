@@ -9,29 +9,28 @@
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
     
 	function createElement(viewModel) {
-		if (gaffa.utils.propExists(viewModel, "properties.alignment.value")) {
-			var classes = ""
-			switch (viewModel.properties.alignment.value)
-			{
-				case "right":
-					classes = "pull-right";
-					break;
-				case "left":
-					classes = "pull-left";
-					break;
-				default:
-    	    		break;
-    	    }
-		}
         var classes = "navbar";
+    	if (gaffa.utils.propExists(viewModel, "properties.classes.value")) {
+            classes += " " + viewModel.properties.classes.value;
+		}
         if (gaffa.utils.propExists(viewModel, "properties.fixed.value")) {
             if (viewModel.properties.fixed.value)
             {
-                classes = "navbar navbar-fixed-top";
-            } else {
-                classes = "navbar";
+                classes += " navbar-fixed-top";
             }
-        }
+        }else if (gaffa.utils.propExists(viewModel, "properties.alignment.value")) {
+			switch (viewModel.properties.alignment.value)
+			{
+				case "right":
+					classes += " pull-right";
+					break;
+				case "left":
+					classes += " pull-left";
+					break;
+				default:
+                    break;
+            }
+		}
 
         var mainBar = $(document.createElement('div')).addClass(classes),
             innerBar = $(document.createElement('div')).addClass('navbar-inner'),
@@ -66,8 +65,7 @@
                     visible: {},
                     text: {},
                     alignment: {},
-                    fixed: {},
-                    visible: {}
+                    fixed: {}
                 }
             }
 		};

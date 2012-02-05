@@ -9,27 +9,28 @@
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
     
 	function createElement(viewModel) {
+		var classes = "quote";
+    	if (gaffa.utils.propExists(viewModel, "properties.classes.value")) {
+            classes += " " + viewModel.properties.classes.value;
+		}
 		if (gaffa.utils.propExists(viewModel, "properties.alignment.value")) {
-			var classes = ""
 			switch (viewModel.properties.alignment.value)
 			{
 				case "right":
-					classes = "pull-right";
+					classes += " pull-right";
 					break;
 				case "left":
-					classes = "pull-left";
+					classes += " pull-left";
 					break;
 				default:
-    	    		break;
-    	    }
+                    break;
+            }
 		}
 
         var paragraph = $(document.createElement('p')),
-        	small = $(document.createElement('small')),
-        	cite = $(document.createElement('cite')),
+            small = $(document.createElement('small')),
+            cite = $(document.createElement('cite')),
 			renderedElement = $(document.createElement('blockquote')).addClass(classes).append(paragraph).append(small.append(cite));
-        
-        //viewModel.viewContainers.content.element = renderedElement;
                 
 		return renderedElement;
 	}
@@ -51,8 +52,8 @@
                     }                    
                 },
                 cite: function(viewModel, value, firstRun) {
-                	if (!viewModel.properties.citeHref.value)
-                	{
+                    if (!viewModel.properties.citeHref.value)
+                    {
 	                    if(viewModel.properties.cite.value !== value || firstRun){
 	                        viewModel.properties.cite.value = value;
 	                        var element = viewModel.renderedElement;
@@ -79,8 +80,7 @@
                     text: {},
                     cite: {},
                     citeHref: {},
-                    alignment: {},
-                    visible: {}
+                    alignment: {}
                 }
             }
 		};
