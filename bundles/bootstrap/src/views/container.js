@@ -1,22 +1,22 @@
 //	Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
-(function(undefined)) {
-	window.gaffa.views = window.gaffa.views || {};
-	window.gaffa.views.container = window.gaffa.views.container || newView();
+(function(undefined) {
+    var viewType = "container";
     
-    var defaults = {};
-
+	window.gaffa.views = window.gaffa.views || {};
+	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
+    
 	function createElement(viewModel) {
-		var classes = "container";
-		if (
-            //ToDo: make a function that does this automaticaly
-            viewModel.properties
-            && viewModel.properties.classes
-            && viewModel.properties.classes.value
-        ) {
+		var classes = viewType;
+		if (gaffa.utils.propExists(viewModel, "properties.classes.value")) {
 		    classes = viewModel.properties.classes.value;
 		}
-		return $(document.createElement('div')).addClass(classes);
+        
+        var renderedElement = $(document.createElement('div')).addClass(classes);
+        
+        viewModel.viewContainers.content.element = renderedElement;
+        
+		return renderedElement;
 	}
 
 	function newView() {
@@ -25,19 +25,20 @@
 		}	
 		
 		view.prototype = {
-			render: function(viewModel) {
-				if (viewModel.renderedElement) {
-					return viewModel.renderedElement;
-				}
-
-				viewModel = $.extend(true, {}, defaults, viewModel);
-
-				return viewModel.renderedElement = createElement(viewModel);
+			update: {                
 			},
-			update: function(viewModel) {
-				var element = viewModel.renderedElement;
-			}
+            defaults: {
+                viewContainers:{
+                    content:[]
+                },
+                properties: {
+                    visible: {}
+                }
+            }
 		};
-		return new newView();
+        
+        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
+                
+		return new view();
 	}
-}
+})();

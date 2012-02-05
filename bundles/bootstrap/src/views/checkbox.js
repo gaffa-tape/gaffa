@@ -1,20 +1,23 @@
-//	Properties:
+//    Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "paragraph";
+        
+    var viewType = "checkbox";
     
-	window.gaffa.views = window.gaffa.views || {};
+    window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
-    
+
 	function createElement(viewModel) {
 		var classes = viewType;
 		if (gaffa.utils.propExists(viewModel, "properties.classes.value")) {
     	    classes += " " + viewModel.properties.classes.value;
 		}
         
-        var renderedElement = $(document.createElement('p')).addClass(classes);
+        var renderedElement = $(document.createElement('input')).attr('type', 'checkbox').addClass(classes);
         
-        viewModel.viewContainers.content.element = renderedElement;
+        $(renderedElement).bind("change", function(){
+            window.gaffa.model.set(viewModel.properties.checked.binding, renderedElement.attr("checked") === "checked");    
+        });
                 
 		return renderedElement;
 	}
@@ -26,28 +29,29 @@
 		
 		view.prototype = {
 			update: {
-                text: function(viewModel, value, firstRun) {
-                    if(viewModel.properties.text.value !== value || firstRun){
-                        viewModel.properties.text.value = value;
+                checked: function(viewModel, value, firstRun) {
+                    if(viewModel.properties.checked.value !== value || firstRun){
+                        viewModel.properties.checked.value = value;
                         var element = viewModel.renderedElement;
                         if(element){
-                            element.text(value);
+                            if(value){
+                                element.attr("checked", "checked");
+                            }else{
+                                element.removeAttr("checked");
+                            }
                         }
                     }                    
                 }
 			},
             defaults: {
-                viewContainers:{
-                    content:[]
-                },
                 properties: {
-                    visible: {}
+                    checked:{}
                 }
             }
 		};
         
         $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-                
+        
 		return new view();
 	}
 })();
