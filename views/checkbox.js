@@ -9,9 +9,6 @@
 
 	function createElement(viewModel) {
 		var classes = viewType;
-		if (gaffa.utils.propExists(viewModel, "properties.classes.value")) {
-    	    classes += " " + viewModel.properties.classes.value;
-		}
         
         var renderedElement = $(document.createElement('input')).attr('type', 'checkbox').addClass(classes);
         

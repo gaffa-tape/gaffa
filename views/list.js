@@ -8,9 +8,6 @@
     
 	function createElement(viewModel) {
 		var classes = viewType;
-		if (gaffa.utils.propExists(viewModel, "properties.classes.value")) {
-    	    classes += " " + viewModel.properties.classes.value;
-		}
         
         var renderedElement = $(document.createElement('div')).addClass(classes);
         
@@ -40,7 +37,7 @@
                             }
                             window.gaffa.views.render(viewModel.viewContainers.list, viewModel.viewContainers.list.element);
                         }
-                    }else{
+                    }else if(value && value.length === 0){
                         while(viewModel.viewContainers.list.length){
                             viewModel.viewContainers.list.pop().renderedElement.remove();
                         }

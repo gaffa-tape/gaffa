@@ -8,9 +8,6 @@
     
 	function createElement(viewModel) {
 		var classes = viewType;
-		if (gaffa.utils.propExists(viewModel, "properties.classes.value")) {
-    	    classes += " " + viewModel.properties.classes.value;
-		}
         
         var renderedElement = $(document.createElement('a')).addClass(classes);
                 
@@ -29,7 +26,7 @@
                         viewModel.properties.text.value = value;
                         var element = viewModel.renderedElement;
                         if(element){
-                            element.text(value);
+                            element.html(value);
                         }
                     }                    
                 },

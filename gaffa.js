@@ -116,7 +116,10 @@
                 reference = reference[keys[keyIndex]];
             }
         }
-
+        for (keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+            $(gaffa.model).trigger(["change"].concat(keys.slice(0,keyIndex+1)).join("_"));
+        }
+        
         $(gaffa.model).trigger("change." + keys.join("."));
     }
 
@@ -124,7 +127,9 @@
         //delegate rendering to happen as soon as possible, but not if it blocks the UI.
         //this will cause all kinds of hilariously stupid layout if you breakpoint during the render loop.
         setTimeout(function() {
-            if (gaffa.views[view.type] !== undefined) {
+            if(typeof view === "string"){
+                parent.append(view);
+            }else if (gaffa.views[view.type] !== undefined) {
                 var renderedElement = gaffa.views[view.type].render(view);
                 if (parent) {
                     parent.append(renderedElement);
@@ -151,8 +156,8 @@
     //mostly just make sure all the relative bindings are made absolute. delegate actions to the appropriate action object.
     function bindAction(action, parent) {
         for (var key in action.bindings) {
-            if (action.bindings[key] !== undefined) {
-                action.bindings[key] = gaffa.paths.getAbsolutePath(parent.binding, action.bindings[key]);
+            if (action.bindings[key] && action.bindings[key].binding !== undefined) {
+                action.bindings[key].binding = gaffa.paths.getAbsolutePath(parent.binding, action.bindings[key].binding);
             }
         }
         if(typeof gaffa.actions[action.type] === "function"){
@@ -162,7 +167,9 @@
 
     //gaffa together view properties to model properties.
     function bindView(view, parentView, index) {
-        
+        if(typeof view === "string" || gaffa.views[view.type] === undefined){
+            return;
+        }
         //ToDo: probs a better way to do this....
         $.extend(true, view, $.extend(true, {}, gaffa.views[view.type].defaults, view));
 
@@ -330,19 +337,54 @@
                                         }
                                     }
                                 }                    
+                            },
+                            classes: function(viewModel, value, firstRun){
+                                if(viewModel.properties.classes.value !== value || firstRun){
+                                    var element = viewModel.renderedElement;
+                                    if (element) {
+                                        if(viewModel.properties.classes.value){
+                                            element.removeClass(viewModel.properties.classes.value);
+                                        }
+                                        element.addClass(viewModel.properties.classes.value = value);
+                                    }
+                                }
                             }
                         },
                         
                         defaults:{
                             //Set the default view binding to nothing but a relative path.
                             //This is so all relative bindings flow on nicely.
-                            binding: gaffa.relativePath()
+                            binding: gaffa.relativePath(),
+                            properties: {
+                                visible: {},
+                                classes: {}
+                            }
                         }
                     };
                 }
             },
             actions: {
                 //placeholder for actions
+            },
+            behaviours: {
+                add: function(behaviours) {
+                    //if the views isnt an array, make it one.
+                    if (behaviours && !behaviours.length) {
+                        behaviours = [behaviours];
+                    }
+                    
+                    for (var i = 0; i < behaviours.length; i++) {
+                        (function(behaviour){
+                            $(gaffa.model).bind(['change'].concat(behaviour.binding.split('/')).join("_"), function(){
+                                for(var i = 0; i < behaviour.actions.length; i++){
+                                    if(gaffa.actions[behaviour.actions[i].type] !== undefined){
+                                        gaffa.actions[behaviour.actions[i].type](behaviour.actions[i]);
+                                    }
+                                }     
+                            });
+                        })(behaviours[i]);
+                    }
+                }
             },
             utils: {
                 //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...

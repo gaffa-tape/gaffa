@@ -9,23 +9,7 @@
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
     
 	function createElement(viewModel) {
-		var classes = "quote";
-    	if (gaffa.utils.propExists(viewModel, "properties.classes.value")) {
-            classes += " " + viewModel.properties.classes.value;
-		}
-		if (gaffa.utils.propExists(viewModel, "properties.alignment.value")) {
-			switch (viewModel.properties.alignment.value)
-			{
-				case "right":
-					classes += " pull-right";
-					break;
-				case "left":
-					classes += " pull-left";
-					break;
-				default:
-                    break;
-            }
-		}
+		var classes = viewType;
 
         var paragraph = $(document.createElement('p')),
             small = $(document.createElement('small')),
@@ -47,7 +31,7 @@
                         viewModel.properties.text.value = value;
                         var element = viewModel.renderedElement;
                         if(element){
-                            element.find('p').text(value);
+                            element.children('p').html(value);
                         }
                     }                    
                 },
@@ -58,7 +42,7 @@
 	                        viewModel.properties.cite.value = value;
 	                        var element = viewModel.renderedElement;
 	                        if (element) {
-	                            element.find('cite').text(value);
+	                            element.find('cite').html(value);
 	                        }
 	                    }
                     }                    
@@ -72,6 +56,26 @@
 
                         }
                     }                    
+                },
+                alignment: function(viewModel, value, firstRun){
+                    if(viewModel.properties.alignment.value !== value || firstRun){
+                        viewModel.properties.alignment.value = value;
+                        var element = viewModel.renderedElement;
+                        if (element) {
+                            element.removeClass("pull-right").removeClass("pull-left");
+                            switch (viewModel.properties.alignment.value)
+                    		{
+                                case "right":
+                					element.addClass("pull-right");
+                					break;
+                				case "left":
+                    				element.addClass("pull-left");
+                					break;
+                				default:
+                                    break;
+                            }
+                        }
+                    }
                 }
 			},
             defaults: {

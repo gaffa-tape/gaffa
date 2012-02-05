@@ -8,9 +8,6 @@
     
 	function createElement(viewModel) {
 		var classes = viewType;
-		if (gaffa.utils.propExists(viewModel, "properties.classes.value")) {
-    	    classes += " " + viewModel.properties.classes.value;
-		}
         
         var renderedElement = $(document.createElement('span')).addClass(classes);
                 
@@ -29,9 +26,27 @@
                         viewModel.properties.text.value = value;
                         var element = viewModel.renderedElement;
                         if(element){
-                            element.text(value);
+                            element.html(value);
                         }
                     }                    
+                },
+                subType: function(viewModel, value, firstRun) {
+                   if (viewModel.properties.subType.value !== value || firstRun) {
+                       viewModel.properties.subType.value = value;
+                       var element = viewModel.renderedElement;
+                       if (element) {
+                           element.attr('type', value);
+                       }
+                   }
+                },
+                placeholder: function(viewModel, value, firstRun) {
+                   if (viewModel.properties.placeholder.value !== value || firstRun) {
+                       viewModel.properties.placeholder.value = value;
+                       var element = viewModel.renderedElement;
+                       if (element) {
+                           element.attr('placeholder', value);
+                       }
+                   }              
                 }
 			},
             defaults: {

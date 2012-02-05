@@ -10,27 +10,6 @@
     
 	function createElement(viewModel) {
         var classes = "navbar";
-    	if (gaffa.utils.propExists(viewModel, "properties.classes.value")) {
-            classes += " " + viewModel.properties.classes.value;
-		}
-        if (gaffa.utils.propExists(viewModel, "properties.fixed.value")) {
-            if (viewModel.properties.fixed.value)
-            {
-                classes += " navbar-fixed-top";
-            }
-        }else if (gaffa.utils.propExists(viewModel, "properties.alignment.value")) {
-			switch (viewModel.properties.alignment.value)
-			{
-				case "right":
-					classes += " pull-right";
-					break;
-				case "left":
-					classes += " pull-left";
-					break;
-				default:
-                    break;
-            }
-		}
 
         var mainBar = $(document.createElement('div')).addClass(classes),
             innerBar = $(document.createElement('div')).addClass('navbar-inner'),
@@ -55,14 +34,45 @@
                         viewModel.properties.text.value = value;
                         var element = viewModel.renderedElement;
                         if(element){
-                            element.find('a').text(value);
+                            element.find('a').html(value);
                         }
                     }                    
+                },
+                fixed: function(viewModel, value, firstRun){
+                    if(viewModel.properties.fixed.value !== value || firstRun){
+                        viewModel.properties.fixed.value = value;
+                        var element = viewModel.renderedElement;
+                        if(element){
+                           if (viewModel.properties.fixed.value)
+                            {
+                                element.addClass("navbar-fixed-top");
+                            }
+                        }
+                    } 
+                },
+                alignment: function(viewModel, value, firstRun){
+                    if(viewModel.properties.alignment.value !== value || firstRun){
+                        viewModel.properties.alignment.value = value;
+                        var element = viewModel.renderedElement;
+                        if(element){                            
+                            element.removeClass("pull-right pull-left");
+                            switch (viewModel.properties.alignment.value)
+                    		{
+                				case "right":
+                					element.addClass("pull-right");
+                					break;
+                				case "left":
+                					element.addClass("pull-left");
+                					break;
+                				default:
+                                    break;
+                            }
+                        }
+                    }                     
                 }
 			},
             defaults: {
                 properties: {
-                    visible: {},
                     text: {},
                     alignment: {},
                     fixed: {}

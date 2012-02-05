@@ -2,7 +2,7 @@
 //    	styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
         
-    var viewType = "button";
+    var viewType = "textarea";
     
     window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
@@ -10,7 +10,11 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('button')).attr('type', 'text').addClass(classes);
+        var renderedElement = $(document.createElement('textarea')).addClass(classes);
+        
+        $(renderedElement).bind("change", function(){
+            window.gaffa.model.set(viewModel.properties.value.binding, $(this).val());    
+        });
                 
 		return renderedElement;
 	}
@@ -22,19 +26,19 @@
 		
 		view.prototype = {
 			update: {
-                text: function(viewModel, value, firstRun) {
-                    if(viewModel.properties.text.value !== value || firstRun){
-                        viewModel.properties.text.value = value;
+                value: function(viewModel, value, firstRun) {
+                    if(viewModel.properties.value.value !== value || firstRun){
+                        viewModel.properties.value.value = value;
                         var element = viewModel.renderedElement;
                         if(element){
-                            element.html(value);
+                            element.val(value);
                         }
                     }                    
                 }
 			},
             defaults: {
                 properties: {
-                    text: {}
+                    value: {}
                 }
             }
 		};
