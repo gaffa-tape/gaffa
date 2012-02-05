@@ -1,22 +1,19 @@
-//	Properties:
-//		size: h1, h2, h3, h4, h5, h6
+//    Properties:
+//    	styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "heading";
+        
+    var viewType = "button";
     
-	window.gaffa.views = window.gaffa.views || {};
+    window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
-    
+
 	function createElement(viewModel) {
 		var classes = viewType;
-		var elementType = "h1";
 		if (gaffa.utils.propExists(viewModel, "properties.classes.value")) {
     	    classes += " " + viewModel.properties.classes.value;
 		}
         
-		if (gaffa.utils.propExists(viewModel, "properties.size.value")) {
-			elementType = viewModel.properties.size.value;
-		}
-        var renderedElement = $(document.createElement(elementType)).addClass(classes);
+        var renderedElement = $(document.createElement('button')).attr('type', 'text').addClass(classes);
                 
 		return renderedElement;
 	}
@@ -40,14 +37,13 @@
 			},
             defaults: {
                 properties: {
-                    visible: {},
                     text: {}
                 }
             }
 		};
         
         $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-                
+        
 		return new view();
 	}
 })();
