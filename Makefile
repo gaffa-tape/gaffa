@@ -5,7 +5,7 @@ GAFFA_SRC = ./${GAFFA_FILE}
 GAFFA_MIN = ./gaffa.min.js
 ACTIONS_FOLDER = ./actions/
 VIEWS_FOLDER = ./views/
-DROP_FOLDERS = ./examples/node/public/scripts/
+DROP_FOLDERS = ./examples/node/public/scripts/ ./examples/html/public/scripts/
 LESS_COMPRESSOR ?= `which lessc`
 UGLIFY_JS ?= `which uglifyjs`
 
