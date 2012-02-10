@@ -22,6 +22,9 @@
     color:white; 
 }
 
-.header .cell{
-    
+.header{
+    display:block;
+    width:auto;
+    white-space: nowrap;
+    margin-left:0px;
 }

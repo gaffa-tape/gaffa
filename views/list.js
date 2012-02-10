@@ -23,7 +23,12 @@
 			update: {             
                 list: function(viewModel, value, firstRun) {
                     if(value && value.length && (viewModel.properties.list.value.length !== value.length || firstRun)){
-                        viewModel.properties.list.value = value;
+                        
+                        //Cant set it to the value, that would cause both to be a reference to the same array,
+                        //so their lenghts would always be the same, and this code would never execute again.
+                        // .slice(); returns a new array.
+                        viewModel.properties.list.value = value.slice();
+                        
                         var element = viewModel.renderedElement;
                         if(element && viewModel.properties.list.template){
                             var listViews = viewModel.viewContainers.list;

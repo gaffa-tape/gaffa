@@ -37,6 +37,7 @@
         <script src="actions/fromJson.js" type="text/javascript"></script>
         <script src="actions/store.js" type="text/javascript"></script>
         <script src="actions/fetch.js" type="text/javascript"></script>
+        <script src="actions/push.js" type="text/javascript"></script>
         
         <!-- the application -->
         <script type="text/javascript">
@@ -515,6 +516,23 @@
                                                             },
                                                             binding: "stuff/anArray"
                                                         }
+                                                    }
+                                                },
+                                                {
+                                                    type:"button",
+                                                    properties: {
+                                                        text: {value:"Add an array element"}
+                                                    },
+                                                    actions:{
+                                                        click:[
+                                                            {
+                                                                type: "push",
+                                                                bindings: {
+                                                                    pushTo: { binding: "stuff/anArray"},
+                                                                    pushFrom: { value: ""}
+                                                                }
+                                                            }
+                                                        ]
                                                     }
                                                 },
                                                 {

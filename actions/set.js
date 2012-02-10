@@ -3,10 +3,10 @@
 (function(undefined) {
     var actionType = "set";
     window.gaffa.actions[actionType] = function(action){
-        if(gaffa.utils.propExists(action, "bindings.setFrom.binding")){
-            gaffa.model.set(action.bindings.setTo.binding, gaffa.model.get(action.bindings.setFrom.binding));            
+        if(window.gaffa.utils.propExists(action, "bindings.setFrom.binding")){
+            window.gaffa.model.set(action.bindings.setTo.binding,window. gaffa.model.get(action.bindings.setFrom.binding));            
         }else{
-            gaffa.model.set(action.bindings.setTo.binding, action.bindings.setFrom.value);            
+            window.gaffa.model.set(action.bindings.setTo.binding, action.bindings.setFrom.value);            
         }
     };
 })();
