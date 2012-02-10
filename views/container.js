@@ -22,8 +22,6 @@
 		}	
 		
 		view.prototype = {
-			update: {                
-			},
             defaults: {
                 viewContainers:{
                     content:[]

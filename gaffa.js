@@ -22,9 +22,14 @@
         internalViews = [];
 
     //internal functions
+    
+    
+    /*
+        Now I can detect arrays.
+    */
+    Array.prototype.isArray = true;
+
     //Lots of similarities between get and set, refactor later to reuse code.
-
-
     function get(path, model) {
         if (path) {
             var keys = path.split(gaffa.pathSeparator()),
@@ -76,7 +81,8 @@
     function set(path, value, model) {
         var keys = path.split(gaffa.pathSeparator()),
             reference = model,
-            keyIndex;
+            keyIndex,
+            lastArrayLengthChange;
 
         //handle "Up A Level"s in the path.
         //yeah yeah, its done differently up above...
@@ -101,17 +107,15 @@
                     reference[keys[keyIndex]] = {};
                     reference = reference[keys[keyIndex]];
                 }
-
-                // if we are at the end of the line, set to the model
             }
             else if (keyIndex === keys.length - 1) {
+                // if we are at the end of the line, set to the model
                 reference[keys[keyIndex]] = value;
                 if (!isNaN(reference.length)) {
                     $(gaffa.model).trigger("change." + keys.slice(0, keys.length - 2).join("."));
                 }
-
-                //otherwise, RECURSANIZE!
             }
+                //otherwise, RECURSANIZE!
             else {
                 reference = reference[keys[keyIndex]];
             }
@@ -120,6 +124,9 @@
             $(gaffa.model).trigger(["change"].concat(keys.slice(0,keyIndex+1)).join("_"));
         }
         
+        //ToDo: Fire events for array.length changes
+                
+        //IMA FIREIN MA CHANGEZOR!
         $(gaffa.model).trigger("change." + keys.join("."));
     }
 
@@ -127,8 +134,9 @@
         //delegate rendering to happen as soon as possible, but not if it blocks the UI.
         //this will cause all kinds of hilariously stupid layout if you breakpoint during the render loop.
         setTimeout(function() {
-            if(typeof view === "string"){
-                parent.append(view);
+            if(view.isArray && !view.isRendered){
+                parent.append(view.join(""));
+                view.isRendered = true;
             }else if (gaffa.views[view.type] !== undefined) {
                 var renderedElement = gaffa.views[view.type].render(view);
                 if (parent) {
@@ -167,27 +175,31 @@
 
     //gaffa together view properties to model properties.
     function bindView(view, parentView, index) {
-        if(typeof view === "string" || gaffa.views[view.type] === undefined){
+        if(gaffa.views[view.type] === undefined){
             return;
         }
         //ToDo: probs a better way to do this....
         $.extend(true, view, $.extend(true, {}, gaffa.views[view.type].defaults, view));
+        
+        var parentViewBinding = "";
+        if (parentView) {            
+            parentViewBinding = parentView.binding;    
+            if(index !== undefined && !isNaN(index)){                
+                parentViewBinding += gaffa.pathSeparator() + index;
+            }    
+        }
 
         //if this is a root level view, remove the relative binding.
         // this causes all bindings to cascade as nothing untill a real binding has been set.
-        if(parentView){
-            view.binding = gaffa.paths.getAbsolutePath(parentView.binding, view.binding);
+        if(parentView){            
+            view.binding = gaffa.paths.getAbsolutePath(parentViewBinding, view.binding);
         }else{
-            view.binding = "";
+            view.binding = parentViewBinding;
         }
         
         //bind each of the views properties to the model.
         for (var key in view.properties) {
             if (parentView && view.properties[key] && view.properties[key].binding) {
-                var parentViewBinding = parentView.binding;
-                if (index !== undefined && !isNaN(index)) {
-                    parentViewBinding += gaffa.pathSeparator() + index;
-                }
                 view.properties[key].binding = gaffa.paths.getAbsolutePath(parentViewBinding, view.properties[key].binding);
             
                 // this function is to create a closure so that 'key' is still the same key when the event fires.
@@ -255,7 +267,7 @@
                             renderView(views[i], parent);
                         }
                     }
-                    //if its just one of view, just render it
+                    //if its just one view, just render it
                     else if (views) {
                         renderView(views, parent);
                     }
@@ -310,6 +322,7 @@
                             
                             //create the root level element for the view
                             viewModel.renderedElement = createElement(viewModel);
+                            viewModel.renderedElement[0].viewModel = viewModel;
                             
                             //Automatically fire all of the update functions when the view is first rendered.
                             for (var key in viewModel.properties) {

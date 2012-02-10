@@ -48,8 +48,7 @@
                 viewContainers:{
                     list: []
                 },
-                properties: {
-                    visible: {},                
+                properties: {             
                     list: {}
                 }
             }
