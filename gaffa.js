@@ -386,15 +386,28 @@
                     }
                     
                     for (var i = 0; i < behaviours.length; i++) {
-                        (function(behaviour){
-                            $(gaffa.model).bind(['change'].concat(behaviour.binding.split('/')).join("_"), function(){
-                                for(var i = 0; i < behaviour.actions.length; i++){
-                                    if(gaffa.actions[behaviour.actions[i].type] !== undefined){
-                                        gaffa.actions[behaviour.actions[i].type](behaviour.actions[i]);
-                                    }
-                                }     
-                            });
-                        })(behaviours[i]);
+                        var behaviourType = behaviours[i].type;
+                        if(behaviourType === "pageLoad"){
+                            (function(behaviour){
+                                $(document).ready(function(){
+                                        for(var i = 0; i < behaviour.actions.length; i++){
+                                            if(gaffa.actions[behaviour.actions[i].type] !== undefined){
+                                                gaffa.actions[behaviour.actions[i].type](behaviour.actions[i]);
+                                            }
+                                        }
+                                });                                
+                            })(behaviours[i]);
+                        }else if(behaviourType === "modelChange"){
+                            (function(behaviour){
+                                $(gaffa.model).bind(['change'].concat(behaviour.binding.split('/')).join("_"), function(){
+                                    for(var i = 0; i < behaviour.actions.length; i++){
+                                        if(gaffa.actions[behaviour.actions[i].type] !== undefined){
+                                            gaffa.actions[behaviour.actions[i].type](behaviour.actions[i]);
+                                        }
+                                    }     
+                                });
+                            })(behaviours[i]);
+                        }
                     }
                 }
             },

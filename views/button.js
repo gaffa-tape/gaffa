@@ -10,7 +10,7 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('button')).attr('type', 'text').addClass(classes);
+        var renderedElement = $(document.createElement('button')).attr('button', 'text').addClass(classes);
                 
 		return renderedElement;
 	}
@@ -43,4 +43,9 @@
         
 		return new view();
 	}
+    
+    $(document).delegate('button', 'click', function(event){
+        event.preventDefault();
+    });
+    
 })();

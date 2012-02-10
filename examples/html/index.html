@@ -465,6 +465,38 @@
                                                             }                                                            
                                                         }
                                                     }
+                                                },
+                                                ["The ease at which complex things can be created is sometimes silly."],
+                                                {
+                                                    type: "list",
+                                                    binding: "stuff/anArray",
+                                                    properties:
+                                                    {
+                                                        list:{
+                                                            template: {
+                                                                type: "container"
+                                                                view: [
+                                                                    {
+                                                                        type: "list",
+                                                                        binding: "stuff/anArray",
+                                                                        properties:
+                                                                        {
+                                                                            list:{
+                                                                                template: {
+                                                                                    type: "textbox",
+                                                                                    properties: {
+                                                                                        value: { binding: "~"}
+                                                                                    }
+                                                                                },
+                                                                                binding: "stuff/anArray"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                ]                                                                
+                                                            },
+                                                            binding: "stuff/anArray"
+                                                        }
+                                                    }
                                                 }
                                             ]
                                         }
