@@ -81,8 +81,7 @@
     function set(path, value, model) {
         var keys = path.split(gaffa.pathSeparator()),
             reference = model,
-            keyIndex,
-            lastArrayLengthChange;
+            keyIndex;
 
         //handle "Up A Level"s in the path.
         //yeah yeah, its done differently up above...
