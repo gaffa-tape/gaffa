@@ -76,7 +76,7 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var header = $(document.createElement('div')).addClass("header"),
+        var header = $(document.createElement('div')).addClass("header").attr('tabindex','0'),
             content = $(document.createElement('div')).addClass("content").hide(),
             renderedElement = $(document.createElement('li')).addClass(classes).append(header, content);
             
@@ -141,6 +141,12 @@
             window.gaffa.model.set(viewModel.properties.expanded.binding, window.gaffa.model.get(viewModel.properties.expanded.binding));
         }else if(window.gaffa.utils.propExists(viewModel, "properties.expanded.value")){
             window.gaffa.views[viewType].update.expanded(viewModel, !viewModel.properties.expanded.value);
+        }
+    });
+    
+    $(window).delegate('.accordionNode .header', "keydown", function(event){
+        if(event.which == "13"){
+            $(event.target).click();
         }
     });
     
