@@ -502,22 +502,7 @@
                                                         text: { value: "Other stuff" }
                                                     }
                                                 },
-                                                {
-                                                    type: "list",
-                                                    binding: "stuff/anArray",
-                                                    properties:
-                                                    {
-                                                        list:{
-                                                            template: {
-                                                                type: "textbox",
-                                                                properties: {
-                                                                    value: { binding: "~"}
-                                                                }
-                                                            },
-                                                            binding: "stuff/anArray"
-                                                        }
-                                                    }
-                                                },
+                                                ["Gaffa can be used to easily template views based on an array. <br /><br />Here is a simple example that uses textboxes as a template. The textbox's value properties are bound to '~' (relative), so they reflect the data in the array.<br />"],
                                                 {
                                                     type:"button",
                                                     properties: {
@@ -533,6 +518,22 @@
                                                                 }
                                                             }
                                                         ]
+                                                    }
+                                                },
+                                                {
+                                                    type: "list",
+                                                    binding: "stuff/anArray",
+                                                    properties:
+                                                    {
+                                                        list:{
+                                                            template: {
+                                                                type: "textbox",
+                                                                properties: {
+                                                                    value: { binding: "~"}
+                                                                }
+                                                            },
+                                                            binding: "stuff/anArray"
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -601,7 +602,7 @@
                                                         }
                                                     }
                                                 },
-                                                ["A less simple accordian control:"],
+                                                ["A less simple accordian control: <b>CAUTION!!! the number of accordion nodes created in this example is the number of array elements in the array cubed. So if you add 20 array elements, this will create 8000 accordion nodes.</b>"],
                                                 {
                                                     type: "accordion",
                                                     binding: "stuff/anArray",

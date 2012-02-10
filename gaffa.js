@@ -139,7 +139,7 @@
             }else if (gaffa.views[view.type] !== undefined) {
                 var renderedElement = gaffa.views[view.type].render(view);
                 if (parent) {
-                    parent.append(renderedElement);
+                    parent[0].appendChild(renderedElement[0]);
                 }
                 for (var key in view.views) {
                     for (var i = 0; i < view.views[key].length; i++) {

@@ -3,7 +3,8 @@
 //    Properties:
 //    	styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "accordion";
+    var viewType = "accordion",
+        cachedElement;
     
 	window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
@@ -11,7 +12,9 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('ul')).addClass(classes);
+        var renderedElement = cachedElement || (cachedElement = document.createElement('ul'));
+        
+        renderedElement = $(renderedElement.cloneNode()).addClass(classes);
         
         viewModel.viewContainers.list.element = renderedElement;
         
@@ -73,7 +76,8 @@
 //    Properties:
 //    	styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "accordionNode";
+    var viewType = "accordionNode",
+        cachedElement;
     
 	window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
@@ -81,13 +85,18 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var header = $(document.createElement('div')).addClass("header").attr('tabindex','0'),
-            content = $(document.createElement('div')).addClass("content").hide(),
-            renderedElement = $(document.createElement('li')).addClass(classes).append(header, content);
-            
+        var renderedElement = cachedElement || (cachedElement = (function(){
+            var header = $(document.createElement('div')).addClass("header").attr('tabindex','0'),
+                content = $(document.createElement('div')).addClass("content").hide(),
+                renderedElement = $(document.createElement('li')).addClass(classes).append(header, content);                
+                return renderedElement[0];
+        })());
         
-        viewModel.viewContainers.content.element = content;
-        viewModel.viewContainers.header.element = header;
+        
+        renderedElement = $(renderedElement.cloneNode(true));
+        
+        viewModel.viewContainers.content.element = renderedElement.children('.content');
+        viewModel.viewContainers.header.element = renderedElement.children('.header');
         
 		return renderedElement;
 	}

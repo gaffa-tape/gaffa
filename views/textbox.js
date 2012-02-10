@@ -2,7 +2,8 @@
 //    	styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
         
-    var viewType = "textbox";
+    var viewType = "textbox",
+        cachedElement;
     
     window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
@@ -10,13 +11,15 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('input')).attr('type', 'text').addClass(classes);
+        var renderedElement = cachedElement || (cachedElement = document.createElement('input'));
+        
+        renderedElement = $(renderedElement.cloneNode()).addClass(classes);
         
         $(renderedElement).bind("change", function(){
             window.gaffa.model.set(viewModel.properties.value.binding, $(this).val());    
         });
                 
-		return renderedElement;
+    	return renderedElement;
 	}
 
 	function newView() {
