@@ -352,7 +352,7 @@
                                     viewModel.properties.visible.value = value;
                                     var element = viewModel.renderedElement;
                                     if (element) {
-                                        if (value !== false) {
+                                        if (value) {
                                             element.show();
                                         } else {
                                             element.hide();
@@ -378,7 +378,7 @@
                             //This is so all relative bindings flow on nicely.
                             binding: gaffa.relativePath(),
                             properties: {
-                                visible: {},
+                                visible: { value: true },
                                 classes: {}
                             }
                         }
