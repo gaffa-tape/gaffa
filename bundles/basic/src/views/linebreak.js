@@ -1,7 +1,7 @@
 //	Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "container";
+    var viewType = "linebreak";
     
 	window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
@@ -9,10 +9,8 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('div')).addClass(classes);
-        
-        viewModel.viewContainers.content.element = renderedElement;
-        
+        var renderedElement = $(document.createElement('br')).addClass(classes);
+                
 		return renderedElement;
 	}
 
@@ -22,12 +20,13 @@
 		}	
 		
 		view.prototype = {
+			update: {
+			},
             defaults: {
-                viewContainers:{
-                    content:[]
-                },
                 properties: {
-                    visible: {}
+                    visible: {},
+                    text: {},
+                    href: {}
                 }
             }
 		};

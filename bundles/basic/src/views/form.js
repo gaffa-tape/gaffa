@@ -1,7 +1,7 @@
 //	Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "container";
+    var viewType = "form";
     
 	window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
@@ -9,10 +9,10 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('div')).addClass(classes);
+        var renderedElement = $(document.createElement('form')).addClass(classes);
         
         viewModel.viewContainers.content.element = renderedElement;
-        
+                
 		return renderedElement;
 	}
 
@@ -25,9 +25,6 @@
             defaults: {
                 viewContainers:{
                     content:[]
-                },
-                properties: {
-                    visible: {}
                 }
             }
 		};
