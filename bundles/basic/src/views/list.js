@@ -22,7 +22,7 @@
 		view.prototype = {
 			update: {             
                 list: function(viewModel, value, firstRun) {
-                    if(value && value.length && (viewModel.properties.list.value.length !== value.length || firstRun)){
+                    if (value && value.isArray && (viewModel.properties.list.value.length !== value.length || firstRun)) {
                         
                         //Cant set it to the value, that would cause both to be a reference to the same array,
                         //so their lenghts would always be the same, and this code would never execute again.
