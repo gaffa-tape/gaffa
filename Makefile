@@ -3,9 +3,9 @@ DATE=$(shell DATE)
 GAFFA_FILE = gaffa.js
 GAFFA_SRC = ./${GAFFA_FILE}
 GAFFA_MIN = ./gaffa.min.js
-ACTIONS_FOLDER = ./actions/
-VIEWS_FOLDER = ./views/
-DROP_FOLDERS = ./examples/node/public/scripts/ ./examples/html/public/scripts/
+ACTIONS_FOLDER = ./bundles/basic/src/actions/
+VIEWS_FOLDER = ./bundles/basic/src/views/
+DROP_FOLDERS = ./examples/node/public/scripts/ ./examples/html/scripts/
 LESS_COMPRESSOR ?= `which lessc`
 UGLIFY_JS ?= `which uglifyjs`
 
