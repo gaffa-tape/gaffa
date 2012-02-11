@@ -12,6 +12,8 @@
         
         var renderedElement = $(document.createElement('button')).attr('button', 'text').addClass(classes);
                 
+        viewModel.viewContainers.content.element = renderedElement;
+        
 		return renderedElement;
 	}
 
@@ -33,6 +35,9 @@
                 }
 			},
             defaults: {
+				viewContainers:{
+					content:[]
+				},
                 properties: {
                     text: {}
                 }
