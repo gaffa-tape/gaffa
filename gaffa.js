@@ -29,6 +29,10 @@
     */
     Array.prototype.isArray = true;
 
+    /* maybe switch to this if needed, however i havent had the requirement yet, and mine is faster
+        http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+    */
+
     //Lots of similarities between get and set, refactor later to reuse code.
     function get(path, model) {
         if (path) {
