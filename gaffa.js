@@ -82,7 +82,20 @@
         }
     }
 
-    function set(path, value, model) {
+    function set(path, setValue, model) {
+	
+		var value;
+		
+		//Always set value, not refernce.
+		if(typeof setValue === "object"){
+			if(setValue.isArray){
+				value = setValue.slice();
+			}else{
+				value = $.extend(true, {}, setValue);
+			}
+		}else{
+			value = setValue;
+		}	
 
         //If you just pass in an object, you are overwriting the model.
         if (typeof path === "object") {

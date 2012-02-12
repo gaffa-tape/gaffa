@@ -29,6 +29,8 @@
         <script src="bundles/basic/src/views/form.js" type="text/javascript"></script>
         <script src="bundles/basic/src/views/accordion.js" type="text/javascript"></script>
         <script src="bundles/basic/src/views/code.js" type="text/javascript"></script>
+        <script src="bundles/basic/src/views/radio.js" type="text/javascript"></script>
+        <script src="bundles/basic/src/views/select.js" type="text/javascript"></script>
         
         <!-- actions -->
         <script src="bundles/basic/src/actions/toggle.js" type="text/javascript"></script>
@@ -60,6 +62,11 @@
                     "value2",
                     "value3"
                 ],
+				radioOptions: [
+					{value: "option1", label: "option 1"},
+					{value: "option2", label: "option 2"},
+					{value: "option3", label: "option 3"}
+				],
                 gridData: {
                     columns: [
                         "col1","col2","col3","col4","col5","col6","col7","col8","col9","col10","col11","col12","col13","col14"
@@ -85,41 +92,34 @@
                             columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
                         },{ 
                             columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
-                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
-                        },{ 
+                        }
+                    ]
+                }
+            });
+			
+			gaffa.model.set("original", {
+                show4thContainer: false,
+                show5thContainer: false,
+                someBool: true,
+                someOtherBool: false,
+                someProperty: "a heading",
+                thirdHeading: "Cool story bro...",
+                anArray: [
+                    "value1",
+                    "value2",
+                    "value3"
+                ],
+				radioOptions: [
+					{value: "option1", label: "option 1"},
+					{value: "option2", label: "option 2"},
+					{value: "option3", label: "option 3"}
+				],
+                gridData: {
+                    columns: [
+                        "col1","col2","col3","col4","col5","col6","col7","col8","col9","col10","col11","col12","col13","col14"
+                    ],
+                    rows: [
+                        { 
                             columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
                         },{ 
                             columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
@@ -185,7 +185,7 @@
                             bindings: {
                                 setFrom: { binding: "viewStrings" }
                             }
-                        } 
+                        }
                     ]
                 },
                 {
@@ -255,7 +255,7 @@
                                         },
                                         views: {
                                             content: [
-                                                {
+												{
                                                     type: "heading",
                                                     properties: {
                                                         text: { value: "What is Gaffa?" }
@@ -728,40 +728,87 @@
                                                         classes: { value: "grid" }
                                                     }
                                                 },
-                                                { 
-                                                    type: "button",
-                                                    properties: {
-                                                        text: { value: "Clear my data from local storage" }
-                                                    },
-                                                    actions:{
-                                                        click:[
-                                                            {
-                                                                type: "store",
-                                                                storeType: "localStorage",
-                                                                storageKey: "stuffModel",
-                                                                bindings: {
-                                                                    setFrom: { value: null }
-                                                                }
-                                                            },
-                                                            {
-                                                                type: "store",
-                                                                storeType: "localStorage",
-                                                                storageKey: "thingsModel",
-                                                                bindings: {
-                                                                    setFrom: { value: null }
-                                                                }
-                                                            },
-                                                            {
-                                                                type: "store",
-                                                                storeType: "localStorage",
-                                                                storageKey: "viewStringsModel",
-                                                                bindings: {
-                                                                    setFrom: { value: null }
-                                                                }
-                                                            } 
-                                                        ]
-                                                    }                                                          
-                                                }
+												{
+													type: "container",
+													views: {
+														content: [
+															["Your data has been saved to local storage, click here to reset the page: "],
+															{ 
+																type: "button",
+																properties: {
+																	text: { value: "Clear my data from local storage" }
+																},
+																actions:{
+																	click:[
+																		{
+																			type: "store",
+																			storeType: "localStorage",
+																			storageKey: "stuffModel",
+																			bindings: {
+																				setFrom: { value: null }
+																			}
+																		},
+																		{
+																			type: "store",
+																			storeType: "localStorage",
+																			storageKey: "thingsModel",
+																			bindings: {
+																				setFrom: { value: null }
+																			}
+																		},
+																		{
+																			type: "store",
+																			storeType: "localStorage",
+																			storageKey: "viewStringsModel",
+																			bindings: {
+																				setFrom: { value: null }
+																			}
+																		},
+																		{
+																			type: "set",
+																			bindings: {
+																				setFrom: { binding: "original" },
+																				setTo: { binding: "stuff" }
+																			}
+																		} 
+																	]
+																}                                                          
+															}
+														]
+													}
+												},
+												["<br />"],
+												{
+													type: "list",
+													binding: "stuff/radioOptions",
+													properties:{
+														list: {
+															binding: "stuff/radioOptions",
+															template: {
+																type:"radioOption",
+																properties: {
+																	text: { binding: "~label" },
+																	value: { binding: "~value" },
+																	name: { value: "radioGroup" },
+																	checked: { binding: "stuff/checkedRadioOption" }
+																}
+															}
+														}
+													}													
+												},
+												["<br />"],
+												{
+													type: "select",
+													binding: "stuff/radioOptions",
+													properties:{
+														options: { 
+															binding: "stuff/radioOptions",
+															textBinding: "~label",
+															valueBinding: "~value"
+														},
+														value: { binding: "stuff/checkedRadioOption" }
+													}
+												}
                                             ]
                                         }
                                     }
