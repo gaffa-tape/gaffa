@@ -1,5 +1,5 @@
 (function(undefined) {
-    var actionType = "fetch",
+    var actionType = "rest",
         handleData = function(modelBinding, data) {
         if (data) {
             if (data.behaviours || data.model || data.views) {
@@ -26,12 +26,12 @@
 
     window.gaffa.actions[actionType] = function(action){
         if(action.location === "local"){
-            if(window.gaffa.utils.propExists(action, "bindings.setTo.binding")) {
+            if(window.gaffa.utils.propExists(action, "bindings.resource.binding")) {
                 var data = JSON.parse(localStorage.getItem(action.path));
                 handleData(action.bindings.setTo.binding, data);
             }
         } else if (action.location === "server") {
-            if(window.gaffa.utils.propExists(action, "bindings.setTo.binding")){
+            if(window.gaffa.utils.propExists(action, "bindings.resource.binding")){
                 $.ajax({
                     cache: false,
                     type: 'get',
@@ -41,7 +41,7 @@
                     contentType: 'application/json',
                     success: function (data) {
                         if (data) {
-                            handleData(action.bindings.setTo.binding, data);
+                            handleData(action.bindings.resource.binding, data);
                         }                      
                     },
                     error: function (error) {

@@ -1,42 +1,75 @@
 <html>
     <head>
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
-        <link href="site.css" media="screen" rel="stylesheet" type="text/css">
-        <link href="accordion.css" media="screen" rel="stylesheet" type="text/css">
+        <link href="css/site.css" media="screen" rel="stylesheet" type="text/css">
+        <link href="css/accordion.css" media="screen" rel="stylesheet" type="text/css">
+        <link href="css/grid.css" media="screen" rel="stylesheet" type="text/css">
+        <link href="css/code.css" media="screen" rel="stylesheet" type="text/css">
+        <link href="css/intro.css" media="screen" rel="stylesheet" type="text/css">
         
-        <!-- the tape -->
-        <script src="gaffa.js" type="text/javascript"></script>
-        
-        <!-- views -->
+        <script src="scripts/jquery-1.7.1.min.js" type="text/javascript"></script>
 
-        <script src="views/container.js" type="text/javascript"></script>
-        <script src="views/textbox.js" type="text/javascript"></script>
-        <script src="views/textarea.js" type="text/javascript"></script>
-        <script src="views/checkbox.js" type="text/javascript"></script>
-        <script src="views/paragraph.js" type="text/javascript"></script>
-        <script src="views/text.js" type="text/javascript"></script>
-        <script src="views/linebreak.js" type="text/javascript"></script>
-        <script src="views/anchor.js" type="text/javascript"></script>
-        <script src="views/label.js" type="text/javascript"></script>
-        <script src="views/heading.js" type="text/javascript"></script>
-        <script src="views/list.js" type="text/javascript"></script>
-        <script src="views/button.js" type="text/javascript"></script>
-        <script src="views/quote.js" type="text/javascript"></script>
-        <script src="views/nav.js" type="text/javascript"></script>
-        <script src="views/form.js" type="text/javascript"></script>
-        <script src="views/accordion.js" type="text/javascript"></script>
-        
-        <!-- actions -->
-        <script src="actions/toggle.js" type="text/javascript"></script>
-        <script src="actions/set.js" type="text/javascript"></script>
-        <script src="actions/toJson.js" type="text/javascript"></script>
-        <script src="actions/fromJson.js" type="text/javascript"></script>
+        <!-- the tape -->
+        <script src="scripts/gaffa.js" type="text/javascript"></script>
+        <script src="scripts/actions.js" type="text/javascript"></script>
+        <script src="scripts/views.js" type="text/javascript"></script>
         
         <!-- the application -->
         <script type="text/javascript">
         
             /* page model */
-            gaffa.model.set("stuff", {
+            gaffa.model.set("viewStrings",{
+                showHideViewData: '{"type":"container","properties":{"classes":{"value":"span12"}},"views":{"content":[{"type":"heading","properties":{"text":{"binding":"main/thirdHeading"}}},{"type":"paragraph","views":{"content":[["It is a \""],{"type":"text","properties":{"text":{"binding":"main/thirdHeading"}}},["\", though the implications might not be obvious straight away.<br /><br />Check out this next bit of form:"]]}},{"type":"paragraph","views":{"content":[{"type":"form","views":{"content":[{"type":"textbox","properties":{"value":{"binding":"main/thirdHeading"}},"actions":{"change":[{"type":"set","bindings":{"setTo":{"binding":"main/show4thContainer"},"setFrom":{"value":true}}},{"type":"set","bindings":{"setTo":{"binding":"main/show5thContainer"},"setFrom":{"value":true}}}]}},{"type":"button","properties":{"text":{"value":"Change the text for me (I\'m lazy)"}},"actions":{"click":[{"type":"set","bindings":{"setTo":{"binding":"main/thirdHeading"},"setFrom":{"value":"Hello world..."}}},{"type":"set","bindings":{"setTo":{"binding":"main/show4thContainer"},"setFrom":{"value":true}}},{"type":"set","bindings":{"setTo":{"binding":"main/show5thContainer"},"setFrom":{"value":true}}}]}}]}}]}},{"type":"paragraph","views":{"content":[["<b>Change the value of the textbox (and then tab out to trigger the changed event)</b>"]]}}]}}',
+                listViewData: '{"type":"list","binding":"main/anArray","properties":{"list":{"template":{"type":"textbox","properties":{"value":{"binding":"~"}}},"binding":"main/anArray"}}}' 
+            });
+            
+            gaffa.model.set("main", {
+                show4thContainer: false,
+                show5thContainer: false,
+                someBool: true,
+                someOtherBool: false,
+                someProperty: "a heading",
+                thirdHeading: "A Cool story bro...",
+                anArray: [
+                    "value1",
+                    "value2",
+                    "value3"
+                ],
+                radioOptions: [
+                    {value: "option1", label: "option 1"},
+                    {value: "option2", label: "option 2"},
+                    {value: "option3", label: "option 3"}
+                ],
+                gridData: {
+                    columns: [
+                        "col1","col2","col3","col4","col5","col6","col7","col8","col9","col10","col11","col12","col13","col14"
+                    ],
+                    rows: [
+                        { 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        }
+                    ]
+                }
+            });
+            
+            gaffa.model.set("original", {
                 show4thContainer: false,
                 show5thContainer: false,
                 someBool: true,
@@ -47,22 +80,124 @@
                     "value1",
                     "value2",
                     "value3"
-                ]
+                ],
+                radioOptions: [
+                    {value: "option1", label: "option 1"},
+                    {value: "option2", label: "option 2"},
+                    {value: "option3", label: "option 3"}
+                ],
+                gridData: {
+                    columns: [
+                        "col1","col2","col3","col4","col5","col6","col7","col8","col9","col10","col11","col12","col13","col14"
+                    ],
+                    rows: [
+                        { 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        },{ 
+                            columns: ["data","data","data","data","data","data","data","data","data","data","data","data","data","data"]                          
+                        }
+                    ]
+                }
             });
             
             gaffa.behaviours.add([
                 {
-                    binding: "stuff",
+                    binding: "main",
+                    type: "modelChange",
                     actions: [
                         {
                             type: "toJson",
                             bindings: {
-                                setFrom: { binding: "stuff" },
+                                setFrom: { binding: "main" },
                                 setTo: { binding: "things" }
                             }
                         }
                     ]
-                }    
+                },
+                {
+                    binding: "main",
+                    type: "modelChange",
+                    actions: [
+                        {
+                            type: "store",
+                            storeType: "localStorage",
+                            storageKey: "mainModel",
+                            bindings: {
+                                setFrom: { binding: "main" }
+                            }
+                        },
+                        {
+                            type: "store",
+                            storeType: "localStorage",
+                            storageKey: "thingsModel",
+                            bindings: {
+                                setFrom: { binding: "things" }
+                            }
+                        },
+                        {
+                            type: "store",
+                            storeType: "localStorage",
+                            storageKey: "viewStringsModel",
+                            bindings: {
+                                setFrom: { binding: "viewStrings" }
+                            }
+                        }
+                    ]
+                },
+                {
+                    binding: "main",
+                    type: "pageLoad",
+                    actions: [
+                        {
+                            type: "fetch",
+                            location: "local",
+                            path: "mainModel",
+                            bindings: {
+                                setTo: { binding: "main" }
+                            }
+                        },
+                        {
+                            type: "fetch",
+                            location: "local",
+                            path: "thingsModel",
+                            bindings: {
+                                setTo: { binding: "things" }
+                            }
+                        },
+                        {
+                            type: "fetch",
+                            location: "local",
+                            path: "viewStringsModel",
+                            bindings: {
+                                setTo: { binding: "viewStrings" }
+                            }
+                        },
+                        {
+                            type: "fetch",
+                            location: "server",
+                            path: "/index",
+                            bindings: {
+                                setTo: { binding: "viewStrings" }
+                            }
+                        } 
+                    ]
+                } 
             ]);
             
             /* page view */
@@ -112,7 +247,7 @@
                                                         text: { value: "Gaffer tape, gaffer's tape, gaff tape[1] or gaffa tape[2] is a strong, tough, cotton cloth pressure sensitive tape with strong adhesive properties." },
                                                         cite: { value: "Wikipedia" },
                                                         citeHref: { value: "http://en.wikipedia.org/wiki/Gaffer_tape" },
-                                                        classes: { binding: "stuff/someProperty" }
+                                                        classes: { binding: "main/someProperty" }
                                                         //alignment: { value: "right" }
                                                     }
                                                 }
@@ -142,14 +277,7 @@
                                                         text: { value: "But seriously..." }
                                                     }
                                                 },
-                                                {
-                                                    type:"paragraph",
-                                                    views:{
-                                                        content: [
-                                                            "<b>gaffa.js</b> sticks your DOM to your models. Just set your model to any javascript object, and bind your pages views to properties on it, using paths."
-                                                        ]
-                                                    }
-                                                },
+                                                ["<b>gaffa.js</b> sticks your DOM to your models. More specifically, it lets you set a model to any javascript object, and bind your page's views to properties on it, using paths."],
                                                 {
                                                     type:"paragraph",
                                                     views:{
@@ -170,7 +298,7 @@
                                                             {
                                                                 type: "text",
                                                                 properties: {
-                                                                    text: { value: "Because everything is made up of these 'views', reusing layout is a must. This helps create a consistant UI." }
+                                                                    text: { value: "And everything is a View, so create your own or use community provided bundles." }
                                                                 }
                                                             }
                                                         ]
@@ -189,7 +317,7 @@
                                                 {
                                                     type: "heading",
                                                     properties: {
-                                                        text: { binding: "stuff/thirdHeading" }
+                                                        text: { binding: "main/thirdHeading" }
                                                     }
                                                 },
                                                 {
@@ -200,7 +328,7 @@
                                                             {
                                                                 type:"text",
                                                                 properties: {
-                                                                    text: {binding:"stuff/thirdHeading"}
+                                                                    text: {binding:"main/thirdHeading"}
                                                                 }
                                                             },
                                                             ["\", though the implications might not be obvious straight away.<br /><br />Check out this next bit of form:"]
@@ -218,21 +346,52 @@
                                                                         {
                                                                             type:"textbox",
                                                                             properties: {
-                                                                                value: {binding:"stuff/thirdHeading"}
+                                                                                value: {binding:"main/thirdHeading"}
                                                                             },
                                                                             actions:{
                                                                                 change:[
                                                                                     {
                                                                                         type: "set",
                                                                                         bindings: {
-                                                                                            setTo: { binding: "stuff/show4thContainer"},
+                                                                                            setTo: { binding: "main/show4thContainer"},
                                                                                             setFrom: { value: true}
                                                                                         }
                                                                                     },
                                                                                     {
                                                                                         type: "set",
                                                                                         bindings: {
-                                                                                            setTo: { binding: "stuff/show5thContainer"},
+                                                                                            setTo: { binding: "main/show5thContainer"},
+                                                                                            setFrom: { value: true}
+                                                                                        }
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            type:"button",
+                                                                            properties: {
+                                                                                text: {value:"Change the text for me (I'm lazy)"}
+                                                                            },
+                                                                            actions:{
+                                                                                click:[
+                                                                                    {
+                                                                                        type: "set",
+                                                                                        bindings: {
+                                                                                            setTo: { binding: "main/thirdHeading"},
+                                                                                            setFrom: { value: "Hello world..."}
+                                                                                        }
+                                                                                    },
+                                                                                    {
+                                                                                        type: "set",
+                                                                                        bindings: {
+                                                                                            setTo: { binding: "main/show4thContainer"},
+                                                                                            setFrom: { value: true}
+                                                                                        }
+                                                                                    },
+                                                                                    {
+                                                                                        type: "set",
+                                                                                        bindings: {
+                                                                                            setTo: { binding: "main/show5thContainer"},
                                                                                             setFrom: { value: true}
                                                                                         }
                                                                                     }
@@ -249,18 +408,42 @@
                                                     type:"paragraph",
                                                     views:{
                                                         content: [
-                                                            ["Change the value of the textbox (and then tab out to trigger the changed event)"]
+                                                            ["<b>Change the value of the textbox (and then tab out to trigger the changed event)</b>"]
+                                                        ]
+                                                    }
+                                                },
+                                                {
+                                                    type:"button",
+                                                    properties: {
+                                                        text: {value:"Show Popup"}
+                                                    },
+                                                    actions:{
+                                                        click:[
+                                                            {
+                                                                type: "popView",
+                                                                bindings: {
+                                                                    setTo: { binding: "main/thirdHeading"},
+                                                                    setFrom: { value: "Hello world..."}
+                                                                }
+                                                            }
                                                         ]
                                                     }
                                                 }
+
                                             ]
+                                        }
+                                    },
+                                    {
+                                        type:"code",
+                                        properties: {
+                                            code: { binding: "viewStrings/showHideViewData" }
                                         }
                                     },
                                     {
                                         type: "container",  
                                         properties: {
                                             classes: { value: "span12" },
-                                            visible: { binding: "stuff/show4thContainer"}
+                                            visible: { binding: "main/show4thContainer"}
                                         },
                                         views: {
                                             content: [
@@ -290,7 +473,7 @@
                                                                         {
                                                                             type: "set",
                                                                             bindings: {
-                                                                                setTo: { binding: "stuff/show4thContainer"},
+                                                                                setTo: { binding: "main/show4thContainer"},
                                                                                 setFrom: { value: false}
                                                                             }
                                                                         }   
@@ -307,21 +490,37 @@
                                         type: "container",  
                                         properties: {
                                             classes: { value: "span12" },
-                                            visible: { binding: "stuff/show5thContainer"}
+                                            visible: { binding: "main/show5thContainer"}
                                         },
                                         views: {
                                             content: [
                                                 {
                                                     type: "heading",
                                                     properties: {
-                                                        text: { value: "Other stuff" }
+                                                        text: { value: "Other main" }
                                                     }
                                                 },
-                                                ["You can also bind a list to an array, provide a template view, and let it do the rest. "],
-                                                ["All templated views will be bound just as any pre-existing views would."],
+                                                ["Gaffa can be used to easily template views based on an array. <br /><br />Here is a simple example that uses textboxes as a template. The textbox's value properties are bound to '~' (relative), so they reflect the data in the array.<br />"],
+                                                {
+                                                    type:"button",
+                                                    properties: {
+                                                        text: {value:"Add an array element"}
+                                                    },
+                                                    actions:{
+                                                        click:[
+                                                            {
+                                                                type: "push",
+                                                                bindings: {
+                                                                    pushTo: { binding: "main/anArray"},
+                                                                    pushFrom: { value: ""}
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                },
                                                 {
                                                     type: "list",
-                                                    binding: "stuff/anArray",
+                                                    binding: "main/anArray",
                                                     properties:
                                                     {
                                                         list:{
@@ -331,20 +530,23 @@
                                                                     value: { binding: "~"}
                                                                 }
                                                             },
-                                                            binding: "stuff/anArray"
+                                                            binding: "main/anArray"
                                                         }
                                                     }
                                                 },
                                                 {
-                                                    type:"text",
-                                                    properties:{
-                                                        text: "<br/><br/>In this area is the JSON model for this page, changing it will change the pages model, good luck not breaking something.."
-                                                    }                
+                                                    type:"code",
+                                                    properties: {
+                                                        code: { binding: "viewStrings/listViewData" }
+                                                    }
                                                 },
+                                                ["You can also bind a list to an array, provide a template view, and let it do the rest. "],
+                                                ["All templated views will be bound just as any pre-existing views would."],
+                                                ["<br /><br /><b>This textarea contains a JSONified version of the model, and yes, it is bound. Changing it's content will change the pages model, and vice-verse.</b>"],
                                                 {
                                                     type: "textarea",
                                                     properties: {
-                                                        value: { binding: "things/jsonStuff"},
+                                                        value: { binding: "things/jsonmain"},
                                                         classes: { value:"span12" }
                                                     },
                                                     actions: {
@@ -352,8 +554,8 @@
                                                             {
                                                                 type: "fromJson",
                                                                 bindings: {
-                                                                    setFrom: { binding: "things/jsonStuff" },
-                                                                    setTo: { binding: "stuff" }
+                                                                    setFrom: { binding: "things/jsonmain" },
+                                                                    setTo: { binding: "main" }
                                                                 }
                                                             }
                                                         ]
@@ -368,11 +570,11 @@
                                                 ["<br /><br />A simple accordian control:"],
                                                 {
                                                     type: "accordion",
-                                                    binding: "stuff/anArray",
+                                                    binding: "main/anArray",
                                                     properties:
                                                     {
                                                         list: { 
-                                                            binding:"stuff/anArray",
+                                                            binding:"main/anArray",
                                                             template: {
                                                                 type:"accordionNode",
                                                                 views: {
@@ -398,36 +600,36 @@
                                                         }
                                                     }
                                                 },
-                                                ["A less simple accordian control:"],
+                                                ["A less simple accordian control: <b>CAUTION!!! the number of accordion nodes created in this example is the number of array elements in the array cubed. So if you add 20 array elements, this will create 8000 accordion nodes.</b>"],
                                                 {
                                                     type: "accordion",
-                                                    binding: "stuff/anArray",
+                                                    binding: "main/anArray",
                                                     properties:
                                                     {
                                                         list: { 
-                                                            binding:"stuff/anArray",
+                                                            binding:"main/anArray",
                                                             template: {
                                                                 type:"accordionNode",
                                                                 views: {
                                                                     content: [
                                                                         {
                                                                             type: "accordion",
-                                                                            binding: "stuff/anArray",
+                                                                            binding: "main/anArray",
                                                                             properties:
                                                                             {
                                                                                 list: { 
-                                                                                    binding:"stuff/anArray",
+                                                                                    binding:"main/anArray",
                                                                                     template: {
                                                                                         type:"accordionNode",
                                                                                         views: {
                                                                                             content: [
                                                                                                 {
                                                                                                     type: "accordion",
-                                                                                                    binding: "stuff/anArray",
+                                                                                                    binding: "main/anArray",
                                                                                                     properties:
                                                                                                     {
                                                                                                         list: { 
-                                                                                                            binding:"stuff/anArray",
+                                                                                                            binding:"main/anArray",
                                                                                                             template: {
                                                                                                                 type:"accordionNode",
                                                                                                                 views: {
@@ -466,36 +668,143 @@
                                                         }
                                                     }
                                                 },
-                                                ["The ease at which complex things can be created is sometimes silly."],
+                                                ["<br /><br />The ease at which complex things can be created is sometimes silly.<br /><br />",
+                                                "A (very) simple editable grid:<br />"],
                                                 {
                                                     type: "list",
-                                                    binding: "stuff/anArray",
+                                                    binding: "main/gridData/columns",
                                                     properties:
                                                     {
                                                         list:{
                                                             template: {
-                                                                type: "container"
-                                                                view: [
-                                                                    {
-                                                                        type: "list",
-                                                                        binding: "stuff/anArray",
-                                                                        properties:
+                                                                type: "text",
+                                                                properties: {
+                                                                    text: { binding: "~"},
+                                                                    classes: { value: "cell" }
+                                                                }
+                                                            },
+                                                            binding: "main/gridData/columns"
+                                                        },
+                                                        classes: { value: "header" }
+                                                    }
+                                                },
+                                                {
+                                                    type: "list",
+                                                    binding: "main/gridData/rows",
+                                                    properties:
+                                                    {
+                                                        list:{
+                                                            template: {
+                                                                type: "container",
+                                                                views: {
+                                                                    content:[
                                                                         {
-                                                                            list:{
-                                                                                template: {
-                                                                                    type: "textbox",
-                                                                                    properties: {
-                                                                                        value: { binding: "~"}
-                                                                                    }
-                                                                                },
-                                                                                binding: "stuff/anArray"
+                                                                            type: "list",
+                                                                            binding: "~columns",
+                                                                            properties:
+                                                                            {
+                                                                                list:{
+                                                                                    template: {
+                                                                                        type: "textbox",
+                                                                                        properties: {
+                                                                                            value: { binding: "~"},
+                                                                                            classes: { value: "cell" }
+                                                                                        }
+                                                                                    },
+                                                                                    binding: "~columns"
+                                                                                }
                                                                             }
                                                                         }
-                                                                    }
-                                                                ]                                                                
+                                                                    ]
+                                                                },
+                                                                properties:{
+                                                                    classes: { value: "row" }
+                                                                }
                                                             },
-                                                            binding: "stuff/anArray"
+                                                            binding: "main/gridData/rows"
+                                                        },
+                                                        classes: { value: "grid" }
+                                                    }
+                                                },
+                                                {
+                                                    type: "container",
+                                                    views: {
+                                                        content: [
+                                                            ["Your data has been saved to local storage, click here to reset the page: "],
+                                                            { 
+                                                                type: "button",
+                                                                properties: {
+                                                                    text: { value: "Clear my data from local storage" }
+                                                                },
+                                                                actions:{
+                                                                    click:[
+                                                                        {
+                                                                            type: "store",
+                                                                            storeType: "localStorage",
+                                                                            storageKey: "mainModel",
+                                                                            bindings: {
+                                                                                setFrom: { value: null }
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            type: "store",
+                                                                            storeType: "localStorage",
+                                                                            storageKey: "thingsModel",
+                                                                            bindings: {
+                                                                                setFrom: { value: null }
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            type: "store",
+                                                                            storeType: "localStorage",
+                                                                            storageKey: "viewStringsModel",
+                                                                            bindings: {
+                                                                                setFrom: { value: null }
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            type: "set",
+                                                                            bindings: {
+                                                                                setFrom: { binding: "original" },
+                                                                                setTo: { binding: "main" }
+                                                                            }
+                                                                        } 
+                                                                    ]
+                                                                }                                                          
+                                                            }
+                                                        ]
+                                                    }
+                                                },
+                                                ["<br />"],
+                                                {
+                                                    type: "list",
+                                                    binding: "main/radioOptions",
+                                                    properties:{
+                                                        list: {
+                                                            binding: "main/radioOptions",
+                                                            template: {
+                                                                type:"radioOption",
+                                                                properties: {
+                                                                    text: { binding: "~label" },
+                                                                    value: { binding: "~value" },
+                                                                    name: { value: "radioGroup" },
+                                                                    checked: { binding: "main/checkedRadioOption" }
+                                                                }
+                                                            }
                                                         }
+                                                    }                                                   
+                                                },
+                                                ["<br />"],
+                                                {
+                                                    type: "select",
+                                                    binding: "main/radioOptions",
+                                                    properties:{
+                                                        options: { 
+                                                            binding: "main/radioOptions",
+                                                            textBinding: "~label",
+                                                            valueBinding: "~value"
+                                                        },
+                                                        value: { binding: "main/checkedRadioOption" }
                                                     }
                                                 }
                                             ]

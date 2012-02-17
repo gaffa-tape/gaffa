@@ -23,6 +23,7 @@
   });
 
   require("./routes/site")(app);
+  require("./routes/products")(app);
 
   app.listen(3000);
 

@@ -1,0 +1,30 @@
+.grid{
+    overflow:scroll;
+    height:400px;
+}
+
+.grid .row{
+    display:block;
+    width:auto;
+    white-space: nowrap;
+    margin-left:0px;
+}
+
+.cell{
+    width:70px;
+    margin:0px;
+    display: inline-block;
+    border:none;
+}
+
+.header{
+   background: rgba(0,0,0,0.4);
+    color:white; 
+}
+
+.header{
+    display:block;
+    width:auto;
+    white-space: nowrap;
+    margin-left:0px;
+}

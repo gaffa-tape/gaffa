@@ -17,9 +17,11 @@ build:
 		for dropFolder in ${DROP_FOLDERS}; do \
 			echo "copying to drop folder:" $$dropFolder;\
 			cp $(GAFFA_SRC) $$dropFolder;\
+			rm $$dropFolder/views.js; \
 			for viewFile in ${VIEWS_FOLDER}*.js; do \
 				cat $$viewFile >> $$dropFolder/views.js; \
 			done; \
+			rm $$dropFolder/actions.js; \
 			for actionFile in ${ACTIONS_FOLDER}*.js; do \
 				cat $$actionFile >> $$dropFolder/actions.js; \
 			done; \

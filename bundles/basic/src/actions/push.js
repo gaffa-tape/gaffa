@@ -1,5 +1,3 @@
-//    Properties:
-//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
     var actionType = "push";
     window.gaffa.actions[actionType] = function(action){

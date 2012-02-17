@@ -15,7 +15,6 @@
         return "~";
     };
 
-
     //internal varaibles
     var internalmodel = {},
     //these must always be instantiated.
@@ -33,8 +32,9 @@
         http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
     */
 
-    //Lots of similarities between get and set, refactor later to reuse code.
-    function get(path, model) {
+    // Lots of similarities between get and set, refactor later to reuse code.
+    // when lazyLoad === false (default), an event to fetch the model will be raised if the model does not already exist.
+    function get(path, model, lazyLoad) {
         if (path) {
             var keys = path.split(gaffa.pathSeparator()),
                 reference = model;
@@ -78,11 +78,54 @@
                 }
             }
 
+            // Not sure if this is a good place for this, but the intent is to trigger a Fetch event when a model is of type array and empty.
+            // A user can then hook in to handle this event (perhaps making a call to a resource (server/storage) to populate the array.
+            // Also, why _ for this, but other times its . ?
+            if (!lazyLoad) {
+                if (reference && reference.isArray) {
+                    var raiseFetchEvent = (reference.length === 0);
+                    
+                    if (!raiseFetchEvent) {
+                        for (var arrIndex = 0; arrIndex < reference.length; arrIndex++) {
+                            if (reference[arrIndex] === undefined) {
+                                // Found a partially loaded array.
+                                raiseFetchEvent =true;
+                                break;
+                            }
+                        }
+                    }
+                    if (raiseFetchEvent) {
+                        var eventName = ["fetch"].concat(keys).join("_");
+                        $(gaffa.model).trigger(eventName);
+                    }
+                } else if (reference === undefined) {
+                    // recurse up the tree to see if the current undefined model is an element in an array.
+                    // NB. set lazyLoad to true so a fetch event is not triggered during the search.
+                    var parentModel = get(keys.slice(0, keys.length - 1).join(gaffa.pathSeparator()), model, true);
+                    if (parentModel && parentModel.isArray) {
+                        var eventName = ["fetch"].concat(keys).join("_");
+                        $(gaffa.model).trigger(eventName);
+                    }
+                }
+            }
             return reference;
         }
     }
 
-    function set(path, value, model) {
+    function set(path, setValue, model) {
+	
+		var value;
+		
+		//Always set value, not refernce.
+		if(typeof setValue === "object"){
+			if(setValue.isArray){
+				value = setValue.slice();
+			}else{
+				value = $.extend(true, {}, setValue);
+			}
+		}else{
+			value = setValue;
+		}	
 
         //If you just pass in an object, you are overwriting the model.
         if (typeof path === "object") {
@@ -241,7 +284,7 @@
 
     function newGaffa() {
 
-        function innerGaffa() { }
+        function innerGaffa() {}
 
         innerGaffa.prototype = {
             paths: {
@@ -414,6 +457,16 @@
                         } else if (behaviourType === "modelChange") {
                             (function (behaviour) {
                                 $(gaffa.model).bind(['change'].concat(behaviour.binding.split('/')).join("_"), function () {
+                                    for (var i = 0; i < behaviour.actions.length; i++) {
+                                        if (gaffa.actions[behaviour.actions[i].type] !== undefined) {
+                                            gaffa.actions[behaviour.actions[i].type](behaviour.actions[i]);
+                                        }
+                                    }
+                                });
+                            })(behaviours[i]);
+                        } else if (behaviourType === "modelFetch") {
+                            (function (behaviour) {
+                                $(gaffa.model).bind(['fetch'].concat(behaviour.binding.split('/')).join("_"), function () {
                                     for (var i = 0; i < behaviour.actions.length; i++) {
                                         if (gaffa.actions[behaviour.actions[i].type] !== undefined) {
                                             gaffa.actions[behaviour.actions[i].type](behaviour.actions[i]);
