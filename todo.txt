@@ -1,1 +1,1 @@
-no string views, only object.
+/*no string views, only object.*/
