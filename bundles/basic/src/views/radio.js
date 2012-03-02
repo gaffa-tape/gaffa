@@ -17,7 +17,7 @@
                 return renderedElement[0];
         })());  
         
-        renderedElement = $(renderedElement.cloneNode(true));      
+        renderedElement = renderedElement.cloneNode(true);      
         
         $(renderedElement).delegate("input", "change", function(){
 			var target = $(event.target);
@@ -39,7 +39,7 @@
 				text: function(viewModel, value, firstRun) {
                     if(viewModel.properties.text.value !== value || firstRun){
                         viewModel.properties.text.value = value;
-                        var element = viewModel.renderedElement.children('.radioLabel');
+                        var element = $(viewModel.renderedElement).children('.radioLabel');
                         if(element){
                             element.html(value);
                         }
@@ -48,14 +48,14 @@
                 value: function(viewModel, value, firstRun) {
                     if(viewModel.properties.value.value !== value || firstRun){
                         viewModel.properties.value.value = value;
-                        var element = viewModel.renderedElement.children('input');
+                        var element = $(viewModel.renderedElement).children('input');
                         if(element){
                              element.attr('value', value);
                         }
                     }                    
                 },
 				checked: function(viewModel, value, firstRun) {
-					var element = viewModel.renderedElement.children('input');
+					var element = $(viewModel.renderedElement).children('input');
 					if(element){
 						if(value === viewModel.properties.value.value){
 							element.attr("checked", "checked");
@@ -67,7 +67,7 @@
 				name: function(viewModel, value, firstRun) {
                     if(viewModel.properties.name.value !== value || firstRun){
                         viewModel.properties.name.value = value;
-                        var element = viewModel.renderedElement.children('input');
+                        var element = $(viewModel.renderedElement).children('input');
                         if(element){
                             element.attr("name", value);
                         }

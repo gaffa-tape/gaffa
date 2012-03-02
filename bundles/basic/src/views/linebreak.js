@@ -9,7 +9,7 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('br')).addClass(classes);
+        var renderedElement = $(document.createElement('br')).addClass(classes)[0];
                 
 		return renderedElement;
 	}

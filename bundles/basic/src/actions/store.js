@@ -1,11 +1,11 @@
 (function(undefined) {
     var actionType = "store";
     window.gaffa.actions[actionType] = function(action){
-        if(action.storeType === "localStorage"){
+        if(action.location === "local"){
             if(gaffa.utils.propExists(action, "bindings.setFrom.binding")){
-                localStorage.setItem(action.storageKey, JSON.stringify(gaffa.model.get(action.bindings.setFrom.binding)));            
+                localStorage.setItem(action.path, JSON.stringify(gaffa.model.get(action.bindings.setFrom.binding)));            
             }else{
-                localStorage.setItem(action.storageKey, JSON.stringify(action.bindings.setFrom.value));            
+                localStorage.setItem(action.path, JSON.stringify(action.bindings.setFrom.value));            
             }
         } else if (action.location === "server") {
             if(window.gaffa.utils.propExists(action, "bindings.setTo.binding")){

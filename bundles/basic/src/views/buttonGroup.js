@@ -7,7 +7,7 @@
 	function createElement(viewModel) {
 		var classes = "btn-group";
         
-        var renderedElement = $(document.createElement('div')).addClass(classes);
+        var renderedElement = $(document.createElement('div')).addClass(classes)[0];
         
         viewModel.viewContainers.content.element = renderedElement;
         

@@ -14,7 +14,7 @@
         var paragraph = $(document.createElement('p')),
             small = $(document.createElement('small')),
             cite = $(document.createElement('cite')),
-			renderedElement = $(document.createElement('blockquote')).addClass(classes).append(paragraph).append(small.append(cite));
+			renderedElement = $(document.createElement('blockquote')).addClass(classes).append(paragraph).append(small.append(cite))[0];
                 
 		return renderedElement;
 	}
@@ -29,7 +29,7 @@
                 text: function(viewModel, value, firstRun) {
                     if(viewModel.properties.text.value !== value || firstRun){
                         viewModel.properties.text.value = value;
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if(element){
                             element.children('p').html(value);
                         }
@@ -40,7 +40,7 @@
                     {
 	                    if(viewModel.properties.cite.value !== value || firstRun){
 	                        viewModel.properties.cite.value = value;
-	                        var element = viewModel.renderedElement;
+	                        var element = $(viewModel.renderedElement);
 	                        if (element) {
 	                            element.find('cite').html(value);
 	                        }
@@ -50,7 +50,7 @@
                 citeHref: function(viewModel, value, firstRun) {
                     if(viewModel.properties.citeHref.value !== value || firstRun){
                         viewModel.properties.citeHref.value = value;
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if (element) {
                             element.find('cite').append($(document.createElement('a')).text(viewModel.properties.cite.value).attr('href', value).attr('target', '_blank'));
 
@@ -60,7 +60,7 @@
                 alignment: function(viewModel, value, firstRun){
                     if(viewModel.properties.alignment.value !== value || firstRun){
                         viewModel.properties.alignment.value = value;
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if (element) {
                             element.removeClass("pull-right").removeClass("pull-left");
                             switch (viewModel.properties.alignment.value)

@@ -6,15 +6,18 @@
     
     window.gaffa.views = window.gaffa.views || {};
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
+	
+	function setValue(event){
+		window.gaffa.model.set(this.viewModel.properties.value.binding, $(this).val());    
+	}
 
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('textarea')).addClass(classes);
-        
-        $(renderedElement).bind("change", function(){
-            window.gaffa.model.set(viewModel.properties.value.binding, $(this).val());    
-        });
+        var renderedElement = document.createElement('textarea');
+		renderedElement.className = classes;		
+		
+        $(renderedElement).bind("change", setValue);
                 
 		return renderedElement;
 	}
@@ -31,7 +34,7 @@
                         viewModel.properties.value.value = value;
                         var element = viewModel.renderedElement;
                         if(element){
-                            element.val(value);
+                            $(element).val(value);
                         }
                     }                    
                 }
@@ -44,7 +47,7 @@
 		};
         
         $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-        
+		             
 		return new view();
 	}
 })();

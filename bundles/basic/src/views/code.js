@@ -9,7 +9,7 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('code')).addClass(classes).attr('tabindex','0');
+        var renderedElement = $(document.createElement('code')).addClass(classes).attr('tabindex','0')[0];
         
 		return renderedElement;
 	}
@@ -24,7 +24,7 @@
                 code: function(viewModel, value, firstRun) {
                     if(viewModel.properties.code.value !== value || firstRun || value.isArray){
                         viewModel.properties.code.value = value;
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if(element){
                             element.text(value);
                         }

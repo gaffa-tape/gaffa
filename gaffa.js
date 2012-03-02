@@ -18,7 +18,9 @@
     //internal varaibles
     var internalmodel = {},
     //these must always be instantiated.
-        internalViews = [];
+        internalViewModels = [],
+		
+		bindings = [];
 
     //internal functions
 
@@ -31,7 +33,12 @@
     /* maybe switch to this if needed, however i havent had the requirement yet, and mine is faster
         http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
     */
-
+	
+	Array.prototype.fastEach = function(callback){
+		for(var i = 0; i < this.length; i++){
+			callback(this[i], i, this);
+		}
+	}
     // Lots of similarities between get and set, refactor later to reuse code.
     // when lazyLoad === false (default), an event to fetch the model will be raised if the model does not already exist.
     function get(path, model, lazyLoad) {
@@ -131,90 +138,166 @@
         if (typeof path === "object") {
             for (var prop in path) {
                 model[prop] = path[prop];
-                $(gaffa.model).trigger("change." + prop);
+                gaffa.model.trigger(prop);
             }
             return;
         }
 
         var keys = path.split(gaffa.pathSeparator()),
             reference = model,
-            keyIndex;
+            keyIndex,
+			triggerStack = [];
 
         //handle "Up A Level"s in the path.
         //yeah yeah, its done differently up above...
         //ToDo: refactor.
-        for (keyIndex = 0; keyIndex < keys.length; keyIndex++) {
-            if (keys[keyIndex] === gaffa.upALevel()) {
-                keys.splice(Math.max(keyIndex - 1, 0), 2);
-                keyIndex--;
+        keys.fastEach(function(key, index, keys){
+            if (key === gaffa.upALevel()) {
+                keys.splice(Math.max(index - 1, 0), 2);
+                index--;
             }
-        }
+        });
 
-        for (keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+        keys.fastEach(function(key, index, keys){
 
             //if we have hit a non-object and we have more keys after this one
             //make an object (or array) here and move on.
-            if (typeof reference[keys[keyIndex]] !== "object" && keyIndex < keys.length - 1) {
-                if (!isNaN(keys[keyIndex + 1])) {
-                    reference[keys[keyIndex]] = [];
-                    reference = reference[keys[keyIndex]];
+            if (typeof reference[key] !== "object" && index < keys.length - 1) {
+                if (!isNaN(key)) {
+                    reference[key] = [];
                 }
                 else {
-                    reference[keys[keyIndex]] = {};
-                    reference = reference[keys[keyIndex]];
+                    reference[key] = {};
                 }
             }
-            else if (keyIndex === keys.length - 1) {
+            if (index === keys.length - 1) {
                 // if we are at the end of the line, set to the model
-                reference[keys[keyIndex]] = value;
+                reference[key] = value;
+				
+				//Report to parent arrays
                 if (!isNaN(reference.length)) {
-                    $(gaffa.model).trigger("change." + keys.slice(0, keys.length - 2).join("."));
+                    triggerStack.push(keys.slice(0, keys.length - 2).join(gaffa.pathSeparator()));
                 }
+								
+				//Report to things looking for all changes below here.
+				var binding = keys.join("_");
+				triggerStack.push(binding);
             }
             //otherwise, RECURSANIZE!
             else {
-                reference = reference[keys[keyIndex]];
+                reference = reference[key];
+				
+				//Report to things looking for all changes below here.
+				var binding = keys.slice(0, index + 1).join("_");
+				triggerStack.push(binding);
             }
-        }
-        for (keyIndex = 0; keyIndex < keys.length; keyIndex++) {
-            $(gaffa.model).trigger(["change"].concat(keys.slice(0, keyIndex + 1)).join("_"));
-        }
+        });
 
         //ToDo: Fire events for array.length changes
 
         //IMA FIREIN MA CHANGEZOR!
-        $(gaffa.model).trigger("change." + keys.join("."));
+        gaffa.model.trigger(keys.join(gaffa.pathSeparator()), value);
+		
+		triggerStack.reverse().fastEach(function(binding){
+			gaffa.model.trigger(binding, gaffa.model.get(binding));
+		});
+    }
+	
+    function triggerBinding(binding, value) {
+		var keys = binding.split(gaffa.pathSeparator()),
+			reference = bindings;
+
+		keys.fastEach(function(key, index, keys){
+			
+			if(!isNaN(key)){
+				key = "_"+key;
+			}
+		
+			if (reference != undefined) {
+				reference = reference[key];
+			}
+		});
+		
+		if (reference != undefined) {
+			reference.fastEach(function(callback){
+				callback(value);
+			});
+			
+			for(var key in reference){	
+				if(reference.hasOwnProperty(key) && reference[key].isArray){
+					if(key.indexOf("_") === 0 && !isNaN(key.substr(1))){
+						key = key.substr(1);
+					}
+					if(value !== undefined){
+						triggerBinding(binding + gaffa.pathSeparator() + key, value[key]);
+					}else{
+						triggerBinding(binding + gaffa.pathSeparator() + key, undefined);
+					}
+				}
+			}
+		}
+    }
+	
+    function setBinding(binding, callback) {
+        var keys = binding.split(gaffa.pathSeparator()),
+            reference = bindings;
+
+        keys.fastEach(function(key, index, keys){
+
+			if(!isNaN(key)){
+				key = "_"+key;
+			}
+		
+            //if we have more keys after this one
+            //make an array here and move on.
+            if (typeof reference[key] !== "object" && index < keys.length - 1) {
+                    reference[key] = [];
+                    reference = reference[key];
+            }
+            else if (index === keys.length - 1) {
+                // if we are at the end of the line, add the callback
+				reference[key] = reference[key] || [];
+                reference[key].push(callback);
+            }
+            //otherwise, RECURSANIZE!
+            else {
+                reference = reference[key];
+            }
+        });
     }
 
-    function renderView(view, parent) {
-        //delegate rendering to happen as soon as possible, but not if it blocks the UI.
+    function renderView(viewModel, parent) {
+        //un-comment to delegate rendering to happen as soon as possible, but not if it blocks the UI.
         //this will cause all kinds of hilariously stupid layout if you breakpoint during the render loop.
-        setTimeout(function () {
-            if (view.isArray && !view.isRendered) {
-                parent.append(view.join(""));
-                view.isRendered = true;
-            } else if (gaffa.views[view.type] !== undefined) {
-                var renderedElement = gaffa.views[view.type].render(view);
+        //setTimeout(function () {
+            if (viewModel.type === undefined && viewModel.text !== undefined) {
+				viewModel.type = "text";
+				viewModel.properties = {
+					text: { value: viewModel.text}
+				};
+            }
+			if (gaffa.views[viewModel.type] !== undefined) {
+					gaffa.views[viewModel.type].render(viewModel);
                 if (parent) {
-                    parent[0].appendChild(renderedElement[0]);
+                    parent.appendChild(viewModel.renderedElement);
                 }
-                for (var key in view.views) {
-                    for (var i = 0; i < view.views[key].length; i++) {
-                        renderView(view.views[key][i], view.viewContainers[key].element);
-                    }
+                for (var key in viewModel.views) {
+                    viewModel.views[key].fastEach(function(view, index) {
+                        renderView(view, viewModel.viewContainers[key].element);
+                    });
                 }
-                if (view.actions) {
-                    for (var actionKey in view.actions) {
-                        var eventActions = view.actions[actionKey];
-                        view.renderedElement.bind(actionKey, function () {
-                            for (var i = 0; i < eventActions.length; i++) {
-                                bindAction(eventActions[i], view);
-                            }
+                if (viewModel.actions) {
+                    for (var actionKey in viewModel.actions) {
+                        var eventActions = viewModel.actions[actionKey];
+                        $(viewModel.renderedElement).bind(actionKey, function () {
+                            eventActions.fastEach(function(eventAction){
+                                bindAction(eventAction, viewModel);
+                            });
                         });
                     }
                 }
             }
-        }, 0);
+        //}, 0);
     }
 
     //mostly just make sure all the relative bindings are made absolute. delegate actions to the appropriate action object.
@@ -230,12 +313,12 @@
     }
 
     //gaffa together view properties to model properties.
-    function bindView(view, parentView, index) {
-        if (gaffa.views[view.type] === undefined) {
+    function bindView(viewModel, parentView, index) {
+        if (gaffa.views[viewModel.type] === undefined) {
             return;
         }
         //ToDo: probs a better way to do this....
-        $.extend(true, view, $.extend(true, {}, gaffa.views[view.type].defaults, view));
+        $.extend(true, viewModel, $.extend(true, {}, gaffa.views[viewModel.type].defaults, viewModel));
 
         var parentViewBinding = "";
         if (parentView) {
@@ -245,29 +328,26 @@
             }
         }
 
-        //if this is a root level view, remove the relative binding.
+        //if this is a root level viewModel, remove the relative binding.
         // this causes all bindings to cascade as nothing untill a real binding has been set.
         if (parentView) {
-            view.binding = gaffa.paths.getAbsolutePath(parentViewBinding, view.binding);
+            viewModel.binding = gaffa.paths.getAbsolutePath(parentViewBinding, viewModel.binding);
         } else {
-            view.binding = parentViewBinding;
+            viewModel.binding = parentViewBinding;
         }
 
         //bind each of the views properties to the model.
-        for (var key in view.properties) {
-            if (parentView && view.properties[key] && view.properties[key].binding) {
-                view.properties[key].binding = gaffa.paths.getAbsolutePath(parentViewBinding, view.properties[key].binding);
+        for (var key in viewModel.properties) {
+            if (parentView && viewModel.properties[key] && viewModel.properties[key].binding) {
+                viewModel.properties[key].binding = gaffa.paths.getAbsolutePath(parentViewBinding, viewModel.properties[key].binding);
 
                 // this function is to create a closure so that 'key' is still the same key when the event fires.
                 (function (key) {
-                    if (view.properties[key].binding) {
-                        view.properties[key].value = gaffa.model.get(view.properties[key].binding);
+                    if (viewModel.properties[key].binding) {
+                        viewModel.properties[key].value = gaffa.model.get(viewModel.properties[key].binding);
 
-                        //jQuerys eventing system is full of winning and unicorn kisses.
-                        //changing an object on the model will cause all bindings to its properties to fire
-                        //due to event namespacing magic.
-                        $(gaffa.model).bind(["change"].concat(view.properties[key].binding.split(gaffa.pathSeparator())).join("."), function () {
-                            gaffa.views[view.type].update[key](view, gaffa.model.get(view.properties[key].binding));
+                        gaffa.model.bind(viewModel.properties[key].binding, function (value) {
+                            gaffa.views[viewModel.type].update[key](viewModel, value);
                         });
                     }
                 })(key);
@@ -275,16 +355,16 @@
         }
 
         //recursivly bind child views.
-        for (var key in view.views) {
-            for (var i = 0; i < view.views[key].length; i++) {
-                bindView(view.views[key][i], view);
-            }
+        for (var key in viewModel.views) {
+            viewModel.views[key].fastEach(function(childViewModel){
+                bindView(childViewModel, viewModel);
+            });
         }
     }
 
     function newGaffa() {
 
-        function innerGaffa() {}
+        function innerGaffa() { }
 
         innerGaffa.prototype = {
             paths: {
@@ -307,62 +387,68 @@
                     return get(path, internalmodel);
                 },
                 set: function (path, value) {
-                    return set(path, value, internalmodel);
+					set(path, value, internalmodel);
                 },
                 update: function (path, value) {
 
-                }
+                },
+				bind: function(binding, callback){
+					setBinding(binding, callback);
+				},
+				trigger: function(binding, value){				
+					triggerBinding(binding, value);
+				}
             },
             views: {
                 renderTarget: null,
                 //Render all, some, or one view/s to a parent or the render target.
-                render: function (views, parent) { //parameters optional.
+                render: function (viewModels, parent) { //parameters optional.
                     //if its a list of views, render them all
-                    if (views && views.length) {
-                        for (var i = 0; i < views.length; i++) {
-                            renderView(views[i], parent);
-                        }
+                    if (viewModels && viewModels.length) {
+                        viewModels.fastEach(function(viewModel){
+                            renderView(viewModel, parent);
+                        });
                     }
                     //if its just one view, just render it
-                    else if (views) {
-                        renderView(views, parent);
+                    else if (viewModels) {
+                        renderView(viewModels, parent);
                     }
-                    //if nothing is passed in, render ALL the views!
+                    //if nothing is passed in, render ALL the viewModels!
                     else {
-                        for (var i = 0; i < internalViews.length; i++) {
-                            renderView(internalViews[i], this.renderTarget || $("body"));
-                        }
+                        internalViewModels.fastEach(function(internalViewModel){
+                            renderView(internalViewModel, this.renderTarget || document.getElementsByTagName('body')[0]);
+                        });
                     }
                 },
-                //Add a view or views to another view, or the root list of views if a parent isnt passed.
-                //Set up the views bindings as they are added.
-                add: function (views, parentView, parentViewChildArray, index) {
-                    //if the views isnt an array, make it one.
-                    if (views && !views.length) {
-                        views = [views];
+                //Add a view or viewModels to another view, or the root list of viewModels if a parent isnt passed.
+                //Set up the viewModels bindings as they are added.
+                add: function (viewModels, parentView, parentViewChildArray, index) {
+                    //if the viewModels isnt an array, make it one.
+                    if (viewModels && !viewModels.length) {
+                        viewModels = [viewModels];
                     }
 
-                    for (var i = 0; i < views.length; i++) {
-                        if (gaffa.views[views[i].type] !== undefined) {
+                    viewModels.fastEach(function(viewModel) {
+                        if (gaffa.views[viewModel.type] !== undefined) {
                             //if this view has a parent.
                             if (parentView && parentViewChildArray) {
 
                                 //bind ALL the things!
-                                bindView(views[i], parentView, index);
+                                bindView(viewModel, parentView, index);
 
-                                parentViewChildArray.push(views[i]);
+                                parentViewChildArray.push(viewModel);
                             }
-                            //otherwise, this view should be in the root list of views.
+                            //otherwise, this view should be in the root list of viewModels.
                             else {
-                                bindView(views[i]);
+                                bindView(viewModel);
 
-                                internalViews.push(views[i]);
+                                internalViewModels.push(viewModel);
                             }
                         }
-                    }
+                    });
                 },
 
-                //All views get extended with the object that this returns.
+                //All viewModels get extended with the object that this returns.
                 base: function (viewType, createElement, defaults) {
                     return {
 
@@ -370,7 +456,7 @@
                         render: function (viewModel) {
                             //only render if the view has not previously been rendered.                            
                             if (viewModel.renderedElement) {
-                                return viewModel.renderedElement;
+                                return;
                             }
 
                             //extend the passed in view with default options for that view type.
@@ -378,7 +464,7 @@
 
                             //create the root level element for the view
                             viewModel.renderedElement = createElement(viewModel);
-                            viewModel.renderedElement[0].viewModel = viewModel;
+							viewModel.renderedElement.viewModel = viewModel;
 
                             //Automatically fire all of the update functions when the view is first rendered.
                             for (var key in viewModel.properties) {
@@ -387,8 +473,6 @@
                                     updateFunction(viewModel, viewModel.properties[key].value, true);
                                 }
                             }
-
-                            return viewModel.renderedElement;
                         },
 
                         //functions under this are executed whenever the data bound to by properties of the same name changes.
@@ -397,7 +481,7 @@
                             visible: function (viewModel, value, firstRun) {
                                 if (viewModel.properties.visible.value !== value || firstRun) {
                                     viewModel.properties.visible.value = value;
-                                    var element = viewModel.renderedElement;
+                                    var element = $(viewModel.renderedElement);
                                     if (element) {
                                         if (value) {
                                             element.show();
@@ -409,7 +493,7 @@
                             },
                             classes: function (viewModel, value, firstRun) {
                                 if (viewModel.properties.classes.value !== value || firstRun) {
-                                    var element = viewModel.renderedElement;
+                                    var element = $(viewModel.renderedElement);
                                     if (element) {
                                         if (viewModel.properties.classes.value) {
                                             element.removeClass(viewModel.properties.classes.value);
@@ -442,40 +526,28 @@
                         behaviours = [behaviours];
                     }
 
-                    for (var i = 0; i < behaviours.length; i++) {
-                        var behaviourType = behaviours[i].type;
+                    behaviours.fastEach(function(behaviour) {
+                        var behaviourType = behaviour.type;
                         if (behaviourType === "pageLoad") {
                             (function (behaviour) {
-                                $(document).ready(function () {
                                     for (var i = 0; i < behaviour.actions.length; i++) {
                                         if (gaffa.actions[behaviour.actions[i].type] !== undefined) {
                                             gaffa.actions[behaviour.actions[i].type](behaviour.actions[i]);
                                         }
                                     }
-                                });
-                            })(behaviours[i]);
+                            })(behaviour);
                         } else if (behaviourType === "modelChange") {
                             (function (behaviour) {
-                                $(gaffa.model).bind(['change'].concat(behaviour.binding.split('/')).join("_"), function () {
+                                gaffa.model.bind(behaviour.binding.split('/').join("_"), function () {
                                     for (var i = 0; i < behaviour.actions.length; i++) {
                                         if (gaffa.actions[behaviour.actions[i].type] !== undefined) {
                                             gaffa.actions[behaviour.actions[i].type](behaviour.actions[i]);
                                         }
                                     }
                                 });
-                            })(behaviours[i]);
-                        } else if (behaviourType === "modelFetch") {
-                            (function (behaviour) {
-                                $(gaffa.model).bind(['fetch'].concat(behaviour.binding.split('/')).join("_"), function () {
-                                    for (var i = 0; i < behaviour.actions.length; i++) {
-                                        if (gaffa.actions[behaviour.actions[i].type] !== undefined) {
-                                            gaffa.actions[behaviour.actions[i].type](behaviour.actions[i]);
-                                        }
-                                    }
-                                });
-                            })(behaviours[i]);
+                            })(behaviour);
                         }
-                    }
+                    });
                 }
             },
             utils: {

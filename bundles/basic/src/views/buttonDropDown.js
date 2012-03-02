@@ -7,7 +7,7 @@
 	function createElement(viewModel) {
 		var classes = "btn-group";
         
-        var renderedElement = $(document.createElement('div')).addClass('btn-group');
+        var renderedElement = $(document.createElement('div')).addClass('btn-group')[0];
         
         /*
         ref: http://twitter.github.com/bootstrap/components.html
@@ -53,7 +53,7 @@
                 showSplitButton: function(viewModel, value, firstRun) {
                     if(viewModel.properties.showSplitButton.value !== value || firstRun){
                         viewModel.properties.showSplitButton.value = value;
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if(element){
 							var button = $(document.createElement('button')).addClass('btn'),
         						toggle = $(document.createElement('button')).addClass('btn dropdown-toggle'),

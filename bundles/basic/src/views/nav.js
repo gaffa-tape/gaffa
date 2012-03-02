@@ -15,7 +15,7 @@
             innerBar = $(document.createElement('div')).addClass('navbar-inner'),
             container = $(document.createElement('div')).addClass('container'),
             brand = $(document.createElement('a')).addClass('brand').attr('href', '#'),
-			renderedElement = mainBar.append(innerBar.append(container.append(brand)));
+			renderedElement = mainBar.append(innerBar.append(container.append(brand)))[0];
         
         //viewModel.viewContainers.content.element = renderedElement;
                 
@@ -32,7 +32,7 @@
                 text: function(viewModel, value, firstRun) {
                     if(viewModel.properties.text.value !== value || firstRun){
                         viewModel.properties.text.value = value;
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if(element){
                             element.find('a').html(value);
                         }
@@ -41,7 +41,7 @@
                 fixed: function(viewModel, value, firstRun){
                     if(viewModel.properties.fixed.value !== value || firstRun){
                         viewModel.properties.fixed.value = value;
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if(element){
                            if (viewModel.properties.fixed.value)
                             {
@@ -53,7 +53,7 @@
                 alignment: function(viewModel, value, firstRun){
                     if(viewModel.properties.alignment.value !== value || firstRun){
                         viewModel.properties.alignment.value = value;
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if(element){                            
                             element.removeClass("pull-right pull-left");
                             switch (viewModel.properties.alignment.value)

@@ -14,7 +14,7 @@
         
         var renderedElement = cachedElement || (cachedElement = document.createElement('ul'));
         
-        renderedElement = $(renderedElement.cloneNode()).addClass(classes);
+        renderedElement = $(renderedElement.cloneNode()).addClass(classes)[0];
         
         viewModel.viewContainers.list.element = renderedElement;
         
@@ -36,11 +36,13 @@
                         // .slice(); returns a new array.
                         viewModel.properties.list.value = value.slice();
                         
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if(element && viewModel.properties.list.template.type === "accordionNode"){
                             var listViews = viewModel.viewContainers.list;
                             while(value.length < listViews.length){
-                                viewModel.viewContainers.list.pop().renderedElement.remove();
+								var viewToDelete = viewModel.viewContainers.list.pop();
+                                $(viewToDelete.renderedElement).remove();
+								delete viewToDelete;
                             }
                             while(value.length > listViews.length){
                                 window.gaffa.views.add($.extend(true, {}, viewModel.properties.list.template), viewModel, listViews, listViews.length);
@@ -49,7 +51,9 @@
                         }
                     }else if(value && value.length === 0){
                         while(viewModel.viewContainers.list.length){
-                            viewModel.viewContainers.list.pop().renderedElement.remove();
+								var viewToDelete = viewModel.viewContainers.list.pop();
+                                $(viewToDelete.renderedElement).remove();
+								delete viewToDelete;
                         }
                     }
                 }
@@ -85,7 +89,7 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = cachedElement || (cachedElement = (function(){
+        cachedElement = cachedElement || (cachedElement = (function(){
             var header = $(document.createElement('div')).addClass("header").attr('tabindex','0'),
                 content = $(document.createElement('div')).addClass("content").hide(),
                 renderedElement = $(document.createElement('li')).addClass(classes).append(header, content);                
@@ -93,10 +97,10 @@
         })());
         
         
-        renderedElement = $(renderedElement.cloneNode(true));
+        var renderedElement = cachedElement.cloneNode(true);
         
-        viewModel.viewContainers.content.element = renderedElement.children('.content');
-        viewModel.viewContainers.header.element = renderedElement.children('.header');
+        viewModel.viewContainers.content.element = renderedElement.getElementsByClassName('content')[0];
+        viewModel.viewContainers.header.element = renderedElement.getElementsByClassName('header')[0];
         
 		return renderedElement;
 	}
@@ -111,7 +115,7 @@
                 expanded: function(viewModel, value, firstRun) {
                     if(viewModel.properties.expanded.value !== value || firstRun){
                         viewModel.properties.expanded.value = value;
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if(element){
                             if(value !== false){
                                 element.children(".content").slideDown(200);

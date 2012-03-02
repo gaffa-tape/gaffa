@@ -10,7 +10,7 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('input')).attr('type', 'checkbox').addClass(classes);
+        var renderedElement = $(document.createElement('input')).attr('type', 'checkbox').addClass(classes)[0];
         
         $(renderedElement).bind("change", function(){
             window.gaffa.model.set(viewModel.properties.checked.binding, renderedElement.attr("checked") === "checked");    
@@ -29,7 +29,7 @@
                 checked: function(viewModel, value, firstRun) {
                     if(viewModel.properties.checked.value !== value || firstRun){
                         viewModel.properties.checked.value = value;
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if(element){
                             if(value){
                                 element.attr("checked", "checked");

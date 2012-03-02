@@ -9,7 +9,7 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('span')).addClass(classes);
+        var renderedElement = $(document.createElement('span')).addClass(classes)[0];
                 
 		return renderedElement;
 	}
@@ -24,7 +24,7 @@
                 text: function(viewModel, value, firstRun) {
                     if(viewModel.properties.text.value !== value || firstRun){
                         viewModel.properties.text.value = value;
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if(element){
                             element.html(value);
                         }

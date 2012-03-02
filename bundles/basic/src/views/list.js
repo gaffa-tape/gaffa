@@ -7,7 +7,7 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('div')).addClass(classes);
+        var renderedElement = $(document.createElement('div')).addClass(classes)[0];
         
         viewModel.viewContainers.list.element = renderedElement;
         
@@ -33,7 +33,9 @@
                         if(element && viewModel.properties.list.template){
                             var listViews = viewModel.viewContainers.list;
                             while(value.length < listViews.length){
-                                viewModel.viewContainers.list.pop().renderedElement.remove();
+								var viewToDelete = viewModel.viewContainers.list.pop();
+                                $(viewToDelete.renderedElement).remove();
+								delete viewToDelete;
                             }
                             while(value.length > listViews.length){
                                 window.gaffa.views.add($.extend(true, {}, viewModel.properties.list.template), viewModel, listViews, listViews.length);
@@ -42,7 +44,9 @@
                         }
                     }else if(value && value.length === 0){
                         while(viewModel.viewContainers.list.length){
-                            viewModel.viewContainers.list.pop().renderedElement.remove();
+								var viewToDelete = viewModel.viewContainers.list.pop();
+                                $(viewToDelete.renderedElement).remove();
+								delete viewToDelete;
                         }
                     }
                 }

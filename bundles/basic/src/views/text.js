@@ -9,7 +9,7 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('span')).addClass(classes);
+        var renderedElement = document.createElement('span');
                 
 		return renderedElement;
 	}
@@ -26,27 +26,9 @@
                         viewModel.properties.text.value = value;
                         var element = viewModel.renderedElement;
                         if(element){
-                            element.html(value);
+                            element.innerHTML = value;
                         }
                     }                    
-                },
-                subType: function(viewModel, value, firstRun) {
-                   if (viewModel.properties.subType.value !== value || firstRun) {
-                       viewModel.properties.subType.value = value;
-                       var element = viewModel.renderedElement;
-                       if (element) {
-                           element.attr('type', value);
-                       }
-                   }
-                },
-                placeholder: function(viewModel, value, firstRun) {
-                   if (viewModel.properties.placeholder.value !== value || firstRun) {
-                       viewModel.properties.placeholder.value = value;
-                       var element = viewModel.renderedElement;
-                       if (element) {
-                           element.attr('placeholder', value);
-                       }
-                   }              
                 }
 			},
             defaults: {

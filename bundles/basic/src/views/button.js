@@ -10,7 +10,7 @@
 	function createElement(viewModel) {
 		var classes = viewType;
         
-        var renderedElement = $(document.createElement('button')).attr('button', 'text').addClass(classes);
+        var renderedElement = $(document.createElement('button')).attr('button', 'text').addClass(classes)[0];
                 
         viewModel.viewContainers.content.element = renderedElement;
         
@@ -27,7 +27,7 @@
                 text: function(viewModel, value, firstRun) {
                     if(viewModel.properties.text.value !== value || firstRun){
                         viewModel.properties.text.value = value;
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if(element){
                             element.html(value);
                         }

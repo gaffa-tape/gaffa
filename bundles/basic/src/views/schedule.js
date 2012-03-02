@@ -10,7 +10,7 @@
         
         var renderedElement = cachedElement || (cachedElement = document.createElement('div'));
         
-        renderedElement = $(renderedElement.cloneNode()).addClass(classes);
+        renderedElement = $(renderedElement.cloneNode()).addClass(classes)[0];
         
         viewModel.viewContainers.list.element = renderedElement;
         
@@ -32,7 +32,7 @@
                         // .slice(); returns a new array.
                         viewModel.properties.list.value = value.slice();
                         
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if(element && viewModel.properties.list.template.type === "scheduleNode"){
                             var listViews = viewModel.viewContainers.list;
                             while(value.length < listViews.length){
@@ -107,7 +107,7 @@
                 expanded: function(viewModel, value, firstRun) {
                     if(viewModel.properties.expanded.value !== value || firstRun){
                         viewModel.properties.expanded.value = value;
-                        var element = viewModel.renderedElement;
+                        var element = $(viewModel.renderedElement);
                         if(element){
                             if(value !== false){
                                 element.children(".content").slideDown(200);
