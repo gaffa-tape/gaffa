@@ -143,6 +143,8 @@
 	}
     
     /*Delegated Event Handlers*/
+
+
         
     $(window).delegate('.accordionNode .header', "click", function(event){
         var accordionNode = $(event.target).closest('.accordionNode');

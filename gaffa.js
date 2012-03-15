@@ -1,4 +1,5 @@
 (function (undefined) {
+    "use strict";
 
     //Create gaffa
     var gaffa = window.gaffa = window.gaffa || newGaffa();
@@ -19,8 +20,8 @@
     var internalmodel = {},
     //these must always be instantiated.
         internalViewModels = [],
-		
-		bindings = [];
+
+        bindings = [];
 
     //internal functions
 
@@ -31,57 +32,47 @@
     Array.prototype.isArray = true;
 
     /* maybe switch to this if needed, however i havent had the requirement yet, and mine is faster
-        http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+    http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
     */
-	
-	Array.prototype.fastEach = function(callback){
-		for(var i = 0; i < this.length; i++){
-			callback(this[i], i, this);
-		}
-	}
+
+    Array.prototype.fastEach = function (callback) {
+        for (var i = 0; i < this.length; i++) {
+            callback(this[i], i, this);
+        }
+    }
     // Lots of similarities between get and set, refactor later to reuse code.
     // when lazyLoad === false (default), an event to fetch the model will be raised if the model does not already exist.
     function get(path, model, lazyLoad) {
         if (path) {
-            var keys = path.split(gaffa.pathSeparator()),
+            var keys = gaffa.paths.stripUpALevels(path).split(gaffa.pathSeparator()),
                 reference = model;
 
             for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+                /*  
+                if the thing at the current key in the model is an object
+                or an array (both typeof to object),
+                set it as the thing we want to look into next.
+                */
+                if (typeof reference[keys[keyIndex]] === "object") {
+                    reference = reference[keys[keyIndex]];
 
-                //handle "Up A Level"s in the path.
-                if (keys[keyIndex] === gaffa.upALevel()) {
-                    keys.splice(Math.max(keyIndex - 1, 0), 2);
-                    keyIndex--;
-
+                    /* 
+                    else if there isn't anything at this key, exit the loop,
+                    and return undefined.
+                    */
                 }
-                else {
+                else if (reference[keys[keyIndex]] === undefined) {
+                    reference = undefined;
+                    break;
 
                     /*  
-                    if the thing at the current key in the model is an object
-                    or an array (both typeof to object),
-                    set it as the thing we want to look into next.
+                    otherwise, we're at the end of the line. return whatever's
+                    there
                     */
-                    if (typeof reference[keys[keyIndex]] === "object") {
-                        reference = reference[keys[keyIndex]];
-
-                        /* 
-                        else if there isn't anything at this key, exit the loop,
-                        and return undefined.
-                        */
-                    }
-                    else if (reference[keys[keyIndex]] === undefined) {
-                        reference = undefined;
-                        break;
-
-                        /*  
-                        otherwise, we're at the end of the line. return whatever's
-                        there
-                        */
-                    }
-                    else {
-                        reference = reference[keys[keyIndex]];
-                        break;
-                    }
+                }
+                else {
+                    reference = reference[keys[keyIndex]];
+                    break;
                 }
             }
 
@@ -89,14 +80,14 @@
             // A user can then hook in to handle this event (perhaps making a call to a resource (server/storage) to populate the array.
             // Also, why _ for this, but other times its . ?
             if (!lazyLoad) {
-                if (reference && reference.isArray) {
+                if (reference !== undefined && reference.isArray) {
                     var raiseFetchEvent = (reference.length === 0);
-                    
+
                     if (!raiseFetchEvent) {
                         for (var arrIndex = 0; arrIndex < reference.length; arrIndex++) {
                             if (reference[arrIndex] === undefined) {
                                 // Found a partially loaded array.
-                                raiseFetchEvent =true;
+                                raiseFetchEvent = true;
                                 break;
                             }
                         }
@@ -120,19 +111,21 @@
     }
 
     function set(path, setValue, model) {
-	
-		var value;
-		
-		//Always set value, not refernce.
-		if(typeof setValue === "object"){
-			if(setValue.isArray){
-				value = setValue.slice();
-			}else{
-				value = $.extend(true, {}, setValue);
-			}
-		}else{
-			value = setValue;
-		}	
+
+        var value;
+
+        //Always set value, not refernce.
+        if (typeof setValue === "object") {
+            if (setValue.isArray) {
+                value = setValue.slice();
+            } else if (setValue instanceof Date) {
+                value = new Date(+setValue);
+            } else {
+                value = $.extend(true, {}, setValue);
+            }
+        } else {
+            value = setValue;
+        }
 
         //If you just pass in an object, you are overwriting the model.
         if (typeof path === "object") {
@@ -143,22 +136,15 @@
             return;
         }
 
-        var keys = path.split(gaffa.pathSeparator()),
+        var keys = gaffa.paths.stripUpALevels(path).split(gaffa.pathSeparator()),
             reference = model,
-            keyIndex,
-			triggerStack = [];
+            triggerStack = [];
 
         //handle "Up A Level"s in the path.
         //yeah yeah, its done differently up above...
         //ToDo: refactor.
-        keys.fastEach(function(key, index, keys){
-            if (key === gaffa.upALevel()) {
-                keys.splice(Math.max(index - 1, 0), 2);
-                index--;
-            }
-        });
 
-        keys.fastEach(function(key, index, keys){
+        keys.fastEach(function (key, index, keys) {
 
             //if we have hit a non-object and we have more keys after this one
             //make an object (or array) here and move on.
@@ -173,23 +159,23 @@
             if (index === keys.length - 1) {
                 // if we are at the end of the line, set to the model
                 reference[key] = value;
-				
-				//Report to parent arrays
+
+                //Report to parent arrays
                 if (!isNaN(reference.length)) {
                     triggerStack.push(keys.slice(0, keys.length - 2).join(gaffa.pathSeparator()));
                 }
-								
-				//Report to things looking for all changes below here.
-				var binding = keys.join("_");
-				triggerStack.push(binding);
+
+                //Report to things looking for all changes below here.
+                var binding = keys.join("_");
+                triggerStack.push(binding);
             }
             //otherwise, RECURSANIZE!
             else {
                 reference = reference[key];
-				
-				//Report to things looking for all changes below here.
-				var binding = keys.slice(0, index + 1).join("_");
-				triggerStack.push(binding);
+
+                //Report to things looking for all changes below here.
+                var binding = keys.slice(0, index + 1).join("_");
+                triggerStack.push(binding);
             }
         });
 
@@ -197,66 +183,66 @@
 
         //IMA FIREIN MA CHANGEZOR!
         gaffa.model.trigger(keys.join(gaffa.pathSeparator()), value);
-		
-		triggerStack.reverse().fastEach(function(binding){
-			gaffa.model.trigger(binding, gaffa.model.get(binding));
-		});
-    }
-	
-    function triggerBinding(binding, value) {
-		var keys = binding.split(gaffa.pathSeparator()),
-			reference = bindings;
 
-		keys.fastEach(function(key, index, keys){
-			
-			if(!isNaN(key)){
-				key = "_"+key;
-			}
-		
-			if (reference != undefined) {
-				reference = reference[key];
-			}
-		});
-		
-		if (reference != undefined) {
-			reference.fastEach(function(callback){
-				callback(value);
-			});
-			
-			for(var key in reference){	
-				if(reference.hasOwnProperty(key) && reference[key].isArray){
-					if(key.indexOf("_") === 0 && !isNaN(key.substr(1))){
-						key = key.substr(1);
-					}
-					if(value !== undefined){
-						triggerBinding(binding + gaffa.pathSeparator() + key, value[key]);
-					}else{
-						triggerBinding(binding + gaffa.pathSeparator() + key, undefined);
-					}
-				}
-			}
-		}
+        triggerStack.reverse().fastEach(function (binding) {
+            gaffa.model.trigger(binding, gaffa.model.get(binding));
+        });
     }
-	
-    function setBinding(binding, callback) {
-        var keys = binding.split(gaffa.pathSeparator()),
+
+    function triggerBinding(binding, value) {
+        var keys = gaffa.paths.stripUpALevels(binding).split(gaffa.pathSeparator()),
             reference = bindings;
 
-        keys.fastEach(function(key, index, keys){
+        keys.fastEach(function (key, index, keys) {
 
-			if(!isNaN(key)){
-				key = "_"+key;
-			}
-		
+            if (!isNaN(key)) {
+                key = "_" + key;
+            }
+
+            if (reference != undefined) {
+                reference = reference[key];
+            }
+        });
+
+        if (reference != undefined) {
+            reference.fastEach(function (callback) {
+                callback(value);
+            });
+
+            for (var key in reference) {
+                if (reference.hasOwnProperty(key) && reference[key].isArray) {
+                    if (key.indexOf("_") === 0 && !isNaN(key.substr(1))) {
+                        key = key.substr(1);
+                    }
+                    if (value !== undefined) {
+                        triggerBinding(keys.join(gaffa.pathSeparator()) + gaffa.pathSeparator() + key, value[key]);
+                    } else {
+                        triggerBinding(keys.join(gaffa.pathSeparator()) + gaffa.pathSeparator() + key, undefined);
+                    }
+                }
+            }
+        }
+    }
+
+    function setBinding(binding, callback) {
+        var keys = gaffa.paths.stripUpALevels(binding).split(gaffa.pathSeparator()),
+            reference = bindings;
+
+        keys.fastEach(function (key, index, keys) {
+
+            if (!isNaN(key)) {
+                key = "_" + key;
+            }
+
             //if we have more keys after this one
             //make an array here and move on.
             if (typeof reference[key] !== "object" && index < keys.length - 1) {
-                    reference[key] = [];
-                    reference = reference[key];
+                reference[key] = [];
+                reference = reference[key];
             }
             else if (index === keys.length - 1) {
                 // if we are at the end of the line, add the callback
-				reference[key] = reference[key] || [];
+                reference[key] = reference[key] || [];
                 reference[key].push(callback);
             }
             //otherwise, RECURSANIZE!
@@ -270,41 +256,48 @@
         //un-comment to delegate rendering to happen as soon as possible, but not if it blocks the UI.
         //this will cause all kinds of hilariously stupid layout if you breakpoint during the render loop.
         //setTimeout(function () {
-            if (viewModel.type === undefined && viewModel.text !== undefined) {
-				viewModel.type = "text";
-				viewModel.properties = {
-					text: { value: viewModel.text}
-				};
+        if (viewModel.type === undefined && viewModel.text !== undefined) {
+            viewModel.type = "html";
+            viewModel.properties = {
+                html: { value: viewModel.text }
+            };
+        }
+        if (gaffa.views[viewModel.type] !== undefined) {
+            gaffa.views[viewModel.type].render(viewModel);
+            if (parent) {
+                parent.appendChild(viewModel.renderedElement);
+
             }
-			if (gaffa.views[viewModel.type] !== undefined) {
-					gaffa.views[viewModel.type].render(viewModel);
-                if (parent) {
-                    parent.appendChild(viewModel.renderedElement);
-                }
-                for (var key in viewModel.views) {
-                    viewModel.views[key].fastEach(function(view, index) {
-                        renderView(view, viewModel.viewContainers[key].element);
-                    });
-                }
-                if (viewModel.actions) {
-                    for (var actionKey in viewModel.actions) {
-                        var eventActions = viewModel.actions[actionKey];
-                        $(viewModel.renderedElement).bind(actionKey, function () {
-                            eventActions.fastEach(function(eventAction){
-                                bindAction(eventAction, viewModel);
-                            });
+            for (var key in viewModel.views) {
+                viewModel.views[key].fastEach(function (view, index) {
+                    renderView(view, viewModel.viewContainers[key].element);
+                });
+            }
+            if (viewModel.actions) {
+                for (var actionKey in viewModel.actions) {
+                    var action = viewModel.actions[actionKey];
+                    if (!action.bound) {
+                        $(viewModel.renderedElement).bind(actionKey, function (event) {
+                            window.gaffa.actions.trigger(action, viewModel.binding);
                         });
+                        action.bound = true;
                     }
                 }
             }
+        }
         //}, 0);
     }
 
     //mostly just make sure all the relative bindings are made absolute. delegate actions to the appropriate action object.
-    function bindAction(action, parent) {
+    function bindAction(action, parentBinging) {
+
+        action.binding = action.binding || parentBinging;
+        action.binding = gaffa.paths.getAbsolutePath(parentBinging, action.binding);
+
         for (var key in action.bindings) {
             if (action.bindings[key] && action.bindings[key].binding !== undefined) {
-                action.bindings[key].binding = gaffa.paths.getAbsolutePath(parent.binding, action.bindings[key].binding);
+                action.bindings[key].binding = gaffa.paths.getAbsolutePath(parentBinging, action.bindings[key].binding);
+                action.bindings[key].value = window.gaffa.model.get(action.bindings[key].binding);
             }
         }
         if (typeof gaffa.actions[action.type] === "function") {
@@ -333,7 +326,9 @@
         if (parentView) {
             viewModel.binding = gaffa.paths.getAbsolutePath(parentViewBinding, viewModel.binding);
         } else {
-            viewModel.binding = parentViewBinding;
+            if (viewModel.binding.indexOf(gaffa.relativePath()) >= 0) {
+                viewModel.binding = parentViewBinding;                
+            }
         }
 
         //bind each of the views properties to the model.
@@ -356,7 +351,7 @@
 
         //recursivly bind child views.
         for (var key in viewModel.views) {
-            viewModel.views[key].fastEach(function(childViewModel){
+            viewModel.views[key].fastEach(function (childViewModel) {
                 bindView(childViewModel, viewModel);
             });
         }
@@ -380,6 +375,18 @@
                     else {
                         return childBinding;
                     }
+                },
+                // fix up-a-levels
+                stripUpALevels: function (path) {
+                    var keys = path.split(gaffa.pathSeparator());
+                    for (var index = 0; index < keys.length; index++) {
+                        var key = keys[index];
+                        if (key === gaffa.upALevel()) {
+                            keys.splice(Math.max(index - 1, 0), 2);
+                            index -= 2;
+                        }
+                    }
+                    return (keys.join(gaffa.pathSeparator()));
                 }
             },
             model: {
@@ -387,17 +394,17 @@
                     return get(path, internalmodel);
                 },
                 set: function (path, value) {
-					set(path, value, internalmodel);
+                    set(path, value, internalmodel);
                 },
                 update: function (path, value) {
 
                 },
-				bind: function(binding, callback){
-					setBinding(binding, callback);
-				},
-				trigger: function(binding, value){				
-					triggerBinding(binding, value);
-				}
+                bind: function (binding, callback) {
+                    setBinding(binding, callback);
+                },
+                trigger: function (binding, value) {
+                    triggerBinding(binding, value);
+                }
             },
             views: {
                 renderTarget: null,
@@ -405,7 +412,7 @@
                 render: function (viewModels, parent) { //parameters optional.
                     //if its a list of views, render them all
                     if (viewModels && viewModels.length) {
-                        viewModels.fastEach(function(viewModel){
+                        viewModels.fastEach(function (viewModel) {
                             renderView(viewModel, parent);
                         });
                     }
@@ -415,8 +422,9 @@
                     }
                     //if nothing is passed in, render ALL the viewModels!
                     else {
-                        internalViewModels.fastEach(function(internalViewModel){
-                            renderView(internalViewModel, this.renderTarget || document.getElementsByTagName('body')[0]);
+                        var renderTarget = this.renderTarget || document.getElementsByTagName('body')[0];
+                        internalViewModels.fastEach(function (internalViewModel) {
+                            renderView(internalViewModel, renderTarget);
                         });
                     }
                 },
@@ -428,7 +436,7 @@
                         viewModels = [viewModels];
                     }
 
-                    viewModels.fastEach(function(viewModel) {
+                    viewModels.fastEach(function (viewModel) {
                         if (gaffa.views[viewModel.type] !== undefined) {
                             //if this view has a parent.
                             if (parentView && parentViewChildArray) {
@@ -464,7 +472,7 @@
 
                             //create the root level element for the view
                             viewModel.renderedElement = createElement(viewModel);
-							viewModel.renderedElement.viewModel = viewModel;
+                            viewModel.renderedElement.viewModel = viewModel;
 
                             //Automatically fire all of the update functions when the view is first rendered.
                             for (var key in viewModel.properties) {
@@ -517,6 +525,11 @@
                 }
             },
             actions: {
+                trigger: function (actions, parentBinging) {
+                    actions.fastEach(function (action) {
+                        bindAction(action, parentBinging);
+                    });
+                }
                 //placeholder for actions
             },
             behaviours: {
@@ -526,15 +539,15 @@
                         behaviours = [behaviours];
                     }
 
-                    behaviours.fastEach(function(behaviour) {
+                    behaviours.fastEach(function (behaviour) {
                         var behaviourType = behaviour.type;
                         if (behaviourType === "pageLoad") {
                             (function (behaviour) {
-                                    for (var i = 0; i < behaviour.actions.length; i++) {
-                                        if (gaffa.actions[behaviour.actions[i].type] !== undefined) {
-                                            gaffa.actions[behaviour.actions[i].type](behaviour.actions[i]);
-                                        }
+                                for (var i = 0; i < behaviour.actions.length; i++) {
+                                    if (gaffa.actions[behaviour.actions[i].type] !== undefined) {
+                                        gaffa.actions[behaviour.actions[i].type](behaviour.actions[i]);
                                     }
+                                }
                             })(behaviour);
                         } else if (behaviourType === "modelChange") {
                             (function (behaviour) {

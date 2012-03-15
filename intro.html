@@ -18,6 +18,7 @@
         <script src="bundles/basic/src/views/checkbox.js" type="text/javascript"></script>
         <script src="bundles/basic/src/views/paragraph.js" type="text/javascript"></script>
         <script src="bundles/basic/src/views/text.js" type="text/javascript"></script>
+        <script src="bundles/basic/src/views/html.js" type="text/javascript"></script>
         <script src="bundles/basic/src/views/linebreak.js" type="text/javascript"></script>
         <script src="bundles/basic/src/views/anchor.js" type="text/javascript"></script>
         <script src="bundles/basic/src/views/label.js" type="text/javascript"></script>
@@ -33,6 +34,7 @@
         <script src="bundles/basic/src/views/select.js" type="text/javascript"></script>
         
         <!-- actions -->
+        <script src="bundles/basic/src/actions/conditional.js" type="text/javascript"></script>
         <script src="bundles/basic/src/actions/toggle.js" type="text/javascript"></script>
         <script src="bundles/basic/src/actions/set.js" type="text/javascript"></script>
         <script src="bundles/basic/src/actions/toJson.js" type="text/javascript"></script>
@@ -815,7 +817,7 @@
 
             /* Webpage++ */
             $(document).ready(function(){
-                gaffa.views.renderTarget = $("body");
+                gaffa.views.renderTarget = $("body")[0];
                 gaffa.views.render();
             });
         

@@ -1,56 +1,65 @@
 //	Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
-(function(undefined) {
+(function (undefined) {
     var viewType = "anchor";
-    
-	window.gaffa.views = window.gaffa.views || {};
-	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
-    
-	function createElement(viewModel) {
-		var classes = viewType;
-        
-        var renderedElement = $(document.createElement('a')).addClass(classes)[0];
-                
-		return renderedElement;
-	}
 
-	function newView() {
-		
-		function view() {
-		}	
-		
-		view.prototype = {
-			update: {
-                text: function(viewModel, value, firstRun) {
-                    if(viewModel.properties.text.value !== value || firstRun){
+    window.gaffa.views = window.gaffa.views || {};
+    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
+
+    function createElement(viewModel) {
+        var classes = viewType;
+
+        var renderedElement = $(document.createElement('a')).addClass(classes)[0];
+
+        viewModel.viewContainers.content.element = renderedElement;
+
+        return renderedElement;
+    }
+
+    function newView() {
+
+        function view() {
+        }
+
+        view.prototype = {
+            update: {
+                text: function (viewModel, value, firstRun) {
+                    if (viewModel.properties.text.value !== value || firstRun && !viewModel.viewContainers.content.length) {
                         viewModel.properties.text.value = value;
                         var element = $(viewModel.renderedElement);
-                        if(element){
+                        if (element) {
                             element.html(value);
                         }
-                    }                    
+                    }
                 },
-                href: function(viewModel, value, firstRun) {
-                    if(viewModel.properties.href.value !== value || firstRun){
+                href: function (viewModel, value, firstRun) {
+                    if (viewModel.properties.href.value !== value || firstRun) {
                         viewModel.properties.href.value = value;
                         var element = $(viewModel.renderedElement);
-                        if(element){
+                        if (element) {
+                            var urlTemplate = viewModel.properties.urlTemplate;
+                            if (urlTemplate && typeof urlTemplate === "string") {
+                                value = urlTemplate.split("{#}").join(value);
+                            }
                             element.attr("href", value);
                         }
-                    }                    
+                    }
                 }
-			},
+            },
             defaults: {
+                viewContainers: {
+                    content: []
+                },
                 properties: {
                     visible: {},
                     text: {},
                     href: {}
                 }
             }
-		};
-        
+        };
+
         $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-                
-		return new view();
-	}
+
+        return new view();
+    }
 })();
