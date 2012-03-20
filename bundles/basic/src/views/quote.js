@@ -26,37 +26,16 @@
 		
 		view.prototype = {
 			update: {
-                text: function(viewModel, value, firstRun) {
-                    if(viewModel.properties.text.value !== value || firstRun){
-                        viewModel.properties.text.value = value;
-                        var element = $(viewModel.renderedElement);
-                        if(element){
-                            element.children('p').html(value);
-                        }
-                    }                    
-                },
-                cite: function(viewModel, value, firstRun) {
-                    if (!viewModel.properties.citeHref.value)
-                    {
-	                    if(viewModel.properties.cite.value !== value || firstRun){
-	                        viewModel.properties.cite.value = value;
-	                        var element = $(viewModel.renderedElement);
-	                        if (element) {
-	                            element.find('cite').html(value);
-	                        }
-	                    }
-                    }                    
-                },
-                citeHref: function(viewModel, value, firstRun) {
-                    if(viewModel.properties.citeHref.value !== value || firstRun){
-                        viewModel.properties.citeHref.value = value;
-                        var element = $(viewModel.renderedElement);
-                        if (element) {
-                            element.find('cite').append($(document.createElement('a')).text(viewModel.properties.cite.value).attr('href', value).attr('target', '_blank'));
-
-                        }
-                    }                    
-                },
+				text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
+					$(viewModel.renderedElement).children('p').html(value);
+				}),
+				cite: window.gaffa.propertyUpdaters.string("cite", function(viewModel, value){
+					$(viewModel.renderedElement).find('cite').html(value);
+				}),
+				citeHref: window.gaffa.propertyUpdaters.string("citeHref", function(viewModel, value){
+					var anchor = $(document.createElement('a')).text(viewModel.properties.cite.value).attr('href', value).attr('target', '_blank');
+					$(viewModel.renderedElement).find('cite').empty().append(anchor);
+				}),
                 alignment: function(viewModel, value, firstRun){
                     if(viewModel.properties.alignment.value !== value || firstRun){
                         viewModel.properties.alignment.value = value;

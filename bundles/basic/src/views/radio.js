@@ -35,25 +35,16 @@
 		}	
 		
 		view.prototype = {
-            update: {   
-				text: function(viewModel, value, firstRun) {
-                    if(viewModel.properties.text.value !== value || firstRun){
-                        viewModel.properties.text.value = value;
-                        var element = $(viewModel.renderedElement).children('.radioLabel');
-                        if(element){
-                            element.html(value);
-                        }
-                    }                    
-                },
-                value: function(viewModel, value, firstRun) {
-                    if(viewModel.properties.value.value !== value || firstRun){
-                        viewModel.properties.value.value = value;
-                        var element = $(viewModel.renderedElement).children('input');
-                        if(element){
-                             element.attr('value', value);
-                        }
-                    }                    
-                },
+            update: {			
+				text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
+					$(viewModel.renderedElement).children('.radioLabel').html(value);
+				}),
+				value: window.gaffa.propertyUpdaters.string("value", function(viewModel, value){
+					$(viewModel.renderedElement).children('input').attr('value', value);
+				}),
+				name: window.gaffa.propertyUpdaters.string("name", function(viewModel, value){
+					$(viewModel.renderedElement).children('input').attr("name", value);
+				}),
 				checked: function(viewModel, value, firstRun) {
 					var element = $(viewModel.renderedElement).children('input');
 					if(element){
@@ -63,15 +54,6 @@
 							element.removeAttr("checked");
 						}
 					}                                   
-                },
-				name: function(viewModel, value, firstRun) {
-                    if(viewModel.properties.name.value !== value || firstRun){
-                        viewModel.properties.name.value = value;
-                        var element = $(viewModel.renderedElement).children('input');
-                        if(element){
-                            element.attr("name", value);
-                        }
-                    }                    
                 }
             },
             defaults: {

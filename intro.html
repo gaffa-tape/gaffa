@@ -62,7 +62,8 @@
                 someBool: true,
                 someOtherBool: false,
                 someProperty: "a heading",
-                thirdHeading: "Cool story bro...",
+                thirdHeading: "Cool story",
+                formattedHeading: ["some","kinda","heading"],
                 anArray: [
                     "value1",
                     "value2",
@@ -109,7 +110,8 @@
                 someBool: true,
                 someOtherBool: false,
                 someProperty: "a heading",
-                thirdHeading: "Cool story bro...",
+                thirdHeading: "Cool story",
+                formattedHeading: ["some","kinda","heading"],
                 anArray: [
                     "value1",
                     "value2",
@@ -355,7 +357,10 @@
                                                 {
                                                     type: "heading",
                                                     properties: {
-                                                        text: { binding: "stuff/thirdHeading" }
+                                                        text: { 
+															binding: ["stuff/thirdHeading"],
+															format: "{0} bro..."
+														}
                                                     }
                                                 },
                                                 {
@@ -416,7 +421,7 @@
                                                                                         type: "set",
                                                                                         bindings: {
                                                                                             setTo: { binding: "stuff/thirdHeading"},
-                                                                                            setFrom: { value: "Brool Story Co..."}
+                                                                                            setFrom: { value: "Brool Story"}
                                                                                         }
                                                                                     },
                                                                                     {

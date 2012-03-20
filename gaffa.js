@@ -335,6 +335,12 @@
                 viewModel.binding = parentViewBinding;                
             }
         }
+		
+		function bindProperty(viewModel, value, path, key, index){
+			gaffa.model.bind(path, function (value) {
+				gaffa.views[viewModel.type].update[key](viewModel, value, false, index);
+			});
+		}
 
         //bind each of the views properties to the model.
         for (var key in viewModel.properties) {
@@ -343,13 +349,20 @@
 
                 // this function is to create a closure so that 'key' is still the same key when the event fires.
                 (function (key) {
-                    if (viewModel.properties[key].binding) {
-                        viewModel.properties[key].value = gaffa.model.get(viewModel.properties[key].binding);
-
-                        gaffa.model.bind(viewModel.properties[key].binding, function (value) {
-                            gaffa.views[viewModel.type].update[key](viewModel, value);
-                        });
-                    }
+					if (viewModel.properties[key].binding) {
+						if (viewModel.properties[key].binding.isArray){
+							viewModel.properties[key].binding.fastEach(function(path, index, paths){
+								if(!(viewModel.properties[key].value && viewModel.properties[key].value.isArray)){
+									viewModel.properties[key].value = [];
+								}
+								viewModel.properties[key].value[index] = gaffa.model.get(viewModel.properties[key].binding[index]);
+								bindProperty(viewModel, viewModel.properties[key].value[index], viewModel.properties[key].binding[index], key, index);
+							});
+						}else {
+							viewModel.properties[key].value = gaffa.model.get(viewModel.properties[key].binding);							
+							bindProperty(viewModel, viewModel.properties[key].value, viewModel.properties[key].binding, key);
+						}
+					}
                 })(key);
             }
         }
@@ -582,7 +595,76 @@
                     }
                     return true;
                 }
-            }
+            },
+			propertyUpdaters: {
+				string: function(propertyName, callback){
+					return function(viewModel, value, firstRun, index) {
+						var property = viewModel.properties[propertyName];
+						
+						index = parseInt(index);
+						if(value && value.isArray || !isNaN(index)){
+							if(property.value[index] !== value || firstRun){
+								property.value[index] = value;
+								var element = $(viewModel.renderedElement);
+								if(element){
+									var string = ""
+									if(property.format && typeof property.format === "string"){
+										string = property.format;
+										property.value.fastEach(function(valueN, valueIndex, values){
+											var currentValue = "";
+											if(valueN !== undefined){
+												currentValue = valueN.toString();
+											}
+											string = string.split("{" + valueIndex + "}").join(currentValue);
+										});
+									}else{
+										string = property.value.join("");
+									}
+									callback(viewModel, string);
+								}
+							}     
+						}else{
+							if(property.value !== value || firstRun){
+								property.value = value;
+								var element = $(viewModel.renderedElement);
+								if(element){								
+									callback(viewModel, value);
+								}
+							}     
+
+						}
+					}
+				},
+				array: function(propertyName, increment, decrement, update){
+					return function(viewModel, value, firstRun) {
+						if (value && value.isArray && (viewModel.properties.list.value.length !== value.length || firstRun)) {
+							
+							//Cant set it to the value, that would cause both to be a reference to the same array,
+							//so their lenghts would always be the same, and this code would never execute again.
+							// .slice(); returns a new array.
+							viewModel.properties.list.value = value.slice();
+							
+							var element = viewModel.renderedElement;
+							if(element && viewModel.properties.list.template){
+								var listViews = viewModel.viewContainers.list;
+								while(value.length < listViews.length){
+									decrement(viewModel, value, viewModel.viewContainers.list.pop());
+								}
+								while(value.length > listViews.length){
+									increment(viewModel, value, value[listViews.length]);
+								}
+								if(update){
+									update(viewModel, value);
+								}
+							}
+						}else if(value && value.length === 0){
+							while(value.length){
+								decrement(viewModel, value, value.pop());
+							}
+						}
+					}
+                }
+			}
         };
 
         return new innerGaffa();

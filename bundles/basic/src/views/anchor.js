@@ -23,28 +23,12 @@
 
         view.prototype = {
             update: {
-                text: function (viewModel, value, firstRun) {
-                    if (viewModel.properties.text.value !== value || firstRun && !viewModel.viewContainers.content.length) {
-                        viewModel.properties.text.value = value;
-                        var element = $(viewModel.renderedElement);
-                        if (element) {
-                            element.html(value);
-                        }
-                    }
-                },
-                href: function (viewModel, value, firstRun) {
-                    if (viewModel.properties.href.value !== value || firstRun) {
-                        viewModel.properties.href.value = value;
-                        var element = $(viewModel.renderedElement);
-                        if (element) {
-                            var urlTemplate = viewModel.properties.urlTemplate;
-                            if (urlTemplate && typeof urlTemplate === "string") {
-                                value = urlTemplate.split("{#}").join(value);
-                            }
-                            element.attr("href", value);
-                        }
-                    }
-                }
+                text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
+					viewModel.renderedElement.innerHTML = value;
+				}),
+                href: window.gaffa.propertyUpdaters.string("href", function(viewModel, value){
+					viewModel.renderedElement.innerHTML = value;
+				})
             },
             defaults: {
                 viewContainers: {

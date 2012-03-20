@@ -36,25 +36,13 @@
 
         view.prototype = {
             update: {
-                text: function (viewModel, value, firstRun) {
-                    if (viewModel.properties.text.value !== value || firstRun) {
-                        viewModel.properties.text.value = value;
-                        var element = viewModel.renderedElement;
-                        if (element) {
-							var text = "";
-                            if (value !== undefined) {								
-								text = value.toString();
-                            }
-							//Internet expoder, as usual, is FUCKING SHIT.
-							//and won't let you add values to textNode elements.
-							if(!shit){
-								element.data = text;
-							}else{
-								element.innerText = text;
-							}							
-                        }
-                    }
-                }
+				text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
+					if(!shit){
+						viewModel.renderedElement.data = value;
+					}else{
+						viewModel.renderedElement.innerText = value;
+					}
+				})
             },
             defaults: {
                 properties: {

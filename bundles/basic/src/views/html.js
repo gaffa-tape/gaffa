@@ -21,15 +21,9 @@
 		
 		view.prototype = {
 			update: {
-                html: function(viewModel, value, firstRun) {
-                    if (viewModel.properties.html.value !== value || firstRun) {
-                        viewModel.properties.html.value = value;
-                        var element = viewModel.renderedElement;
-                        if(element){
-                            element.innerHTML = value;
-                        }
-                    }                    
-                }
+                html: window.gaffa.propertyUpdaters.string("html", function(viewModel, value){
+					viewModel.renderedElement.innerHTML = value;
+				})
 			},
             defaults: {
                 properties: {

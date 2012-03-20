@@ -35,33 +35,15 @@
 
         view.prototype = {
             update: {
-                value: function (viewModel, value, firstRun) {
-                    if (viewModel.properties.value.value !== value || firstRun) {
-                        viewModel.properties.value.value = value;
-                        var element = $(viewModel.renderedElement);
-                        if (element) {
-                            element.val(value);
-                        }
-                    }
-                },
-                subType: function (viewModel, value, firstRun) {
-                    if (viewModel.properties.subType.value !== value || firstRun) {
-                        viewModel.properties.subType.value = value;
-                        var element = $(viewModel.renderedElement);
-                        if (element) {
-                            element.attr('type', value);
-                        }
-                    }
-                },
-                placeholder: function (viewModel, value, firstRun) {
-                    if (viewModel.properties.placeholder.value !== value || firstRun) {
-                        viewModel.properties.placeholder.value = value;
-                        var element = $(viewModel.renderedElement);
-                        if (element) {
-                            element.attr('placeholder', value);
-                        }
-                    }
-                }
+                value: window.gaffa.propertyUpdaters.string("value", function(viewModel, value){
+					$(viewModel.renderedElement).val(value);
+				}),
+				subType: window.gaffa.propertyUpdaters.string("subType", function(viewModel, value){
+					$(viewModel.renderedElement).attr('type', value);
+				}),
+				placeholder: window.gaffa.propertyUpdaters.string("placeholder", function(viewModel, value){
+					$(viewModel.renderedElement).attr('placeholder', value);
+				})
             },
             defaults: {
                 properties: {
