@@ -389,7 +389,7 @@
                                                                         {
                                                                             type:"textbox",
                                                                             properties: {
-                                                                                value: {binding:"stuff/thirdHeading"}
+                                                                                value: {binding:["stuff/thirdHeading"]}
                                                                             },
                                                                             actions:{
                                                                                 change:[
@@ -825,7 +825,53 @@
 														},
 														value: { binding: "stuff/checkedRadioOption" }
 													}
-												}
+												},
+												{text: "<br /><br />"},
+                                                {
+                                                    type: "heading",
+                                                    properties: {
+                                                        text: { value: "Crazy string formatting fun :D" }
+                                                    }
+                                                },
+												{text: "<br />"},
+												{text: "Here is some fun magic stuff you can do with string formatting<br />"},
+												{text: "The following textbox is bound to 2 model properties, and is formated as: 'SELECT {1} from {0}' where {n} is a bound value<br />"},
+												{
+													type:"textbox",
+													properties: {
+														value: {binding:["stuff/formatProps1", "stuff/formatProps2"], format:"SELECT {1} from {0}"}
+													}
+												},
+												{text: "<br />If you get the format wrong on entry, it won't be set back to the model, and the textbox will get a red border"},
+												{text: "<br /><br />"},
+												{text: "The following textbox's are bound to the 2 model properties that the above box is bound to.<br />"},
+												{text: "Table: "},
+												{
+													type:"textbox",
+													properties: {
+														value: {binding:["stuff/formatProps1"]}
+													}
+												},
+												{text: "<br />Select: "},
+												{
+													type:"textbox",
+													properties: {
+														value: {binding:["stuff/formatProps2"]}
+													}
+												},
+												{text: "<br /><br />"},
+												{text: "You might be wondering, 'when would I ever want to do this!?' Actually it's something that is required quite a lot in websites. "},
+												{text: "Most anchor tags are made up of routes and parameters, eg: '/someControler/{recordList}/{record}', and thats where this comes in handy"},
+												{text: "<br /><br />"},
+												{
+													type:"anchor",
+													properties: {
+														text: {binding:["stuff/formatProps1","stuff/formatProps2"], format:"Navigate me to the '{1}' record of the '{0}' table good sir!"},
+														href: {binding:["stuff/formatProps1","stuff/formatProps2"], format:"controler/{0}/{1}"}
+													}
+												},
+												{text: "<br /><br />"},
+												{text: "(PS: this link doesn't go anywhere)"}
                                             ]
                                         }
                                     }

@@ -40,6 +40,52 @@
             callback(this[i], i, this);
         }
     }
+	
+	//http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format/4673436#4673436
+	//changed to a single array argument
+	String.prototype.format = function(values) {		
+			return this.replace(/{(\d+)}/g, function(match, number) { 
+				return typeof values[number] != 'undefined'
+					? values[number]
+					: match
+				;
+			});
+	};
+	
+	//http://stackoverflow.com/questions/5346158/parse-string-using-format-template
+	//Haxy de-formatter
+	String.prototype.deformat = function(template) {		
+		
+		var findFormatNumbers = /{(\d+)}/g,
+			currentMatch,
+			matchOrder = [],
+			index = 0;
+			
+		while((currentMatch = findFormatNumbers.exec(template)) != null){
+			matchOrder[index] = parseInt(currentMatch[1]);
+			index++;
+		}
+		
+		//http://simonwillison.net/2006/Jan/20/escape/
+		var pattern = new RegExp("^" + template.replace(/[-[\]()*+?.,\\^$|#\s]/g, "\\$&").replace(/(\{\d+\})/g, "(.*?)") + "$", "g");
+		
+        var matches = pattern.exec(this);
+	
+		if(!matches){
+			return false;
+		}
+		
+        var values = [];
+
+        for (var i = 0; i < matchOrder.length; i++)
+        {		
+            values.push(matches[matchOrder[i]+1]);
+        }
+
+        return values;			
+	};
+	
+	
     // Lots of similarities between get and set, refactor later to reuse code.
     // when lazyLoad === false (default), an event to fetch the model will be raised if the model does not already exist.
     function get(path, model, lazyLoad) {
@@ -80,7 +126,7 @@
             // A user can then hook in to handle this event (perhaps making a call to a resource (server/storage) to populate the array.
             // Also, why _ for this, but other times its . ?
             if (!lazyLoad) {
-                if (reference !== undefined && reference.isArray) {
+                if (reference && reference.isArray) {
                     var raiseFetchEvent = (reference.length === 0);
 
                     if (!raiseFetchEvent) {
@@ -126,6 +172,12 @@
         } else {
             value = setValue;
         }
+		
+		//passed an array binding, take the first as default.
+		//this would happen if an array was used as a binding without a format string
+		if(path.isArray){
+			path = path[0];
+		}
 
         //If you just pass in an object, you are overwriting the model.
         if (typeof path === "object") {
@@ -597,41 +649,56 @@
                 }
             },
 			propertyUpdaters: {
-				string: function(propertyName, callback){
-					return function(viewModel, value, firstRun, index) {
-						var property = viewModel.properties[propertyName];
-						
-						index = parseInt(index);
-						if(value && value.isArray || !isNaN(index)){
-							if(property.value[index] !== value || firstRun){
-								property.value[index] = value;
-								var element = $(viewModel.renderedElement);
-								if(element){
-									var string = ""
-									if(property.format && typeof property.format === "string"){
-										string = property.format;
-										property.value.fastEach(function(valueN, valueIndex, values){
-											var currentValue = "";
-											if(valueN !== undefined){
-												currentValue = valueN.toString();
-											}
-											string = string.split("{" + valueIndex + "}").join(currentValue);
-										});
-									}else{
-										string = property.value.join("");
-									}
-									callback(viewModel, string);
+				string: function(propertyName, callback, matchError){
+					if(typeof propertyName === "object"){					
+					//passed a property object, doing a set.
+					var propertyObject = propertyName,
+						string = callback;
+					
+						if(propertyObject.binding.isArray && propertyObject.format){
+							var inputValues = string.deformat(propertyObject.format);
+								
+							if(!inputValues){
+								if(matchError){
+									matchError();
 								}
-							}     
+							}else{
+								inputValues.fastEach(function(value, index){				
+									window.gaffa.model.set(propertyObject.binding[index], value);   
+								}); 
+							}	
 						}else{
-							if(property.value !== value || firstRun){
-								property.value = value;
-								var element = $(viewModel.renderedElement);
-								if(element){								
-									callback(viewModel, value);
-								}
-							}     
+							window.gaffa.model.set(propertyObject.binding, string);   
+						}						
+					}else{
+						return function(viewModel, value, firstRun, index) {
+							var property = viewModel.properties[propertyName];
+							
+							index = parseInt(index);
+							if(value && value.isArray || !isNaN(index)){
+								if(property.value[index] !== value || firstRun){
+									property.value[index] = value;
+									var element = $(viewModel.renderedElement);
+									if(element){
+										var string;
+										if(property.format && typeof property.format === "string"){
+											string = property.format.format(property.value);
+										}else{
+											string = property.value.join("");
+										}
+										callback(viewModel, string);
+									}
+								}     
+							}else{
+								if(property.value !== value || firstRun){
+									property.value = value;
+									var element = $(viewModel.renderedElement);
+									if(element){								
+										callback(viewModel, value);
+									}
+								}     
 
+							}
 						}
 					}
 				},

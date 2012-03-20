@@ -8,11 +8,18 @@
     window.gaffa.views = window.gaffa.views || {};
     window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
 
-	function setValue(event){          
-		if ($(this).attr("type") === "numeric") {
-                window.gaffa.model.set(this.viewModel.properties.value.binding, parseFloat($(this).val()));
+	function setValue(event){    
+		var input = this;
+		var matchFail = function(){
+			$(input).addClass('error');
+		}
+		
+		$(input).removeClass('error');
+				
+		if ($(input).attr("type") === "numeric") {
+                window.gaffa.propertyUpdaters.string(input.viewModel.properties.value, parseFloat($(input).val()), matchFail);
             } else {
-                window.gaffa.model.set(this.viewModel.properties.value.binding, $(this).val());
+                window.gaffa.propertyUpdaters.string(input.viewModel.properties.value, $(input).val(), matchFail);
 		} 
 	}  
 	

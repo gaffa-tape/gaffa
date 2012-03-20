@@ -27,7 +27,7 @@
 					viewModel.renderedElement.innerHTML = value;
 				}),
                 href: window.gaffa.propertyUpdaters.string("href", function(viewModel, value){
-					viewModel.renderedElement.innerHTML = value;
+					viewModel.renderedElement.setAttribute("href",value);
 				})
             },
             defaults: {

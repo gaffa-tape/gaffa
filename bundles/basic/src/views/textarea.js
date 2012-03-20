@@ -8,7 +8,13 @@
 	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
 	
 	function setValue(event){
-		window.gaffa.model.set(this.viewModel.properties.value.binding, $(this).val());    
+		var textArea = this;
+		
+		var matchFail = function(){
+			$(textArea).addClass('error');
+		}
+		
+		window.gaffa.propertyUpdaters.string(textArea.viewModel.properties.value, $(textArea).val(), matchFail); 
 	}
 
 	function createElement(viewModel) {
