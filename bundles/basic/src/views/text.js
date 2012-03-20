@@ -1,15 +1,30 @@
 //	Properties:
 //		styles: container | container-fluid | row | row-fluid | span* | offset*
 (function (undefined) {
-    var viewType = "text";
+    var viewType = "text",
+		shit,
+		findShitBrowsersRegex = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+	
+	if (navigator.appName == 'Microsoft Internet Explorer'&&
+		parseFloat(findShitBrowsersRegex.exec(navigator.userAgent)[1])<9
+	) {
+		shit = true;
+    }
 
     window.gaffa.views = window.gaffa.views || {};
-    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
+    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView()
 
     function createElement(viewModel) {
-        var classes = viewType;
-
-        var renderedElement = document.createTextNode('');
+        var classes = viewType,
+			renderedElement;
+		
+		//Internet expoder, as usual, is FUCKING SHIT.
+		//and won't let you add values to textNode elements.
+		if(!shit){
+			renderedElement = document.createTextNode('');
+		}else{
+			renderedElement = document.createElement('span');
+		}
 
         return renderedElement;
     }
@@ -26,11 +41,17 @@
                         viewModel.properties.text.value = value;
                         var element = viewModel.renderedElement;
                         if (element) {
-                            if (value !== undefined) {
-                                element.data = value.toString();
-                            } else {
-                                element.data = "";
+							var text = "";
+                            if (value !== undefined) {								
+								text = value.toString();
                             }
+							//Internet expoder, as usual, is FUCKING SHIT.
+							//and won't let you add values to textNode elements.
+							if(!shit){
+								element.data = text;
+							}else{
+								element.innerText = text;
+							}							
                         }
                     }
                 }

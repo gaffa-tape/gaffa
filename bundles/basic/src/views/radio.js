@@ -12,14 +12,14 @@
         
         var renderedElement = cachedElement || (cachedElement = (function(){
             var input = $(document.createElement('input')).attr('type','radio'),
-				label = $(document.createElement('span')).addClass('radioLabel'),
+				label = $(document.createElement('span')).addClass('radioLabel').click(function(){input.click();}),
 				renderedElement = $(document.createElement('span')).addClass(viewType).append(input, label);
                 return renderedElement[0];
         })());  
         
         renderedElement = renderedElement.cloneNode(true);      
         
-        $(renderedElement).delegate("input", "change", function(){
+        $(renderedElement).delegate("input", "change", function(event){
 			var target = $(event.target);
 			if(target.attr("checked")){
 				window.gaffa.model.set(viewModel.properties.checked.binding, viewModel.properties.value.value);

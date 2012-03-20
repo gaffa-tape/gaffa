@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
     <head>
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
@@ -7,6 +8,9 @@
         <link href="code.css" media="screen" rel="stylesheet" type="text/css">
         <link href="intro.css" media="screen" rel="stylesheet" type="text/css">
         
+		<!-- prereqs for Internet exploder -->
+        <script src="json2.js" type="text/javascript"></script>
+		
         <!-- the tape -->
         <script src="gaffa.js" type="text/javascript"></script>
         
@@ -171,15 +175,13 @@
                             bindings: {
                                 setFrom: { binding: "stuff" }
                             }
-                        },
-                        {
-                            type: "store",
-                            location: "local",
-                            path: "thingsModel",
-                            bindings: {
-                                setFrom: { binding: "things" }
-                            }
-                        },
+                        }
+                    ]
+                },
+				{
+                    binding: "viewStrings",
+                    type: "modelChange",
+                    actions: [
                         {
                             type: "store",
                             location: "local",
@@ -188,8 +190,22 @@
                                 setFrom: { binding: "viewStrings" }
                             }
                         }
-                    ]
-                },
+					]
+				},
+				{
+                    binding: "things",
+                    type: "modelChange",
+                    actions: [
+                        {
+                            type: "store",
+                            location: "local",
+                            path: "thingsModel",
+                            bindings: {
+                                setFrom: { binding: "things" }
+                            }
+                        }
+					]
+				},
                 {
                     binding: "stuff",
                     type: "pageLoad",

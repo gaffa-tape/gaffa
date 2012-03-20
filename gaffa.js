@@ -307,9 +307,14 @@
 
     //gaffa together view properties to model properties.
     function bindView(viewModel, parentView, index) {
-        if (gaffa.views[viewModel.type] === undefined) {
-            return;
-        }
+		if(viewModel && viewModel.type){
+			if (viewModel.type && gaffa.views[viewModel.type] === undefined) {
+				console.log("No view loaded to handle views of type: " + viewModel.type + ", Are you missing a script reference?");
+				return;
+			}
+		}else{
+			return;
+		}
         //ToDo: probs a better way to do this....
         $.extend(true, viewModel, $.extend(true, {}, gaffa.views[viewModel.type].defaults, viewModel));
 
