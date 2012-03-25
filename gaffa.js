@@ -18,11 +18,15 @@
 
     //internal varaibles
     var internalmodel = {},
-    //these must always be instantiated.
+		//these must always be instantiated.
         internalViewModels = [],
 
-        bindings = [];
+        bindings = [],
 
+		memoisedModel = {},
+		
+		
+		operatorRegex = /(!=)|(==)|(\|\|)|(>)|(<)|(>=)|(<=)|(&&)/
     //internal functions
 
 
@@ -45,10 +49,7 @@
 	//changed to a single array argument
 	String.prototype.format = function(values) {		
 			return this.replace(/{(\d+)}/g, function(match, number) { 
-				return typeof values[number] != 'undefined'
-					? values[number]
-					: match
-				;
+				return typeof values[number] != 'undefined' ? values[number] : match;
 			});
 	};
 	
@@ -85,11 +86,79 @@
         return values;			
 	};
 	
+	String.prototype.getNesting = function(startTag, endTag){
+		
+		var matchStartTag = new RegExp(startTag.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")),
+			matchEndTag = new RegExp(endTag.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")),
+			contents = [],
+			startMatchIndex = (matchStartTag.exec(this)||{index:-1}).index,
+			hasStart = startMatchIndex >= 0,
+			endMatchIndex = (matchEndTag.exec(this)||{index:-1}).index,
+			hasEnd = endMatchIndex >= 0,
+			matchIndex = startMatchIndex,
+			tag,
+			groups = 0,
+			currentString="",
+			restOfString = this,
+			currentIndex = 0,
+			openIndex,
+			closeIndex;
+			
+		while((hasStart || hasEnd) && restOfString){
+			tag = "";
+			
+			if(hasStart && hasEnd && startMatchIndex<endMatchIndex){
+				tag = startTag;
+				currentIndex = startMatchIndex;
+				if(groups == 0){
+					openIndex = currentIndex;
+				}
+				groups++;
+			
+			} else if(hasStart){
+				throw "Could not parse nesting, bad formatting.";
+			}else if(hasEnd){
+				tag = endTag;
+				currentIndex = endMatchIndex;
+				groups--;
+				if(groups == 0){
+					closeIndex = currentIndex + currentString.length;
+				}
+			}			
+			
+			currentString += restOfString.slice(0, currentIndex + tag.length);
+			restOfString = restOfString.slice(currentIndex + tag.length, this.length);
+								
+			startMatchIndex = (matchStartTag.exec(restOfString)||{index:-1}).index;
+			hasStart = startMatchIndex >= 0;
+			endMatchIndex = (matchEndTag.exec(restOfString)||{index:-1}).index;
+			hasEnd = endMatchIndex >= 0;
+		}
+		
+		var startString = this.slice(0, openIndex);
+		
+		if(startString){
+			contents.push(startString);
+		}
+		if(openIndex !== undefined && closeIndex !== undefined && openIndex < closeIndex){
+			contents.push(this.slice(openIndex + startTag.length, closeIndex).getNesting(startTag, endTag));
+		}
+		if(openIndex !== undefined && closeIndex !== undefined && restOfString !== ""){
+			contents.push(restOfString);
+		}
+		
+		return contents;
+		
+	};
+	
 	
     // Lots of similarities between get and set, refactor later to reuse code.
     // when lazyLoad === false (default), an event to fetch the model will be raised if the model does not already exist.
     function get(path, model, lazyLoad) {
         if (path) {
+			if(memoisedModel[model] && memoisedModel[model][path]){
+				return memoisedModel[model][path];
+			}
             var keys = gaffa.paths.stripUpALevels(path).split(gaffa.pathSeparator()),
                 reference = model;
 
@@ -152,8 +221,11 @@
                     }
                 }
             }
+			memoisedModel[model] = memoisedModel[model] || {};
+			memoisedModel[model][path] = reference;
             return reference;
         }
+		return model;		
     }
 
     function set(path, setValue, model) {
@@ -181,9 +253,13 @@
 
         //If you just pass in an object, you are overwriting the model.
         if (typeof path === "object") {
+            for (var prop in model) {
+                delete model[prop];
+				gaffa.model.trigger(prop);
+            }
             for (var prop in path) {
                 model[prop] = path[prop];
-                gaffa.model.trigger(prop);
+				gaffa.model.trigger(prop);
             }
             return;
         }
@@ -230,8 +306,8 @@
                 triggerStack.push(binding);
             }
         });
-
-        //ToDo: Fire events for array.length changes
+		
+		memoisedModel[model] = {};
 
         //IMA FIREIN MA CHANGEZOR!
         gaffa.model.trigger(keys.join(gaffa.pathSeparator()), value);
@@ -277,6 +353,16 @@
     }
 
     function setBinding(binding, callback) {
+		var bindingParts = binding.split(operatorRegex);
+		if(bindingParts.length>1){
+			bindingParts.fastEach(function(value){
+				if(value && !value.match(operatorRegex)){
+					setBinding(value, callback);
+				}
+			});
+			return;
+		}
+		
         var keys = gaffa.paths.stripUpALevels(binding).split(gaffa.pathSeparator()),
             reference = bindings;
 
@@ -396,7 +482,7 @@
 
         //bind each of the views properties to the model.
         for (var key in viewModel.properties) {
-            if (parentView && viewModel.properties[key] && viewModel.properties[key].binding) {
+            if (viewModel.properties[key] && viewModel.properties[key].binding) {
                 viewModel.properties[key].binding = gaffa.paths.getAbsolutePath(parentViewBinding, viewModel.properties[key].binding);
 
                 // this function is to create a closure so that 'key' is still the same key when the event fires.
@@ -556,19 +642,13 @@
                         //functions under this are executed whenever the data bound to by properties of the same name changes.
                         update: {
                             //optionally put standard update methods in here, like for example view visibility:
-                            visible: function (viewModel, value, firstRun) {
-                                if (viewModel.properties.visible.value !== value || firstRun) {
-                                    viewModel.properties.visible.value = value;
-                                    var element = $(viewModel.renderedElement);
-                                    if (element) {
-                                        if (value) {
-                                            element.show();
-                                        } else {
-                                            element.hide();
-                                        }
-                                    }
-                                }
-                            },
+                            visible: window.gaffa.propertyUpdaters.bool("visible", function(viewModel, value){
+								if (value) {
+									$(viewModel.renderedElement).show();
+								} else {
+									$(viewModel.renderedElement).hide();
+								}
+							}),
                             classes: function (viewModel, value, firstRun) {
                                 if (viewModel.properties.classes.value !== value || firstRun) {
                                     var element = $(viewModel.renderedElement);
@@ -646,7 +726,72 @@
                         }
                     }
                     return true;
-                }
+                },
+				parseExpression: function(expression){
+					var matches = { 
+							"!=" : {regex: /(!=)/, func: function(a,b){return a!=b;}},
+							"==" : {regex: /(==)/, func: function(a,b){return a===b;}},
+							">" : {regex: /(>)/, func: function(a,b){return a>b;}},
+							"<" : {regex: /(<)/, func: function(a,b){return a<b;}},
+							">=" : {regex: /(>=)/, func: function(a,b){return a>=b;}},
+							"<=" : {regex: /(<=)/, func: function(a,b){return a<=b;}},
+							"||" : {regex: /(\|\|)/, func: function(a,b){
+								debugger;
+								return a||b;
+								}
+							},
+							"&&" : {regex: /(\&\&)/, func: function(a,b){return a&&b;}}
+						},
+						parseExpression = window.gaffa.utils.parseExpression,
+						expressionParts = [],
+						result = false;						
+				
+					if(typeof expression === "string"){
+						expression = expression.replace(/\s/g,"");
+						var parts = expression.split(operatorRegex);
+						parts.fastEach(function(part,index){
+							if(part !== undefined && part !== ""){
+								var binding;
+								if(part.match(operatorRegex)){
+									expressionParts.push(part);
+								}else{
+									if(part.indexOf("$") === 0){
+										value = part.slice(1, part.length);
+									}else{
+										var value = window.gaffa.model.get(part);
+									}
+									if(value == undefined){
+										value = "null";
+									}
+									expressionParts.push(value);
+								}
+							}
+						});
+					} else if(expression.isArray){
+						var part;
+						expression.fastEach(function(value, index){
+							part = parseExpression(value);		
+							if(part.isArray){
+								expressionParts = expressionParts.concat(part);
+							}else{
+								expressionParts.push(part);
+							}					
+						});
+					}
+					if(expressionParts.length > 2){
+						result = matches[expressionParts[1]].func(expressionParts[0],expressionParts[2]);
+						for( var i = 3; i < expressionParts.length; i+=3){
+							if(expressionParts.length > i+1){
+								result = matches[expressionParts[i]].func(result,expressionParts[i+1]);
+							}else{
+								return [result, expressionParts[i]];
+							}
+						}
+						return result;
+					}else{
+						return expressionParts[0];
+					}			
+				}
             },
 			propertyUpdaters: {
 				string: function(propertyName, callback, matchError){
@@ -693,7 +838,10 @@
 								if(property.value !== value || firstRun){
 									property.value = value;
 									var element = $(viewModel.renderedElement);
-									if(element){								
+									if(element){				
+										if(value === null || value === undefined){
+											value = "";
+										}
 										callback(viewModel, value);
 									}
 								}     
@@ -704,15 +852,16 @@
 				},
 				array: function(propertyName, increment, decrement, update){
 					return function(viewModel, value, firstRun) {
-						if (value && value.isArray && (viewModel.properties.list.value.length !== value.length || firstRun)) {
+						var property = viewModel.properties[propertyName];
+						if (value && value.isArray && (property.value.length !== value.length || firstRun)) {
 							
 							//Cant set it to the value, that would cause both to be a reference to the same array,
 							//so their lenghts would always be the same, and this code would never execute again.
 							// .slice(); returns a new array.
-							viewModel.properties.list.value = value.slice();
+							property.value = value.slice();
 							
 							var element = viewModel.renderedElement;
-							if(element && viewModel.properties.list.template){
+							if(element && property.template){
 								var listViews = viewModel.viewContainers.list;
 								while(value.length < listViews.length){
 									decrement(viewModel, value, viewModel.viewContainers.list.pop());
@@ -728,6 +877,18 @@
 							while(value.length){
 								decrement(viewModel, value, value.pop());
 							}
+						}
+					}
+                },
+				bool: function(propertyName, callback){
+					return function(viewModel, value, firstRun) {
+						var property = viewModel.properties[propertyName];
+						if (property.value !== value || firstRun) {						
+							if(typeof property.binding === "string"){
+								callback(viewModel, property.value = window.gaffa.utils.parseExpression(property.binding.getNesting("(",")")));
+							}							
+						}else if(value && value.length === 0){
+							callback(viewModel, false);
 						}
 					}
                 }
