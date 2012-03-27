@@ -17,7 +17,7 @@
     };
 
     //internal varaibles
-    var internalmodel = {},
+    var internalModel = {},
 		//these must always be instantiated.
         internalViewModels = [],
 
@@ -309,8 +309,9 @@
 		
 		memoisedModel[model] = {};
 
-        //IMA FIREIN MA CHANGEZOR!
-        gaffa.model.trigger(keys.join(gaffa.pathSeparator()), value);
+        //IMA FIREIN MA CHANGEZOR!.
+		var finalPath = keys.join(gaffa.pathSeparator());
+        gaffa.model.trigger(finalPath, gaffa.model.get(finalPath));
 
         triggerStack.reverse().fastEach(function (binding) {
             gaffa.model.trigger(binding, gaffa.model.get(binding));
@@ -356,7 +357,7 @@
 		var bindingParts = binding.split(operatorRegex);
 		if(bindingParts.length>1){
 			bindingParts.fastEach(function(value){
-				if(value && !value.match(operatorRegex)){
+				if(value && !value.match(operatorRegex) && value.indexOf("$")!=0){
 					setBinding(value, callback);
 				}
 			});
@@ -512,6 +513,73 @@
             });
         }
     }
+	
+	function parseExpression(expression, model){
+		var matches = { 
+				"!=" : {regex: /(!=)/, func: function(a,b){return a!=b;}},
+				"==" : {regex: /(==)/, func: function(a,b){return a===b;}},
+				">" : {regex: /(>)/, func: function(a,b){return a>b;}},
+				"<" : {regex: /(<)/, func: function(a,b){return a<b;}},
+				">=" : {regex: /(>=)/, func: function(a,b){return a>=b;}},
+				"<=" : {regex: /(<=)/, func: function(a,b){return a<=b;}},
+				"||" : {regex: /(\|\|)/, func: function(a,b){
+					debugger;
+					return a||b;
+					}
+				},
+				"&&" : {regex: /(\&\&)/, func: function(a,b){return a&&b;}}
+			},
+			expressionParts = [],
+			result = false;						
+	
+		if(typeof expression === "string"){
+			expression = expression.replace(/\s/g,"");
+			var parts = expression.split(operatorRegex);
+			parts.fastEach(function(part,index){
+				if(part !== undefined && part !== ""){
+					var binding;
+					if(part.match(operatorRegex)){
+						expressionParts.push(part);
+					}else{
+						if(part.indexOf("$") === 0){
+							value = part.slice(1, part.length);
+						}else{
+							var value = get(part, model);
+						}
+						if(value == undefined){
+							value = "";
+						}
+						expressionParts.push(value);
+					}
+				}
+			});
+		} else if(expression.isArray){
+			var part;
+			expression.fastEach(function(value, index){
+				part = parseExpression(value, model);		
+				if(part.isExpressionParts){
+					expressionParts = expressionParts.concat(part);
+				}else{
+					expressionParts.push(part);
+				}					
+			});
+		}
+		if(expressionParts.length > 2){
+			result = matches[expressionParts[1]].func(expressionParts[0],expressionParts[2]);
+			for( var i = 3; i < expressionParts.length; i+=3){
+				if(expressionParts.length > i+1){
+					result = matches[expressionParts[i]].func(result,expressionParts[i+1]);
+				}else{
+					var partsToReturn = [result, expressionParts[i]];
+					partsToReturn.isExpressionParts = true;
+					return partsToReturn;
+				}
+			}
+			return result;
+		}else{
+			return expressionParts[0];
+		}			
+	}
 
     function newGaffa() {
 
@@ -547,10 +615,10 @@
             },
             model: {
                 get: function (path) {
-                    return get(path, internalmodel);
+					return get(path, internalModel);
                 },
                 set: function (path, value) {
-                    set(path, value, internalmodel);
+                    set(path, value, internalModel);
                 },
                 update: function (path, value) {
 
@@ -610,8 +678,29 @@
                             }
                         }
                     });
+                },				
+                get: function (path) {						
+                    return get(path, internalViewModels);
                 },
-
+                set: function (path, value) {
+					var viewModel,
+						subPath = path.split(gaffa.pathSeparator()),
+						viewModelPathLength = subPath.length;
+						
+					while(!(viewModel && viewModel.isView)){				
+						viewModel = get(subPath.slice(0,viewModelPathLength--).join(gaffa.pathSeparator()), internalViewModels);					
+					}
+					
+                    set(path, value, internalViewModels);
+					
+					if (viewModel.properties && gaffa.views[viewModel.type]) {
+						for(var key in viewModel.properties){
+							gaffa.views[viewModel.type].update[key](viewModel, viewModel.properties[key].value, true);
+						}
+					}
+					
+					this.render();
+                },
                 //All viewModels get extended with the object that this returns.
                 base: function (viewType, createElement, defaults) {
                     return {
@@ -632,7 +721,7 @@
 
                             //Automatically fire all of the update functions when the view is first rendered.
                             for (var key in viewModel.properties) {
-                                var updateFunction = window.gaffa.views[viewType].update[key];
+                                var updateFunction = gaffa.views[viewType].update[key];
                                 if (updateFunction && typeof updateFunction === "function") {
                                     updateFunction(viewModel, viewModel.properties[key].value, true);
                                 }
@@ -669,7 +758,8 @@
                             properties: {
                                 visible: { value: true },
                                 classes: {}
-                            }
+                            },
+							isView: true
                         }
                     };
                 }
@@ -727,71 +817,7 @@
                     }
                     return true;
                 },
-				parseExpression: function(expression){
-					var matches = { 
-							"!=" : {regex: /(!=)/, func: function(a,b){return a!=b;}},
-							"==" : {regex: /(==)/, func: function(a,b){return a===b;}},
-							">" : {regex: /(>)/, func: function(a,b){return a>b;}},
-							"<" : {regex: /(<)/, func: function(a,b){return a<b;}},
-							">=" : {regex: /(>=)/, func: function(a,b){return a>=b;}},
-							"<=" : {regex: /(<=)/, func: function(a,b){return a<=b;}},
-							"||" : {regex: /(\|\|)/, func: function(a,b){
-								debugger;
-								return a||b;
-								}
-							},
-							"&&" : {regex: /(\&\&)/, func: function(a,b){return a&&b;}}
-						},
-						parseExpression = window.gaffa.utils.parseExpression,
-						expressionParts = [],
-						result = false;						
-				
-					if(typeof expression === "string"){
-						expression = expression.replace(/\s/g,"");
-						var parts = expression.split(operatorRegex);
-						parts.fastEach(function(part,index){
-							if(part !== undefined && part !== ""){
-								var binding;
-								if(part.match(operatorRegex)){
-									expressionParts.push(part);
-								}else{
-									if(part.indexOf("$") === 0){
-										value = part.slice(1, part.length);
-									}else{
-										var value = window.gaffa.model.get(part);
-									}
-									if(value == undefined){
-										value = "null";
-									}
-									expressionParts.push(value);
-								}
-							}
-						});
-					} else if(expression.isArray){
-						var part;
-						expression.fastEach(function(value, index){
-							part = parseExpression(value);		
-							if(part.isArray){
-								expressionParts = expressionParts.concat(part);
-							}else{
-								expressionParts.push(part);
-							}					
-						});
-					}
-					if(expressionParts.length > 2){
-						result = matches[expressionParts[1]].func(expressionParts[0],expressionParts[2]);
-						for( var i = 3; i < expressionParts.length; i+=3){
-							if(expressionParts.length > i+1){
-								result = matches[expressionParts[i]].func(result,expressionParts[i+1]);
-							}else{
-								return [result, expressionParts[i]];
-							}
-						}
-						return result;
-					}else{
-						return expressionParts[0];
-					}			
-				}
+				parseExpression: parseExpression
             },
 			propertyUpdaters: {
 				string: function(propertyName, callback, matchError){
@@ -884,11 +910,13 @@
 					return function(viewModel, value, firstRun) {
 						var property = viewModel.properties[propertyName];
 						if (property.value !== value || firstRun) {						
-							if(typeof property.binding === "string"){
-								callback(viewModel, property.value = window.gaffa.utils.parseExpression(property.binding.getNesting("(",")")));
-							}							
+							if(typeof property.binding === "string"){							
+								callback(viewModel, property.value = parseExpression(property.binding.getNesting("(",")"), internalModel));
+							}else{
+								callback(viewModel, property.value);
+							}						
 						}else if(value && value.length === 0){
-							callback(viewModel, false);
+							callback(viewModel, property.value = false);
 						}
 					}
                 }
