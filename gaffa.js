@@ -484,7 +484,13 @@
         //bind each of the views properties to the model.
         for (var key in viewModel.properties) {
             if (viewModel.properties[key] && viewModel.properties[key].binding) {
-                viewModel.properties[key].binding = gaffa.paths.getAbsolutePath(parentViewBinding, viewModel.properties[key].binding);
+				if (viewModel.properties[key].binding.isArray){
+					viewModel.properties[key].binding.fastEach(function(path, index, paths){
+						viewModel.properties[key].binding[index] = gaffa.paths.getAbsolutePath(parentViewBinding, path);
+					});
+				}else{
+					viewModel.properties[key].binding = gaffa.paths.getAbsolutePath(parentViewBinding, viewModel.properties[key].binding);
+				}
 
                 // this function is to create a closure so that 'key' is still the same key when the event fires.
                 (function (key) {

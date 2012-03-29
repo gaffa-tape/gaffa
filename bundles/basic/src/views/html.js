@@ -27,8 +27,7 @@
 			},
             defaults: {
                 properties: {
-                    visible: {},
-                    text: {}
+                    visible: {}
                 }
             }
 		};
