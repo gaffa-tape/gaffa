@@ -10,7 +10,7 @@
         
         var renderedElement = cachedElement || (cachedElement = document.createElement('div'));
         
-        renderedElement = $(renderedElement.cloneNode()).addClass(classes)[0];
+        renderedElement = $(renderedElement.cloneNode(true)).addClass(classes)[0];
         
         viewModel.viewContainers.list.element = renderedElement;
         

@@ -26,7 +26,7 @@
 					//increment
 					function(viewModel, list, addedItem){
 						var listViews = viewModel.viewContainers.list;
-						window.gaffa.views.add($.extend(true, {}, viewModel.properties.list.template), viewModel, listViews, listViews.length);
+						window.gaffa.views.add($.extend(true, {}, viewModel.properties.list.template), viewModel, listViews, "~" + listViews.length);
 						window.gaffa.views.render(viewModel.viewContainers.list, viewModel.viewContainers.list.element);
 					},
 					//decrement

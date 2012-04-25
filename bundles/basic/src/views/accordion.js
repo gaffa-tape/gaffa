@@ -14,7 +14,7 @@
         
         var renderedElement = cachedElement || (cachedElement = document.createElement('ul'));
         
-        renderedElement = $(renderedElement.cloneNode()).addClass(classes)[0];
+        renderedElement = $(renderedElement.cloneNode(true)).addClass(classes)[0];
         
         viewModel.viewContainers.list.element = renderedElement;
         
@@ -34,7 +34,7 @@
 					function(viewModel, list, addedItem){
 						var listViews = viewModel.viewContainers.list;
 						if(viewModel.properties.list.template.type === "accordionNode"){
-							window.gaffa.views.add($.extend(true, {}, viewModel.properties.list.template), viewModel, listViews, listViews.length);
+							window.gaffa.views.add($.extend(true, {}, viewModel.properties.list.template), viewModel, listViews, "~" + listViews.length);
 							window.gaffa.views.render(viewModel.viewContainers.list, viewModel.viewContainers.list.element);
 						}else{
 							throw "incorrect template type given, expected type of 'accordionNode'";
@@ -87,8 +87,8 @@
         
         var renderedElement = cachedElement.cloneNode(true);
         
-        viewModel.viewContainers.content.element = renderedElement.getElementsByClassName('content')[0];
-        viewModel.viewContainers.header.element = renderedElement.getElementsByClassName('header')[0];
+        viewModel.viewContainers.content.element = $(renderedElement).find('.content')[0];
+        viewModel.viewContainers.header.element = $(renderedElement).find('.header')[0];
         
 		return renderedElement;
 	}

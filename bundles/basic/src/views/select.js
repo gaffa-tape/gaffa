@@ -14,7 +14,7 @@
         
         var renderedElement = cachedElement || (cachedElement = document.createElement('select'));
         
-        renderedElement = $(renderedElement.cloneNode()).addClass(classes)[0];
+        renderedElement = $(renderedElement.cloneNode(true)).addClass(classes)[0];
         
         $(renderedElement).bind("change", function(){
             window.gaffa.model.set(viewModel.properties.value.binding, $(this).val());    
@@ -33,7 +33,7 @@
 		view.prototype = {
 			update: {             
                 options: function(viewModel, value, firstRun) {
-                    if (value && value.isArray && (viewModel.properties.options.value.length !== value.length || firstRun)) {
+                    if (value && value.isArray && (!viewModel.properties.options.value || viewModel.properties.options.value.length !== value.length || firstRun)) {
                         viewModel.properties.options.value = value.slice();   
 						var optionsObj = viewModel.properties.options;
                         var element = $(viewModel.renderedElement);

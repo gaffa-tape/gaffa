@@ -20,7 +20,7 @@
                 window.gaffa.model.set(modelBinding, data);
             }
         }
-        window.gaffa.views.renderTarget = $("body");
+        window.gaffa.views.renderTarget = $("body")[0];
         window.gaffa.views.render();
     }
 

@@ -28,7 +28,7 @@
 
         var renderedElement = cachedElement || (cachedElement = document.createElement('input'));
 
-        renderedElement = $(renderedElement.cloneNode()).addClass(classes)[0];
+        renderedElement = $(renderedElement.cloneNode(true)).addClass(classes)[0];
 		
         $(renderedElement).bind("change", setValue);
 
