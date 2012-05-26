@@ -29,11 +29,11 @@ Behaviours: “Do an action when the data changes”
 Actions: “Do something to the model”
 
 This things are often combined into an app consisting of a single JSON object, eg:
-{
-	Model: {...},
-	Views: [ {View 1}, {View 2},...],
-	Behaviours:[ {Behaviour 1}...]
-}
+```{
+Model: {...},
+Views: [ {View 1}, {View 2}], //etc...
+Behaviours:[ {Behaviour 1}] //etc...
+}```
 
 an app can be loaded by:
 
@@ -44,45 +44,45 @@ gaffa.load(myApp);
 The Model is just a Javascript object. If you can serialize it to JSON, it is a valid gaffa model, and it can be bound to. Unlike most similar frameworks, Gaffa focuses on keeping the model pure. If you add an object to the model, that exact object is used throughout the whole lifecycle, with no extra attributes like “Observable” etc. Its just a plain old object.
 
 These are valid models:
-{}
+```{}
 new Date();
 “hello world”
 However usually a model would look something like this:
-	{
-		Users:[
-			{
-				Name: “John”,
-				Age: 30,
-				LastVisit: (a date object)
-			}
-		]
-	}
+{
+Users:[
+{
+Name: “John”,
+Age: 30,
+LastVisit: (a date object)
+}
+]
+}```
 
 ### View Models
 
 Gaffa view models represent and can affect the model. View models are combined to define a layout. This definition is a JSON object that defines a hierarchical structure of the page, similar to HTML. This definition also allows you to set bindings to the model, for example, you can tell a textbox to get and set its value on a property of the model.
 
 A simple layout definition for example:
-[
-	//This is a viewModel
-	{
-		type: ”text”,
-		properties: {
-			text:{
-				value: ”Name”
-			}
-		}
-	},
-	//This is also a viewModel
-	{
-		type: ”textbox”,
-		properties: {
-			value:{
-				binding: ”Users/0/Name”
-			}
-		}
-	}
-]
+```[
+//This is a viewModel
+{
+type: ”text”,
+properties: {
+text:{
+value: ”Name”
+}
+}
+},
+//This is also a viewModel
+{
+type: ”textbox”,
+properties: {
+value:{
+binding: ”Users/0/Name”
+}
+}
+}
+]```
 
 This defines that there should be a text element with the text of “Name”, followed by a textbox element whose value is bound to the value in the model at users[0].Name
 
