@@ -30,7 +30,7 @@ Actions: “Do something to the model”
 
 This things are often combined into an app consisting of a single JSON object, eg:
 ```{
-Model: {...},
+Model: {}, //some object
 
 Views: [ {View 1}, {View 2}], //etc...
 
