@@ -31,8 +31,11 @@ Actions: “Do something to the model”
 This things are often combined into an app consisting of a single JSON object, eg:
 ```{
 Model: {...},
+
 Views: [ {View 1}, {View 2}], //etc...
+
 Behaviours:[ {Behaviour 1}] //etc...
+
 }```
 
 an app can be loaded by:
@@ -44,11 +47,15 @@ gaffa.load(myApp);
 The Model is just a Javascript object. If you can serialize it to JSON, it is a valid gaffa model, and it can be bound to. Unlike most similar frameworks, Gaffa focuses on keeping the model pure. If you add an object to the model, that exact object is used throughout the whole lifecycle, with no extra attributes like “Observable” etc. Its just a plain old object.
 
 These are valid models:
-```{}
+```{};
+
 new Date();
-“hello world”
+
+“hello world”;```
+
 However usually a model would look something like this:
-{
+
+```{
 Users:[
 {
 Name: “John”,
