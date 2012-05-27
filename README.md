@@ -28,7 +28,7 @@ viewModels: "This is how the app should represent the data"
 Behaviours: "Do an action when the data changes"  
 Actions: "Do something to the model"
 
-This things are often combined into an app consisting of a single JSON object, eg:
+These things are often combined into an app consisting of a single JSON object, eg:
 
 	{
 		Model: {}, //some object
