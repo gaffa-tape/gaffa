@@ -124,6 +124,7 @@ Fetch: Retrieve data from some persistable storage, and set a property on the mo
 
 ## Example
 
+A JSFiddle of a simple Todo list: http://jsfiddle.net/pLza9/
 A highly contrived demo page: http://www.korynunn.com/intro.html
 
 ## License
