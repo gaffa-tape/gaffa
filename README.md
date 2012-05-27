@@ -23,9 +23,9 @@ A Gaffa application consists of 4 main components:
 
 a Model, a collection of ViewModels, Behaviours, and Actions
 
-Model: "This is the data"
-viewModels: "This is how the app should represent the data"
-Behaviours: "Do an action when the data changes"
+Model: "This is the data"  
+viewModels: "This is how the app should represent the data"  
+Behaviours: "Do an action when the data changes"  
 Actions: "Do something to the model"
 
 This things are often combined into an app consisting of a single JSON object, eg:
@@ -38,14 +38,14 @@ This things are often combined into an app consisting of a single JSON object, e
 
 an app can be loaded by:
 
-gaffa.load(myApp);
+	gaffa.load(myApp);
 
 ### Models
 
 The Model is just a Javascript object. If you can serialize it to JSON, it is a valid gaffa model, and it can be bound to. Unlike most similar frameworks, Gaffa focuses on keeping the model pure. If you add an object to the model, that exact object is used throughout the whole lifecycle, with no extra attributes like "Observable" etc. Its just a plain old object.
 
 These are valid models:
-	Js
+
 	{};
 
 	new Date();
