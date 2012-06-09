@@ -32,7 +32,7 @@
                             
                         $.extend(true, addedItem, property.template);
                         
-                        if(addedItem.key){
+                        if(addedItem.key !== undefined && addedItem.key !== null){
                             if(typeof addedItem.key === "string"){
                                 expression += "$" + addedItem.key;
                             }else if(typeof addedItem.key === "number"){
