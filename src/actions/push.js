@@ -13,7 +13,7 @@
             if(!(action.bindings.clone && action.bindings.clone.value === false)){
                 fromObj = gaffa.clone(fromObj);
             }
-            gaffa.model.set(action.bindings.pushTo.binding + gaffa.pathSeparator() + toObject.length, fromObj);            
+            gaffa.model.set(action.bindings.pushTo.binding + gaffa.pathSeparator + toObject.length, fromObj);            
         }
     };
 })();

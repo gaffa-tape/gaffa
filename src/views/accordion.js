@@ -35,7 +35,7 @@
                         var listViews = viewModel.viewContainers.list,
                             property = viewModel.properties.list;
                         if(property.template.type === "accordionNode"){
-                            window.gaffa.views.add($.extend(true, {}, property.template), viewModel, listViews, property.binding + gaffa.pathSeparator() + addedItem.key);
+                            window.gaffa.views.add($.extend(true, {}, property.template), viewModel, listViews, property.binding + gaffa.pathSeparator + addedItem.key);
                             window.gaffa.views.render(viewModel.viewContainers.list, viewModel.viewContainers.list.element);
                         }else{
                             throw "incorrect template type given, expected type of 'accordionNode'";

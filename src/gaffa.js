@@ -14,15 +14,9 @@
 
     //"constants"
     // functions to make it 'getter only'
-    gaffa.pathSeparator = function () {
-        return "/";
-    };
-    gaffa.upALevel = function () {
-        return "..";
-    };
-    gaffa.relativePath = function () {
-        return "~";
-    };
+    gaffa.pathSeparator = "/";
+    gaffa.upALevel =  "..";
+    gaffa.relativePath = "~";
 
     //internal varaibles
     var internalModel = {},
@@ -250,7 +244,7 @@
                 load(data, model);
             }
         });
-    }
+    }    
     
     //***********************************************
     //
@@ -286,14 +280,43 @@
         if(event.state){
             load(event.state);
         }
-    }
+    };
+
+    //***********************************************
+    //
+    //      Get Distinct Groups
+    //
+    //***********************************************
+    
+    function getDistinctGroups(collection, property){
+        var distinctValues = [];
+        
+        if(collection && typeof collection === "object"){
+            if(collection.isArray){
+                collection.fastEach(function(value){
+                    var candidate = gaffa.utils.getProp(value, property);
+                    if(distinctValues.indexOf(candidate)<0){
+                        distinctValues.push(candidate);
+                    }
+                }); 
+            }else{
+                for(var key in collection){
+                    var candidate = gaffa.utils.getProp(collection[key], property);
+                    if(distinctValues.indexOf(candidate)<0){
+                        distinctValues.push(candidate);
+                    }
+                }   
+            }
+        }
+        
+        return distinctValues;
+    }    
 
     //***********************************************
     //
     //      Get
     //
     //***********************************************
-
 
     // Lots of similarities between get and set, refactor later to reuse code.
     function get(path, model) {
@@ -304,7 +327,7 @@
             //         return memoisedModel[model][path];
             // }
             
-            var keys = gaffa.paths.stripUpALevels(path).split(gaffa.pathSeparator()),
+            var keys = gaffa.paths.stripUpALevels(path).split(gaffa.pathSeparator),
                 reference = model;
 
             for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
@@ -378,7 +401,7 @@
             return;
         }
 
-        var keys = gaffa.paths.stripUpALevels(path).split(gaffa.pathSeparator()),
+        var keys = gaffa.paths.stripUpALevels(path).split(gaffa.pathSeparator),
             reference = model,
             triggerStack = [];
 
@@ -402,7 +425,7 @@
 
                 //Report to parent arrays
                 if (!isNaN(reference.length)) {
-                    triggerStack.push(keys.slice(0, keys.length - 2).join(gaffa.pathSeparator()));
+                    triggerStack.push(keys.slice(0, keys.length - 2).join(gaffa.pathSeparator));
                 }
 
                 //Report to things looking for all changes below here.
@@ -422,7 +445,7 @@
         memoisedModel[model] = {};
 
         //IMA FIREIN MA CHANGEZOR!.
-        var finalPath = keys.join(gaffa.pathSeparator());
+        var finalPath = keys.join(gaffa.pathSeparator);
         gaffa.model.trigger(finalPath, gaffa.model.get(finalPath));
 
         triggerStack.reverse().fastEach(function (binding) {
@@ -444,7 +467,7 @@
             path = path[0];
         }
 
-        var keys = gaffa.paths.stripUpALevels(path).split(gaffa.pathSeparator()),
+        var keys = gaffa.paths.stripUpALevels(path).split(gaffa.pathSeparator),
             reference = model,
             triggerStack = [];
 
@@ -471,7 +494,7 @@
                 }
                 
                 //Report to parent arrays
-                triggerStack.push(keys.slice(0, keys.length - 2).join(gaffa.pathSeparator()));
+                triggerStack.push(keys.slice(0, keys.length - 2).join(gaffa.pathSeparator));
 
                 //Report to things looking for all changes below here.
                 binding = keys.join("_");
@@ -502,7 +525,7 @@
     //***********************************************
 
     function triggerBinding(binding, value) {
-        var keys = gaffa.paths.stripUpALevels(binding).split(gaffa.pathSeparator()),
+        var keys = gaffa.paths.stripUpALevels(binding).split(gaffa.pathSeparator),
             reference = internalBindings;
 
 
@@ -530,9 +553,9 @@
                         key = key.substr(1);
                     }
                     if (value !== undefined && value !== null) {
-                        triggerBinding(keys.join(gaffa.pathSeparator()) + gaffa.pathSeparator() + key, value[key]);
+                        triggerBinding(keys.join(gaffa.pathSeparator) + gaffa.pathSeparator + key, value[key]);
                     } else {
-                        triggerBinding(keys.join(gaffa.pathSeparator()) + gaffa.pathSeparator() + key, undefined);
+                        triggerBinding(keys.join(gaffa.pathSeparator) + gaffa.pathSeparator + key, undefined);
                     }
                 }
             }
@@ -558,7 +581,7 @@
             return;
         }
 
-        var keys = gaffa.paths.stripUpALevels(binding).split(gaffa.pathSeparator()),
+        var keys = gaffa.paths.stripUpALevels(binding).split(gaffa.pathSeparator),
             reference = internalBindings;
 
         keys.fastEach(function (key, index, keys) {
@@ -803,7 +826,7 @@
             }
             viewModel.binding = absolutePropertyBinding;
         } else {
-            if (viewModel.binding.indexOf(gaffa.relativePath()) >= 0) {
+            if (viewModel.binding.indexOf(gaffa.relativePath) >= 0) {
                 viewModel.binding = parentViewBinding;
             }
         }
@@ -965,7 +988,7 @@
             }
         },
 
-        binding: gaffa.relativePath(),
+        binding: gaffa.relativePath,
 
         properties: {
             visible: { value: true },
@@ -996,12 +1019,12 @@
             path: path,
             paths: {
                 getAbsolutePath: function (parentBinding, childBinding) {
-                    if (childBinding.indexOf(gaffa.relativePath()) === 0) {
-                        childBinding = childBinding.replace(gaffa.relativePath(), "");
+                    if (childBinding.indexOf(gaffa.relativePath) === 0) {
+                        childBinding = childBinding.replace(gaffa.relativePath, "");
                         if (childBinding === "") {
                             return parentBinding;
                         }
-                        return parentBinding + gaffa.pathSeparator() + childBinding;
+                        return parentBinding + gaffa.pathSeparator + childBinding;
                     }
                     else {
                         return childBinding;
@@ -1009,15 +1032,15 @@
                 },
 
                 stripUpALevels: function (path) {
-                    var keys = path.split(gaffa.pathSeparator());
+                    var keys = path.split(gaffa.pathSeparator);
                     for (var index = 0; index < keys.length; index++) {
                         var key = keys[index];
-                        if (key === gaffa.upALevel()) {
+                        if (key === gaffa.upALevel) {
                             keys.splice(Math.max(index - 1, 0), 2);
                             index -= 2;
                         }
                     }
-                    return (keys.join(gaffa.pathSeparator()));
+                    return (keys.join(gaffa.pathSeparator));
                 }
             },
             model: {
@@ -1118,11 +1141,11 @@
                     }
 
                     var viewModel,
-                        subPath = path.split(gaffa.pathSeparator()),
+                        subPath = path.split(gaffa.pathSeparator),
                         viewModelPathLength = subPath.length;
 
                     while (!(viewModel && viewModel.isView)) {
-                        viewModel = get(subPath.slice(0, viewModelPathLength--).join(gaffa.pathSeparator()), internalViewModels);
+                        viewModel = get(subPath.slice(0, viewModelPathLength--).join(gaffa.pathSeparator), internalViewModels);
                     }
 
                     set(path, value, internalViewModels);
@@ -1191,7 +1214,7 @@
                             //Set the default view binding to nothing but a relative path.
                             //This is so all relative bindings flow on nicely.
                             insertFunction: insertView,
-                            binding: gaffa.relativePath(),
+                            binding: gaffa.relativePath,
                             properties: {
                                 visible: { value: true },
                                 classes: {}
@@ -1393,7 +1416,7 @@
                             
                         if (value && typeof value === "object"){
                             var filtered,
-                                pathSeperator = gaffa.pathSeparator();
+                                pathSeperator = gaffa.pathSeparator;
                             
                             if(property.filter){                                        
                                 if(value.isArray){
@@ -1461,13 +1484,55 @@
                                 }
                             }
                         }else{
-                            var childViews = viewModel.viewContainers[propertyName];
                             childViews.fastEach(function(childView, index){
                                     childViews.splice(index, 1);
                                     remove(viewModel, value, childView);
                             });
                         }
-                    }
+                    };
+                },
+                
+                group: function (propertyName, insert, remove) {
+                    return function (viewModel, value, firstRun) {
+                        var property = viewModel.properties[propertyName],
+                            childViews = viewModel.viewContainers[propertyName],
+                            newView;
+                                    
+                        property.value = value;
+                        
+                        if (value && typeof value === "object"){
+                            
+                            viewModel.distinctGroups = getDistinctGroups(property.value, property.group);
+                            
+                            for(var i = 0; i < childViews.length; i++){
+                                var childView = childViews[i];
+                                if(viewModel.distinctGroups.indexOf(childView.key)<0){
+                                    childViews.splice(i, 1);
+                                    i--;
+                                    remove(viewModel, value, childView);
+                                }
+                            }
+                            
+                            viewModel.distinctGroups.fastEach(function(group){
+                                var exists = false;
+                                childViews.fastEach(function(child){
+                                    if(child.key === group){
+                                        exists = true;
+                                    }    
+                                });
+                                
+                                if (!exists) {
+                                    newView = {key: group};
+                                    insert(viewModel, value, newView);
+                                }
+                            });    
+                        }else{
+                            childViews.fastEach(function(childView, index){
+                                childViews.splice(index, 1);
+                                remove(viewModel, property.value, childView);
+                            });
+                        }
+                    };
                 },
 
                 bool: function (propertyName, callback) {

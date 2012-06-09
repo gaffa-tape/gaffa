@@ -48,14 +48,14 @@
                                     
                                     option.value = window.gaffa.model.get(
                                         gaffa.paths.getAbsolutePath(
-                                            viewModel.properties.options.binding + gaffa.pathSeparator() + i ,                                                
+                                            viewModel.properties.options.binding + gaffa.pathSeparator + i ,                                                
                                             optionsObj.valueBinding
                                         )
                                     );
                                 
                                     option.innerHTML = window.gaffa.model.get(
                                         gaffa.paths.getAbsolutePath(
-                                            viewModel.properties.options.binding + gaffa.pathSeparator() + i ,                                                
+                                            viewModel.properties.options.binding + gaffa.pathSeparator + i ,                                                
                                             optionsObj.textBinding
                                         )
                                     );    

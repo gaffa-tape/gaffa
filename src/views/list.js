@@ -27,7 +27,7 @@
                     function(viewModel, list, addedItem){
                         var listViews = viewModel.viewContainers.list,
                             property = viewModel.properties.list;
-                        window.gaffa.views.add($.extend(true, addedItem, property.template), viewModel, listViews, property.binding + gaffa.pathSeparator() + addedItem.key);
+                        window.gaffa.views.add($.extend(true, addedItem, property.template), viewModel, listViews, property.binding + gaffa.pathSeparator + addedItem.key);
                         window.gaffa.views.render(viewModel.viewContainers.list, viewModel.viewContainers.list.element);
                     },
                     //decrement

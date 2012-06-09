@@ -3,7 +3,7 @@
     window.gaffa.actions[actionType] = function (action) {
         var source = action.bindings.source.value,
             filtered = {},
-            pathSeperator = gaffa.pathSeparator(),
+            pathSeperator = gaffa.pathSeparator
             key,
             item,
             filter;
