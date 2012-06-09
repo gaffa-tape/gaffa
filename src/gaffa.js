@@ -133,8 +133,8 @@
 
     String.prototype.getNesting = function (startTag, endTag) {
 
-        var matchStartTag = new RegExp(startTag.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")),
-            matchEndTag = new RegExp(endTag.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")),
+        var matchStartTag = new RegExp(startTag.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")), /// Comment to fix chrome web inspector
+            matchEndTag = new RegExp(endTag.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")), /// Comment to fix chrome web inspector
             contents = [],
             startMatchIndex = (matchStartTag.exec(this) || { index: -1 }).index,
             hasStart = startMatchIndex >= 0,
@@ -1285,7 +1285,7 @@
                         if (object[nextProp] !== undefined && object[nextProp] !== null) {
                             object = object[nextProp];
                         } else {
-                            return false;
+                            return;
                         }
                     }
                     return object;
