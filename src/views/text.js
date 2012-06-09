@@ -1,14 +1,14 @@
-//	Properties:
-//		styles: container | container-fluid | row | row-fluid | span* | offset*
+//    Properties:
+//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function (undefined) {
     var viewType = "text",
-		shit,
-		findShitBrowsersRegex = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
-	
-	if (navigator.appName == 'Microsoft Internet Explorer'&&
-		parseFloat(findShitBrowsersRegex.exec(navigator.userAgent)[1])<9
-	) {
-		shit = true;
+        shit,
+        findShitBrowsersRegex = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+    
+    if (navigator.appName == 'Microsoft Internet Explorer'&&
+        parseFloat(findShitBrowsersRegex.exec(navigator.userAgent)[1])<9
+    ) {
+        shit = true;
     }
 
     window.gaffa.views = window.gaffa.views || {};
@@ -16,15 +16,15 @@
 
     function createElement(viewModel) {
         var classes = viewType,
-			renderedElement;
-		
-		//Internet expoder, as usual, is FUCKING SHIT.
-		//and won't let you add values to textNode elements.
-		if(!shit){
-			renderedElement = document.createTextNode('');
-		}else{
-			renderedElement = document.createElement('span');
-		}
+            renderedElement;
+        
+        //Internet expoder, as usual, is FUCKING SHIT.
+        //and won't let you add values to textNode elements.
+        if(!shit){
+            renderedElement = document.createTextNode('');
+        }else{
+            renderedElement = document.createElement('span');
+        }
 
         return renderedElement;
     }
@@ -36,22 +36,22 @@
 
         view.prototype = {
             update: {
-				text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
-					if(!shit){
-						viewModel.renderedElement.data = value;
-						if(value !== null && value !== undefined){
-							viewModel.renderedElement.data = value;
-						}else{
-							viewModel.renderedElement.data = "";
-						}
-					}else{
-						if(value !== null && value !== undefined){
-							viewModel.renderedElement.innerHTML = value;
-						}else{
-							viewModel.renderedElement.innerHTML = "";
-						}
-					}
-				})
+                text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
+                    if(!shit){
+                        viewModel.renderedElement.data = value;
+                        if(value !== null && value !== undefined){
+                            viewModel.renderedElement.data = value;
+                        }else{
+                            viewModel.renderedElement.data = "";
+                        }
+                    }else{
+                        if(value !== null && value !== undefined){
+                            viewModel.renderedElement.innerHTML = value;
+                        }else{
+                            viewModel.renderedElement.innerHTML = "";
+                        }
+                    }
+                })
             },
             defaults: {
                 properties: {

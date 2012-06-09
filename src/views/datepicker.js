@@ -1,5 +1,5 @@
 //    Properties:
-//    	styles: container | container-fluid | row | row-fluid | span* | offset*
+//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function (undefined) {
 
     var viewType = "datepicker",

@@ -1,16 +1,16 @@
 /******************************************accordion******************************************/
 
 //    Properties:
-//    	styles: container | container-fluid | row | row-fluid | span* | offset*
+//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
     var viewType = "accordion",
         cachedElement;
     
-	window.gaffa.views = window.gaffa.views || {};
-	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
+    window.gaffa.views = window.gaffa.views || {};
+    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
     
-	function createElement(viewModel) {
-		var classes = viewType;
+    function createElement(viewModel) {
+        var classes = viewType;
         
         var renderedElement = cachedElement || (cachedElement = document.createElement('ul'));
         
@@ -18,35 +18,35 @@
         
         viewModel.viewContainers.list.element = renderedElement;
         
-		return renderedElement;
-	}
+        return renderedElement;
+    }
 
-	function newView() {
-		
-		function view() {
-		}	
-		
-		view.prototype = {
-			update: {             
-				list: window.gaffa.propertyUpdaters.collection(
-					"list", 					
-					//increment
-					function(viewModel, list, addedItem){
-						var listViews = viewModel.viewContainers.list,
-							property = viewModel.properties.list;
-						if(property.template.type === "accordionNode"){
-							window.gaffa.views.add($.extend(true, {}, property.template), viewModel, listViews, property.binding + gaffa.pathSeparator() + addedItem.key);
-							window.gaffa.views.render(viewModel.viewContainers.list, viewModel.viewContainers.list.element);
-						}else{
-							throw "incorrect template type given, expected type of 'accordionNode'";
-						}
-					},
-					//decrement
-					function(viewModel, list, removedItem){
-						$(removedItem.renderedElement).remove();
-					}
-				)
-			},
+    function newView() {
+        
+        function view() {
+        }    
+        
+        view.prototype = {
+            update: {             
+                list: window.gaffa.propertyUpdaters.collection(
+                    "list",                     
+                    //increment
+                    function(viewModel, list, addedItem){
+                        var listViews = viewModel.viewContainers.list,
+                            property = viewModel.properties.list;
+                        if(property.template.type === "accordionNode"){
+                            window.gaffa.views.add($.extend(true, {}, property.template), viewModel, listViews, property.binding + gaffa.pathSeparator() + addedItem.key);
+                            window.gaffa.views.render(viewModel.viewContainers.list, viewModel.viewContainers.list.element);
+                        }else{
+                            throw "incorrect template type given, expected type of 'accordionNode'";
+                        }
+                    },
+                    //decrement
+                    function(viewModel, list, removedItem){
+                        $(removedItem.renderedElement).remove();
+                    }
+                )
+            },
             defaults: {
                 viewContainers:{
                     list: []
@@ -55,28 +55,28 @@
                     list: {}
                 }
             }
-		};
+        };
         
         $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
                 
-		return new view();
-	}
+        return new view();
+    }
     
 })();
     
 /******************************************accordionNode******************************************/
 
 //    Properties:
-//    	styles: container | container-fluid | row | row-fluid | span* | offset*
+//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
     var viewType = "accordionNode",
         cachedElement;
     
-	window.gaffa.views = window.gaffa.views || {};
-	window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
+    window.gaffa.views = window.gaffa.views || {};
+    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
     
-	function createElement(viewModel) {
-		var classes = viewType;
+    function createElement(viewModel) {
+        var classes = viewType;
         
         cachedElement = cachedElement || (cachedElement = (function(){
             var header = $(document.createElement('div')).addClass("header").attr('tabindex','0'),
@@ -91,15 +91,15 @@
         viewModel.viewContainers.content.element = $(renderedElement).find('.content')[0];
         viewModel.viewContainers.header.element = $(renderedElement).find('.header')[0];
         
-		return renderedElement;
-	}
+        return renderedElement;
+    }
 
-	function newView() {
-		
-		function view() {
-		}	
-		
-		view.prototype = {
+    function newView() {
+        
+        function view() {
+        }    
+        
+        view.prototype = {
             update: {                            
                 expanded: function(viewModel, value, firstRun) {
                     if(viewModel.properties.expanded.value !== value || firstRun){
@@ -124,12 +124,12 @@
                     expanded: { value: false }
                 }
             }
-		};
+        };
         
         $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
                 
-		return new view();
-	}
+        return new view();
+    }
     
     /*Delegated Event Handlers*/
 

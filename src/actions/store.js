@@ -19,15 +19,15 @@
                     data: data,
                     dataType: 'json',
                     contentType: 'application/json',
-					success:function(){
-						if(action.successActions && action.successActions.length){
-							window.gaffa.actions.trigger(action.successActions, action.binding);
-						}
-					},
+                    success:function(){
+                        if(action.successActions && action.successActions.length){
+                            window.gaffa.actions.trigger(action.successActions, action.binding);
+                        }
+                    },
                     error: function (error) {
                         if(action.errorActions && action.errorActions.length){
-							window.gaffa.actions.trigger(action.errorActions, action.binding);
-						}
+                            window.gaffa.actions.trigger(action.errorActions, action.binding);
+                        }
                     }
                 });
             }

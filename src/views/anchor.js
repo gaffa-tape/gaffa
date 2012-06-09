@@ -1,5 +1,5 @@
-//	Properties:
-//		styles: container | container-fluid | row | row-fluid | span* | offset*
+//    Properties:
+//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function (undefined) {
     var viewType = "anchor";
 
@@ -24,19 +24,19 @@
         view.prototype = {
             update: {
                 text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
-					if(value !== null && value !== undefined){
-						viewModel.renderedElement.innerHTML = value;
-					}else{
-						viewModel.renderedElement.innerHTML = "";
-					}
-				}),
+                    if(value !== null && value !== undefined){
+                        viewModel.renderedElement.innerHTML = value;
+                    }else{
+                        viewModel.renderedElement.innerHTML = "";
+                    }
+                }),
                 href: window.gaffa.propertyUpdaters.string("href", function(viewModel, value){
-					if(value !== null && value !== undefined){
-						viewModel.renderedElement.setAttribute("href",value);
-					}else{
-						viewModel.renderedElement.removeAttribute("href");
-					}
-				})
+                    if(value !== null && value !== undefined){
+                        viewModel.renderedElement.setAttribute("href",value);
+                    }else{
+                        viewModel.renderedElement.removeAttribute("href");
+                    }
+                })
             },
             defaults: {
                 viewContainers: {

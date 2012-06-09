@@ -1,5 +1,5 @@
 //    Properties:
-//    	styles: container | container-fluid | row | row-fluid | span* | offset*
+//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
         
     var viewType = "button";
@@ -20,24 +20,24 @@
     function newView() {
         
         function view() {
-        }	
+        }    
         
         view.prototype = {
             update: {
                 text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
-					if(value !== null && value !== undefined){
-						viewModel.renderedElement.innerHTML = value;
-					}else{
-						viewModel.renderedElement.innerHTML = "";
-					}
-				}),
-				subType: window.gaffa.propertyUpdaters.string("subType", function(viewModel, value){
-					if(value !== null && value !== undefined){
-						viewModel.renderedElement.setAttribute("type",value);
-					}else{
-						viewModel.renderedElement.removeAttribute("type");
-					}
-				})
+                    if(value !== null && value !== undefined){
+                        viewModel.renderedElement.innerHTML = value;
+                    }else{
+                        viewModel.renderedElement.innerHTML = "";
+                    }
+                }),
+                subType: window.gaffa.propertyUpdaters.string("subType", function(viewModel, value){
+                    if(value !== null && value !== undefined){
+                        viewModel.renderedElement.setAttribute("type",value);
+                    }else{
+                        viewModel.renderedElement.removeAttribute("type");
+                    }
+                })
             },
             defaults: {
                 viewContainers:{
@@ -45,7 +45,7 @@
                 },
                 properties: {
                     text: {},
-					subType:{}
+                    subType:{}
                 }
             }
         };
