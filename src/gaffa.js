@@ -874,7 +874,6 @@
             result;
 
         if (typeof expression === "string") {
-            expression = expression.replace(/\s/g, "");
             var parts = expression.split(operatorRegex);
             parts.fastEach(function (part) {
                 if (part !== undefined && part !== "") {
