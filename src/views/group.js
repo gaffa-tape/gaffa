@@ -27,11 +27,22 @@
                     //increment
                     function(viewModel, groups, addedItem){
                         var listViews = viewModel.viewContainers.groups,
-                            property = viewModel.properties.groups;
+                            property = viewModel.properties.groups,
+                            expression = gaffa.relativePath + property.group + "===";
                             
                         $.extend(true, addedItem, property.template);
+                        
+                        if(addedItem.key){
+                            if(typeof addedItem.key === "string"){
+                                expression += "$" + addedItem.key;
+                            }else if(typeof addedItem.key === "number"){
+                                expression += "#" + addedItem.key;                                
+                            }
+                        }else{
+                            expression += "$";
+                        }
                             
-                        addedItem.properties.list.filter = gaffa.relativePath + property.group + "===$" + addedItem.key;
+                        addedItem.properties.list.filter = expression;
                             
                         window.gaffa.views.add(addedItem, viewModel, listViews, property.binding);
                         window.gaffa.views.render(viewModel.viewContainers.groups, viewModel.viewContainers.groups.element);
