@@ -294,14 +294,14 @@
         if(collection && typeof collection === "object"){
             if(collection.isArray){
                 collection.fastEach(function(value){
-                    var candidate = gaffa.utils.getProp(value, property);
+                    var candidate = gaffa.utils.getProp(value, property) || "";
                     if(distinctValues.indexOf(candidate)<0){
                         distinctValues.push(candidate);
                     }
                 }); 
             }else{
                 for(var key in collection){
-                    var candidate = gaffa.utils.getProp(collection[key], property);
+                    var candidate = gaffa.utils.getProp(collection[key], property) || "";
                     if(distinctValues.indexOf(candidate)<0){
                         distinctValues.push(candidate);
                     }
