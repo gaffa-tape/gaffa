@@ -6,7 +6,7 @@
 
 //THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-(function (undefined) {
+(function ($, undefined) {
     "use strict";
 
     //Create gaffa
@@ -139,8 +139,8 @@
 
     String.prototype.getNesting = function (startTag, endTag) {
 
-        var matchStartTag = new RegExp(startTag.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")),
-            matchEndTag = new RegExp(endTag.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")),
+        var matchStartTag = new RegExp(startTag.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, "\\$&")), ///Anti-chrome inspector bug comment
+            matchEndTag = new RegExp(endTag.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, "\\$&")), ///Anti-chrome inspector bug comment
             contents = [],
             startMatchIndex = (matchStartTag.exec(this) || { index: -1 }).index,
             hasStart = startMatchIndex >= 0,
@@ -160,7 +160,7 @@
             if (hasStart && hasEnd && startMatchIndex < endMatchIndex) {
                 tag = startTag;
                 currentIndex = startMatchIndex;
-                if (groups == 0) {
+                if (groups === 0) {
                     openIndex = currentIndex;
                 }
                 groups++;
@@ -171,7 +171,7 @@
                 tag = endTag;
                 currentIndex = endMatchIndex;
                 groups--;
-                if (groups == 0) {
+                if (groups === 0) {
                     closeIndex = currentIndex + currentString.length;
                 }
             }
@@ -207,23 +207,23 @@
     //
     //***********************************************
     
-    function queryStringToModel(){
-        var queryStringData = window.location.search.slice(1).split("&");
-        
-        queryStringData.fastEach(function(keyValue){
-            var parts = keyValue.split("="),
-                key = parts[0],
-                value = parts[1];
-                
-            if(key){
-                if(value){
-                    gaffa.model.set(key, value);
-                }else{
-                    gaffa.model.set(key, null);
-                }
-            }
-        });
-    }
+	function queryStringToModel(){
+		var queryStringData = window.location.search.slice(1).split("&");
+		
+		queryStringData.fastEach(function(keyValue){
+			var parts = keyValue.split("="),
+				key = window.unescape(parts[0]),
+				value = window.unescape(parts[1]);
+				
+			if(key){
+				if(value){
+					gaffa.model.set(key, value);
+				}else{
+					gaffa.model.set(key, null);
+				}
+			}
+		});
+	}
 
     //***********************************************
     //
@@ -236,57 +236,57 @@
             url: url,
             type: (post && "post") || "get",
             contentType: "application/json",
-            dataType: "json",
+			dataType: "json",
             success: function (data) {
-                var title;
-                        
-                if(data !== undefined && data !== null && data.title){
-                    title = data.title;
-                }
-                
-                // ToDo: Push state no worksies in exploder.
-                window.history.pushState(data, title, url);
-                
-                load(data, model);
+				var title;
+						
+				if(data !== undefined && data !== null && data.title){
+					title = data.title;
+				}
+				
+				// ToDo: Push state no worksies in exploder.
+				window.history.pushState(data, title, url);
+				
+				load(data, model);
             }
         });
     }
-    
+	
     //***********************************************
     //
     //      Load
     //
     //***********************************************
-    
-    function load(app, model){
-    
-        memoisedModel = {};
-        internalBindings = [];
+	
+	function load(app, model){
+	
+		memoisedModel = {};
+		internalBindings = [];
 
-        if (app.views) {
-            gaffa.views.set(app.views);
-        }
-        if (app.model) {
-            internalModel = {},
-            gaffa.model.set(app.model);
-        }
-        if (app.behaviours) {
-            gaffa.behaviours.add(app.behaviours);
-        }
-        if (app.model && model) {
-            var newModel = gaffa.extend(true, {}, app.model, model);
-            gaffa.model.set(newModel);
-        }
-        
-        queryStringToModel();
-    }
-    
-    // ToDo: Pop state no worksies in exploder.
-    window.onpopstate = function(event){
-        if(event.state){
-            load(event.state);
-        }
-    }
+		if (app.views) {
+			gaffa.views.set(app.views);
+		}
+		if (app.model) {
+			internalModel = {},
+			gaffa.model.set(app.model);
+		}
+		if (app.behaviours) {
+			gaffa.behaviours.add(app.behaviours);
+		}
+		if (app.model && model) {
+			var newModel = gaffa.extend(true, {}, app.model, model);
+			gaffa.model.set(newModel);
+		}
+		
+		queryStringToModel();
+	}
+	
+	// ToDo: Pop state no worksies in exploder.
+	window.onpopstate = function(event){
+		if(event.state){
+			load(event.state);
+		}
+	};
 
     //***********************************************
     //
@@ -298,12 +298,11 @@
     // Lots of similarities between get and set, refactor later to reuse code.
     function get(path, model) {
         if (path) {
-            //This returns the same memoisedModel given different keys
-            //ToDo: figure out why
+			//This returns the same memoisedModel given different keys
+			//ToDo: figure out why
             // if (memoisedModel[model] && memoisedModel[model][path]) {
-            //         return memoisedModel[model][path];
+			//     return memoisedModel[model][path];
             // }
-            
             var keys = gaffa.paths.stripUpALevels(path).split(gaffa.pathSeparator()),
                 reference = model;
 
@@ -337,14 +336,14 @@
                     break;
                 }
             }
-            
+			
             memoisedModel[model] = memoisedModel[model] || {};
             memoisedModel[model][path] = reference;
             return reference;
         }
         return model;
     }
-    
+	
 
     //***********************************************
     //
@@ -353,13 +352,13 @@
     //***********************************************
 
     function set(path, value, model) {
-    
-        //passed a null or undefined path, do nothing.
-        if(!path){
-            return;
-        }
-    
-        //passed an array binding, take the first as default.
+	
+		//passed a null or undefined path, do nothing.
+		if(!path){
+			return;
+		}
+	
+		//passed an array binding, take the first as default.
         //this would happen if an array was used as a binding without a format string
         if (path.isArray) {
             path = path[0];
@@ -385,8 +384,8 @@
         keys.fastEach(function (key, index, keys) {
 
             var binding;
-            
-            //if we have hit a non-object property on the reference and we have more keys after this one
+			
+			//if we have hit a non-object property on the reference and we have more keys after this one
             //make an object (or array) here and move on.
             if ((typeof reference[key] !== "object" || reference[key] === null) && index < keys.length - 1) {
                 if (!isNaN(key)) {
@@ -463,15 +462,15 @@
             }
             if (index === keys.length - 1) {
                 // if we are at the end of the line, delete the last key
-                
+				
                 if (!isNaN(reference.length)) {
-                    reference.splice(key, 1);
-                }else{                
-                    delete reference[key];
-                }
-                
+					reference.splice(key, 1);
+                }else{				
+					delete reference[key];
+				}
+				
                 //Report to parent arrays
-                triggerStack.push(keys.slice(0, keys.length - 2).join(gaffa.pathSeparator()));
+				triggerStack.push(keys.slice(0, keys.length - 2).join(gaffa.pathSeparator()));
 
                 //Report to things looking for all changes below here.
                 binding = keys.join("_");
@@ -517,15 +516,15 @@
             }
         });
 
-        if (reference != undefined && reference !== null) {
+        if (reference !== undefined && reference !== null) {
             reference.fastEach(function (callback) {
                 callback(value);
             });
 
             for (var key in reference) {
                 if (reference.hasOwnProperty(key) && reference[key].isArray) {
-                
-                    //un-excape underscored array properties.
+				
+					//un-excape underscored array properties.
                     if (key.indexOf("_") === 0 && (!isNaN(key.substr(1))||[].hasOwnProperty(key.substr(1)))) {
                         key = key.substr(1);
                     }
@@ -546,12 +545,12 @@
     //***********************************************
 
     function setBinding(binding, callback) {
-    
-        //If the binding has opperators in it, break them apart and set them individually.
+	
+		//If the binding has opperators in it, break them apart and set them individually.
         var bindingParts = binding.split(operatorRegex);
         if (bindingParts.length > 1) {
             bindingParts.fastEach(function (value) {
-                if (value && !value.match(operatorRegex) && value.indexOf("$") != 0) {
+                if (value && !value.match(operatorRegex) && value.indexOf("$") !== 0) {
                     setBinding(value, callback);
                 }
             });
@@ -562,10 +561,10 @@
             reference = internalBindings;
 
         keys.fastEach(function (key, index, keys) {
-            
-            //escape properties of the array with an underscore.
-            // numbers mean a binding has been set on an array index.
-            // array property bindings like length can also be set, and thats why all array properties are escaped.
+			
+			//escape properties of the array with an underscore.
+			// numbers mean a binding has been set on an array index.
+			// array property bindings like length can also be set, and thats why all array properties are escaped.
             if (!isNaN(key) || [].hasOwnProperty(key)) {
                 key = "_" + key;
             }
@@ -605,48 +604,48 @@
             };
         }
 
-        //Check if a renderer for the view type is loaded.
+		//Check if a renderer for the view type is loaded.
         if (gaffa.views[viewModel.type] !== undefined) {
-            //it is, so render it.
+			//it is, so render it.
             gaffa.views[viewModel.type].render(viewModel);
-            
-            // if a parent has been passed (for appending into)
-            // Only append if it hasnt got a parent already
-            // ToDo: make this bettera maybe.
-            if(!viewModel.isRendered){
-                viewModel.isRendered = true;
-                if (viewModel.insertSelector && typeof viewModel.insertFunction === "function"){
-                    viewModel.insertFunction(viewModel.insertSelector, viewModel.renderedElement);
-                }else if (parent) {
-                    //A custom append function can also be passed to handle non-html elements like SVG etc.
-                    if (appendFunction) {
-                        appendFunction(parent, viewModel.renderedElement);
-                    } else {
-                        parent.appendChild(viewModel.renderedElement);
-                    }
-                }
-                
-                //Render child views
-                for (var key in viewModel.views) {
-                    viewModel.views[key].fastEach(function (childViewModel) {
-                        renderView(childViewModel, viewModel.viewContainers[key].element);
-                    });
-                }
+			
+			// if a parent has been passed (for appending into)
+			// Only append if it hasnt got a parent already
+			// ToDo: make this bettera maybe.
+			if(!viewModel.isRendered){
+				viewModel.isRendered = true;
+				if (viewModel.insertSelector && typeof viewModel.insertFunction === "function"){
+					viewModel.insertFunction(viewModel.insertSelector, viewModel.renderedElement);
+				}else if (parent) {
+					//A custom append function can also be passed to handle non-html elements like SVG etc.
+					if (appendFunction) {
+						appendFunction(parent, viewModel.renderedElement);
+					} else {
+						parent.appendChild(viewModel.renderedElement);
+					}
+				}
+				
+				//Render child views
+				for (var key in viewModel.views) {
+					viewModel.views[key].fastEach(function (childViewModel) {
+						renderView(childViewModel, viewModel.viewContainers[key].element);
+					});
+				}
 
-                //Bind the views actions
-                //ToDo: this probaly shouldn't be here. refactor.
-                if (viewModel.actions) {
-                    for (var actionKey in viewModel.actions) {
-                        var action = viewModel.actions[actionKey];
-                        if (!action.bound) {
-                            $(viewModel.renderedElement).bind(actionKey, function () {
-                                gaffa.actions.trigger(action, viewModel.binding);
-                            });
-                            action.bound = true;
-                        }
-                    }
-                }
-            }
+				//Bind the views actions
+				//ToDo: this probaly shouldn't be here. refactor.
+				if (viewModel.actions) {
+					for (var actionKey in viewModel.actions) {
+						var action = viewModel.actions[actionKey];
+						if (!action.bound) {
+							$(viewModel.renderedElement).bind(actionKey, function () {
+								gaffa.actions.trigger(action, viewModel.binding);
+							});
+							action.bound = true;
+						}
+					}
+				}
+			}
         }
         //}, 0);
     }
@@ -658,7 +657,7 @@
     //***********************************************
 
     //mostly just make sure all the relative bindings are made absolute. delegate actions to the appropriate action object.
-    //ToDo: make actions more like views so bindings work better.
+	//ToDo: make actions more like views so bindings work better.
     function bindAction(action, parentBinding) {
 
         action.binding = action.binding || parentBinding;
@@ -666,17 +665,9 @@
 
         for (var key in action.bindings) {
             var binding = action.bindings[key];
-            if (binding && action.bindings[key].binding !== undefined) {   
-                if (binding.binding.isArray) {
-                    binding.binding.fastEach(function (path, index) {
-                        binding.binding[index] = gaffa.paths.getAbsolutePath(parentBinding, path);
-                        binding.value = binding.value||[];
-                        binding.value[index] = gaffa.model.get(binding.binding[index]); 
-                    });
-                }else{      
-                    binding.binding = gaffa.paths.getAbsolutePath(parentBinding, binding.binding);
-                    binding.value = gaffa.model.get(binding.binding);    
-                }                
+            if (binding && action.bindings[key].binding !== undefined) {			
+				binding.binding = gaffa.paths.getAbsolutePath(parentBinding, binding.binding);
+				binding.value = gaffa.model.get(binding.binding);				
             }
         }
         if (typeof gaffa.actions[action.type] === "function") {
@@ -692,9 +683,9 @@
 
     function bindProperty(viewModel, path, key, propertyBinding) {
         gaffa.model.bind(path, function (value) {
-            if(typeof gaffa.views[viewModel.type].update[key] === "function"){
-                gaffa.views[viewModel.type].update[key](viewModel, value, false, propertyBinding);
-            }
+			if(typeof gaffa.views[viewModel.type].update[key] === "function"){
+				gaffa.views[viewModel.type].update[key](viewModel, value, false, propertyBinding);
+			}
         });
     }
 
@@ -704,7 +695,7 @@
     //
     //***********************************************
 
-    //ToDo: genericise this so it can be used for action properties when they get implemented.
+	//ToDo: genericise this so it can be used for action properties when they get implemented.
     function bindProperties(viewModel, absolutePropertyBinding) {
 
         //bind each of the views properties to the model.
@@ -721,32 +712,32 @@
 
                 // this function is to create a closure so that 'key' is still the same key when the event fires.
                 (function (key, property) {
-                    if (property.filter) {
-                        
-                        var filterExpression = property.filter.getNesting("(",")"),
-                        bindFilterPaths = function(expression){
-                            if(expression.isArray){
-                                expression.fastEach(function(child){
-                                    bindFilterPaths(child);
-                                });
-                            }else{
-                                expression = expression.replace(/\s/g, "");
-                                var parts = expression.split(operatorRegex);
-                                parts.fastEach(function(part){
-                                    if(part && getPartType(part) === "path"){                                        
-                                        gaffa.model.bind(part, function () {
-                                            if(typeof gaffa.views[viewModel.type].update[key] === "function"){
-                                                gaffa.views[viewModel.type].update[key](viewModel, gaffa.model.get(property.binding));
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        }
-                        
-                        bindFilterPaths(filterExpression);
-                        
-                    }
+					if (property.filter) {
+						
+						var filterExpression = property.filter.getNesting("(",")"),
+						bindFilterPaths = function(expression){
+							if(expression.isArray){
+								expression.fastEach(function(child){
+									bindFilterPaths(child);
+								});
+							}else{
+								expression = expression.replace(/\s/g, "");
+								var parts = expression.split(operatorRegex);
+								parts.fastEach(function(part){
+									if(part && getPartType(part) === "path"){										
+										gaffa.model.bind(part, function () {
+											if(typeof gaffa.views[viewModel.type].update[key] === "function"){
+												gaffa.views[viewModel.type].update[key](viewModel, gaffa.model.get(property.binding));
+											}
+										});
+									}
+								});
+							}
+						};
+						
+						bindFilterPaths(filterExpression);
+						
+					}
                     if (property.binding) {
                         if (property.binding.isArray) {
                             property.binding.fastEach(function (path, index) {
@@ -785,11 +776,11 @@
                 return;
             }
         } else if(viewModel.text === undefined) {
-            console.error("Invalid viewModel. Object contains no 'type' property");
+			console.error("Invalid viewModel. Object contains no 'type' property");
             return;
         } else{
-            return;
-        }
+			return;
+		}
 
         //ToDo: probs a better way to do this....
         //Extend the passed in settings with defaults
@@ -801,7 +792,7 @@
             if (propertyBinding !== undefined) {
                 absolutePropertyBinding = gaffa.paths.getAbsolutePath(gaffa.paths.getAbsolutePath(parentViewBinding, propertyBinding), viewModel.binding);
             }
-            viewModel.binding = absolutePropertyBinding;
+			viewModel.binding = absolutePropertyBinding;
         } else {
             if (viewModel.binding.indexOf(gaffa.relativePath()) >= 0) {
                 viewModel.binding = parentViewBinding;
@@ -817,16 +808,16 @@
             });
         }
     }
-    
-    function getPartType(part){
-        if (part.indexOf("$") === 0) {
-            return "$";
-        } else if(part.indexOf("#") === 0){
-            return "#";
-        }else {
-            return "path";
-        }
-    }
+	
+	function getPartType(part){
+		if (part.indexOf("$") === 0) {
+			return "$";
+		} else if(part.indexOf("#") === 0){
+			return "#";
+		}else {
+			return "path";
+		}
+	}
 
     //***********************************************
     //
@@ -858,17 +849,17 @@
                     if (part.match(operatorRegex)) {
                         expressionParts.push(part);
                     } else {
-                        var value,
-                            partType = getPartType(part);
-                            
+						var value,
+							partType = getPartType(part);
+							
                         if (partType === "$") {
                             value = part.slice(1, part.length);
                         } else if(partType === "#"){
-                            value = parseFloat(part.slice(1, part.length));
-                        }else if(partType === "path"){
+							value = parseFloat(part.slice(1, part.length));
+						}else if(partType === "path"){
                             value = get(part, model);
                         }
-                        if (value == undefined) {
+                        if (value === undefined) {
                             value = "";
                         }
                         expressionParts.push(value);
@@ -877,7 +868,7 @@
             });
         } else if (expression.isArray) {
             var part;
-            expression.fastEach(function (value, index) {
+            expression.fastEach(function (value) {
                 part = parseExpression(value, model);
                 if (part.isExpressionParts) {
                     expressionParts = expressionParts.concat(part);
@@ -902,83 +893,11 @@
             return expressionParts[0];
         }
     }
-    function insertView(selector, renderedElement){
-        $(selector).append(renderedElement);
-    }
+	function insertView(selector, renderedElement){
+		$(selector).append(renderedElement);
+	}
 
     //Public Objects ******************************************************************************
-
-    //***********************************************
-    //
-    //      View Object NOT CURRENTLY IN USE!!!!!
-    //
-    //***********************************************
-
-    function view() {
-
-    }
-
-    view.Prototype = {
-        render: function (viewModel) {
-            //only render if the view has not previously been rendered.                            
-            if (viewModel.renderedElement) {
-                return;
-            }
-
-            //extend the passed in view with default options for that view type.
-            gaffa.extend(true, viewModel, defaults, viewModel);
-
-            //create the root level element for the view
-            viewModel.renderedElement = createElement(viewModel);
-            viewModel.renderedElement.viewModel = viewModel;
-
-            //Automatically fire all of the update functions when the view is first rendered.
-            for (var key in viewModel.properties) {
-                var updateFunction = gaffa.views[viewType].update[key];
-                if (updateFunction && typeof updateFunction === "function") {
-                    updateFunction(viewModel, viewModel.properties[key].value, true);
-                }
-            }
-        },
-
-        //functions under this are executed whenever the data bound to by properties of the same name changes.
-        update: {
-            //optionally put standard update methods in here, like for example view visibility:
-            visible: gaffa.propertyUpdaters.bool("visible", function (viewModel, value) {
-                if (value) {
-                    $(viewModel.renderedElement).css("display", "");
-                } else {
-                    $(viewModel.renderedElement).css("display", "none");
-                }
-            }),
-
-            classes: function (viewModel, value, firstRun) {
-                if (viewModel.properties.classes.value !== value || firstRun) {
-                    var element = $(viewModel.renderedElement);
-                    if (element) {
-                        if (viewModel.properties.classes.value) {
-                            element.removeClass(viewModel.properties.classes.value);
-                        }
-                        element.addClass(viewModel.properties.classes.value = value);
-                    }
-                }
-            }
-        },
-
-        binding: gaffa.relativePath(),
-
-        properties: {
-            visible: { value: true },
-
-            classes: {}
-        },
-
-        isView: true
-    };
-    
-    function path(path){
-        this.path = path;
-    };
 
     //***********************************************
     //
@@ -986,14 +905,13 @@
     //
     //***********************************************
 
-    //Creates the public gaffa object
-    //ToDo: remove anonymous functions from here, make it just references to named functions.
+	//Creates the public gaffa object
+	//ToDo: remove anonymous functions from here, make it just references to named functions.
     function newGaffa() {
 
         function innerGaffa() { }
 
         innerGaffa.prototype = {
-            path: path,
             paths: {
                 getAbsolutePath: function (parentBinding, childBinding) {
                     if (childBinding.indexOf(gaffa.relativePath()) === 0) {
@@ -1028,8 +946,8 @@
                 set: function (path, value) {
                     set(path, value, internalModel);
                 },
-                
-                remove: function (path) {
+				
+				remove: function (path) {
                     remove(path, internalModel);
                 },
 
@@ -1169,7 +1087,7 @@
                                 if (value === false) {
                                     $(viewModel.renderedElement).css("display", "none");
                                 } else {
-                                    $(viewModel.renderedElement).css("display", "");
+									$(viewModel.renderedElement).css("display", "");
                                     
                                 }
                             }),
@@ -1190,7 +1108,7 @@
                         defaults: {
                             //Set the default view binding to nothing but a relative path.
                             //This is so all relative bindings flow on nicely.
-                            insertFunction: insertView,
+							insertFunction: insertView,
                             binding: gaffa.relativePath(),
                             properties: {
                                 visible: { value: true },
@@ -1219,42 +1137,42 @@
 
                     behaviours.fastEach(function (behaviour) {
                         var behaviourType = behaviour.type;
-                        if(typeof gaffa.behaviours[behaviourType] === "function"){
-                            gaffa.behaviours[behaviourType](behaviour);
-                        }
+						if(typeof gaffa.behaviours[behaviourType] === "function"){
+							gaffa.behaviours[behaviourType](behaviour);
+						}
                     });
                 },
-                
-                pageLoad: function(behaviour){
-                    gaffa.actions.trigger(behaviour.actions, behaviour.binding);
-                },
-                
-                modelChange: function(behaviour){
-                    gaffa.model.bind(behaviour.binding.split('/').join("_"), function () {
-                        var throttleTime = behaviour.throttle;
-                        if(!isNaN(throttleTime)){
-                            var now = new Date();
-                            if(!behaviour.lastTrigger || now - behaviour.lastTrigger > throttleTime){
-                                behaviour.lastTrigger = now;
-                                gaffa.actions.trigger(behaviour.actions, behaviour.binding);                                
-                            }else{
-                                clearTimeout(behaviour.timeout);
-                                behaviour.timeout = setTimeout(function(){
-                                        behaviour.lastTrigger = now;
-                                        gaffa.actions.trigger(behaviour.actions, behaviour.binding);
-                                    },
-                                    throttleTime - (now - behaviour.lastTrigger)
-                                );
-                            }
-                        }else{
-                            gaffa.actions.trigger(behaviour.actions, behaviour.binding);
-                        }
-                    });
-                }
+				
+				pageLoad: function(behaviour){
+					gaffa.actions.trigger(behaviour.actions, behaviour.binding);
+				},
+				
+				modelChange: function(behaviour){
+					gaffa.model.bind(behaviour.binding.split('/').join("_"), function () {
+						var throttleTime = behaviour.throttle;
+						if(!isNaN(throttleTime)){
+							var now = new Date();
+							if(!behaviour.lastTrigger || now - behaviour.lastTrigger > throttleTime){
+								behaviour.lastTrigger = now;
+								gaffa.actions.trigger(behaviour.actions, behaviour.binding);								
+							}else{
+								clearTimeout(behaviour.timeout);
+								behaviour.timeout = setTimeout(function(){
+										behaviour.lastTrigger = now;
+										gaffa.actions.trigger(behaviour.actions, behaviour.binding);
+									},
+									throttleTime - (now - behaviour.lastTrigger)
+								);
+							}
+						}else{
+							gaffa.actions.trigger(behaviour.actions, behaviour.binding);
+						}
+					});
+				}
             },
 
             utils: {
-                //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
+				//See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
                 getProp: function (object, propertiesString) {
                     var properties = propertiesString.split(".").reverse();
                     while (properties.length) {
@@ -1311,39 +1229,39 @@
                         return function (viewModel, value, firstRun, index) {
                             var property = viewModel.properties[propertyName],
                                 element = viewModel.renderedElement,
-                                convertDateToString = function (date){
-                                    if(date && date instanceof Date && typeof gaffa.dateFormatter === "function"){
-                                        return gaffa.dateFormatter(date);
-                                    }else{
-                                        return date;
-                                    }
-                                }
+								convertDateToString = function (date){
+									if(date && date instanceof Date && typeof gaffa.dateFormatter === "function"){
+										return gaffa.dateFormatter(date);
+									}else{
+										return date;
+									}
+								};
 
-                            index = parseInt(index);
+                            index = parseInt(index, 10);
                             if (value && value.isArray || !isNaN(index)) {
                                 if (property.value[index] !== value || firstRun) {
                                     property.value[index] = value;
                                     if (element) {
                                         var string;
-                                        if(property.value && property.value.isArray){
-                                            property.value.fastEach(function(subValue, index, values){
-                                                values[index] = convertDateToString(subValue);
-                                            });
-                                            if (property.format && typeof property.format === "string") {
-                                                string = property.format.format(property.value);
-                                            } else {                                            
-                                                string = property.value.join("");
-                                            }
-                                        }else{
-                                            string = convertDateToString(property.value);
-                                        }
+										if(property.value && property.value.isArray){
+											property.value.fastEach(function(subValue, index, values){
+												values[index] = convertDateToString(subValue);
+											});
+											if (property.format && typeof property.format === "string") {
+												string = property.format.format(property.value);
+											} else {											
+												string = property.value.join("");
+											}
+										}else{
+											string = convertDateToString(property.value);
+										}
                                         
                                         callback(viewModel, string);
                                     }
                                 }
-                            } else {
+							} else {
                                 if (property.value !== value || firstRun) {
-                                    value = convertDateToString(value);
+									value = convertDateToString(value);
                                     property.value = value;
                                     if (element) {
                                         callback(viewModel, value);
@@ -1354,127 +1272,130 @@
                         };
                     }
                 },
-                
-                number: function (propertyName, callback, matchError) {
+				
+				number: function (propertyName, callback) {
                     if (typeof propertyName === "object") {
                         //passed a property object, doing a set.
                         var propertyObject = propertyName,
                         string = callback;
 
-                        gaffa.model.set(propertyObject.binding, string);
+						gaffa.model.set(propertyObject.binding, string);
                         
                     } else {
                         return function (viewModel, value, firstRun) {
                             var property = viewModel.properties[propertyName],
                                 element = viewModel.renderedElement;
                             
-                            if (property.value !== value || firstRun) {
-                                property.value = value;
-                                if (element) {
-                                    callback(viewModel, value);
-                                }
-                            }
+							if (property.value !== value || firstRun) {
+								property.value = value;
+								if (element) {
+									callback(viewModel, value);
+								}
+							}
                         };
                     }
                 },
-                
-                collection: function (propertyName, insert, remove) {
-                    return function (viewModel, value, firstRun) {
-                        var property = viewModel.properties[propertyName],
-                            valueLength = 0,
-                            previousLength = property.previousLength || 0,
-                            calculateValueLength = function(){
-                                if(value.isArray){
-                                    return value.length;
-                                }else if(typeof value === "object"){
-                                    return Object.keys(value).length;
-                                }
-                            }
-                            
-                        if (value && typeof value === "object"){
-                            var filtered,
-                                pathSeperator = gaffa.pathSeparator();
-                            
-                            if(property.filter){                                        
-                                if(value.isArray){
-                                    filtered = [];
-                                }else{
-                                    filtered = {};
-                                }
-                                for(var key in value){
-                                    if(value.isArray && isNaN(key)){
-                                        continue;
-                                    }
-                                    var item = value[key];
-                                    var filter = property.filter.replace(/~/, [property.binding, pathSeperator, key, pathSeperator].join(""));
-                                    if(parseExpression(filter.getNesting("(", ")"), internalModel)){
-                                        filtered[key] = item;
-                                    }
-                                };
-                                property.value = filtered;
-                            }else{
-                                property.value = value;
-                            }
-                            
-                            if(value.isArray && isNaN(key)){
-                                property.previousLength = property.value.length;
-                            }else{
-                                property.previousLength = Object.keys(property.value).length;
-                            }
-                            
-                            value = filtered || value;
-                            
-                            valueLength = calculateValueLength();
-                        
-                            if (valueLength !== previousLength || firstRun || filtered) {
-
-                                var element = viewModel.renderedElement;
-                                if (element && property.template) {
-                                    var childViews = viewModel.viewContainers[propertyName],
-                                        newView;
+				
+				collection: function (propertyName, insert, remove) {
+					return function (viewModel, value, firstRun) {
+						var property = viewModel.properties[propertyName],
+							valueLength = 0,
+							previousLength = property.previousLength || 0,
+                            childViews,
+							calculateValueLength = function(){
+								if(value.isArray){
+									return value.length;
+								}else if(typeof value === "object"){
+									return Object.keys(value).length;
+								}
+							}
+							
+						if (value && typeof value === "object"){
+							var filtered,
+								pathSeperator = gaffa.pathSeparator();
+							
+							if(property.filter){										
+								if(value.isArray){
+									filtered = [];
+								}else{
+									filtered = {};
+								}
+								for(var key in value){
+									if(value.isArray && isNaN(key)){
+										continue;
+									}
+									var item = value[key];
+									var filter = property.filter.replace(/~/, [property.binding, pathSeperator, key, pathSeperator].join(""));
+									if(parseExpression(filter.getNesting("(", ")"), internalModel)){
+										filtered[key] = item;
+									}
+								};
+								property.value = filtered;
+							}else{
+								property.value = value;
+							}
+							
+							if(value.isArray && isNaN(key)){
+								property.previousLength = property.value.length;
+							}else{
+								property.previousLength = Object.keys(property.value).length;
+							}
+							
+							value = filtered || value;
+							
+							valueLength = calculateValueLength();
+						
+							if (valueLength !== previousLength || firstRun || filtered) {
+                                
+								var element = viewModel.renderedElement;
                                     
-                                    for(var i = 0; i < childViews.length; i++){
-                                        var childView = childViews[i];
-                                        if(!value[childView.key]){
-                                            childViews.splice(i, 1);
-                                            i--;
-                                            remove(viewModel, value, childView);
-                                        }
-                                    }
+								if (element && property.template) {
+									var newView;
                                     
-                                    for (var key in value) {
-                                        if(value.isArray && isNaN(key)){
-                                            continue;
-                                        }
-                                        var exists = false;
-                                        childViews.fastEach(function(child){
-                                            if(child.key === key){
-                                                exists = true;
-                                            }    
-                                        });
-                                        
-                                        if (!exists) {
-                                            newView = {key: key};
-                                            insert(viewModel, value, newView);
-                                        }
-                                    }                                    
-                                }
-                            }
-                        }else{
-                            var childViews = viewModel.viewContainers[propertyName];
-                            childViews.fastEach(function(childView, index){
-                                    childViews.splice(index, 1);
-                                    remove(viewModel, value, childView);
-                            });
-                        }
-                    }
-                },
+                                    childViews = viewModel.viewContainers[propertyName];
+									
+									for(var i = 0; i < childViews.length; i++){
+										var childView = childViews[i];
+										if(!value[childView.key]){
+											childViews.splice(i, 1);
+											i--;
+											remove(viewModel, value, childView);
+										}
+									}
+									
+									for (var key in value) {
+										if(value.isArray && isNaN(key)){
+											continue;
+										}
+										var exists = false;
+										childViews.fastEach(function(child){
+											if(child.key === key){
+												exists = true;
+											}	
+										});
+										
+										if (!exists) {
+											newView = {key: key};
+											insert(viewModel, value, newView);
+										}
+									}									
+								}
+							}
+						}else{
+							childViews = viewModel.viewContainers[propertyName];
+							childViews.fastEach(function(childView, index){
+									childViews.splice(index, 1);
+									remove(viewModel, value, childView);
+							});
+						}
+					};
+				},
 
                 bool: function (propertyName, callback) {
                     return function (viewModel, value, firstRun) {
                         var property = viewModel.properties[propertyName];
                         if (property.previousValue !== value || firstRun) {
-                            property.previousValue = value;
+							property.previousValue = value;
                             if (typeof property.binding === "string") {
                                 callback(viewModel, property.value = parseExpression(property.binding.getNesting("(", ")"), internalModel));
                             } else {
@@ -1485,8 +1406,8 @@
                         }
                     };
                 },
-                
-                // ToDo: I dont like this...
+				
+				// ToDo: I dont like this...
                 object: function (propertyName, callback) {
                     return function (viewModel, value, firstRun) {
                         var property = viewModel.properties[propertyName];
@@ -1498,41 +1419,41 @@
             },
 
             navigate: navigate,
-            
+			
             load: function(app, pushPageState){
-                        
-                var title;
-                        
-                if(app !== undefined && app !== null && app.title){
-                    title = app.title;
-                }                
-                if(pushPageState){
-                    // ToDo: Push state no worksies in exploder.
-                    window.history.pushState(app, title, document.location);
-                }
-                load(app);
-            },
-            
-            //If you want to load the values in query strings into the pages model.
-            queryStringToModel: queryStringToModel,
-            
-            //This is here so i can remove it later and replace with a better verson.
-            extend: $.extend,
-            
-            clone: function(value){
-                if(typeof value === "object"){
-                    if(value.isArray){
-                        return value.slice();
-                    }else{
-                        return gaffa.extend(true, {}, value);
-                    }                    
-                }else{
-                    return value;
-                }
-            }
+						
+				var title;
+						
+				if(app !== undefined && app !== null && app.title){
+					title = app.title;
+				}				
+				if(pushPageState){
+					// ToDo: Push state no worksies in exploder.
+					window.history.pushState(app, title, document.location);
+				}
+				load(app);
+			},
+			
+			//If you want to load the values in query strings into the pages model.
+			queryStringToModel: queryStringToModel,
+			
+			//This is here so i can remove it later and replace with a better verson.
+			extend: $.extend,
+			
+			clone: function(value){
+				if(typeof value === "object"){
+					if(value.isArray){
+						return value.slice();
+					}else{
+						return gaffa.extend(true, {}, value);
+					}					
+				}else{
+					return value;
+				}
+			}
 
         };
 
         return new innerGaffa();
     }
-})();
+})(jQuery);

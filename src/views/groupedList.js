@@ -14,6 +14,30 @@
         
         return renderedElement;
     }
+    
+    function getDistinctGroups(collection, property){
+        var distinctValues = [];
+        
+        if(collection && typeof collection === "object"){
+            if(collection.isArray){
+                collection.fastEach(function(value){
+                    var candidate = gaffa.utils.getProp(value, property);
+                    if(distinctValues.indexOf(candidate)<0){
+                        distinctValues.push(candidate);
+                    }
+                }); 
+            }else{
+                for(var key in collection){
+                    var candidate = gaffa.utils.getProp(collection[key], property);
+                    if(distinctValues.indexOf(candidate)<0){
+                        distinctValues.push(candidate);
+                    }
+                }   
+            }
+        }
+        
+        return distinctValues;
+    }
 
     function newView() {
         
@@ -22,26 +46,23 @@
         
         view.prototype = {
             update: {             
-                list: window.gaffa.propertyUpdaters.collection(
-                    "list",                     
-                    //increment
-                    function(viewModel, list, addedItem){
-                        var listViews = viewModel.viewContainers.list,
-                            property = viewModel.properties.list;
-                        window.gaffa.views.add($.extend(true, addedItem, property.template), viewModel, listViews, property.binding + gaffa.pathSeparator() + addedItem.key);
-                        window.gaffa.views.render(viewModel.viewContainers.list, viewModel.viewContainers.list.element);
-                    },
-                    //decrement
-                    function(viewModel, list, removedItem){
-                        $(removedItem.renderedElement).remove();
-                    }
-                )
+                list: function (viewModel, value, firstRun) {
+                    var listViews = viewModel.viewContainers.list,
+                        property = viewModel.properties.list;
+                        
+                    property.value = value;
+                        
+                    viewModel.distinctGroups = getDistinctGroups(property.value, property.group);
+                    
+                    //ToDo: finish...
+                    
+                }
             },
             defaults: {
                 viewContainers:{
                     list: []
                 },
-                properties: {             
+                properties: {
                     list: {}
                 }
             }
