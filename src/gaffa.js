@@ -1406,6 +1406,7 @@
                         var property = viewModel.properties[propertyName],
                             valueLength = 0,
                             previousLength = property.previousLength || 0,
+                            childViews = viewModel.viewContainers[propertyName],
                             calculateValueLength = function(){
                                 if(value.isArray){
                                     return value.length;
@@ -1453,8 +1454,7 @@
 
                                 var element = viewModel.renderedElement;
                                 if (element && property.template) {
-                                    var childViews = viewModel.viewContainers[propertyName],
-                                        newView;
+                                    var newView;
                                     
                                     for(var i = 0; i < childViews.length; i++){
                                         var childView = childViews[i];
