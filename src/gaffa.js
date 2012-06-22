@@ -1384,7 +1384,7 @@
                                 }
                             } else {
                                 if (property.value !== value || firstRun) {
-                                    if(property.binding){
+                                    if(typeof property.binding === "string"){
                                         value = parseExpression(property.binding.getNesting("(", ")"), gaffa.model.get());
                                     }
                                     value = convertDateToString(value);
