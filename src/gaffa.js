@@ -333,6 +333,10 @@
             //         return memoisedModel[model][path];
             // }
             
+            if(path.match(operatorRegex)){
+                return parseExpression(path.getNesting("(", ")"), gaffa.model.get());
+            }
+            
             var keys = gaffa.paths.stripUpALevels(path).split(gaffa.pathSeparator),
                 reference = model;
 
@@ -384,7 +388,8 @@
     function set(path, value, model) {
     
         //passed a null or undefined path, do nothing.
-        if(!path){
+        if(!path || ( typeof path == "string" && path.match(operatorRegex))){
+            throw("No path provided");
             return;
         }
     
@@ -1385,7 +1390,7 @@
                             } else {
                                 if (property.value !== value || firstRun) {
                                     if(typeof property.binding === "string"){
-                                        value = parseExpression(property.binding.getNesting("(", ")"), gaffa.model.get());
+                                        value = gaffa.model.get(property.binding);
                                     }
                                     value = convertDateToString(value);
                                     property.value = value;
@@ -1452,7 +1457,7 @@
                                     }
                                     var item = value[key];
                                     var filter = property.filter.replace(/~/, [property.binding, pathSeperator, key, pathSeperator].join(""));
-                                    if(parseExpression(filter.getNesting("(", ")"), internalModel)){
+                                    if(gaffa.model.get(filter)){
                                         filtered[key] = item;
                                     }
                                 }
@@ -1562,7 +1567,7 @@
                         if (property.previousValue !== value || firstRun) {
                             property.previousValue = value;
                             if (typeof property.binding === "string") {
-                                callback(viewModel, property.value = parseExpression(property.binding.getNesting("(", ")"), internalModel));
+                                callback(viewModel, property.value = gaffa.model.get(property.binding));
                             } else {
                                 callback(viewModel, property.value);
                             }
@@ -1620,5 +1625,6 @@
         };
 
         return new innerGaffa();
+
     }
 })();
