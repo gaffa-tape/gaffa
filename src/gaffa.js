@@ -29,7 +29,8 @@
         memoisedModel = {},
 
 
-        operatorRegex = /(!=)|(===)|(==)|(\|\|)|(>)|(<)|(>=)|(<=)|(&&)|(%)|(\+)|(\-)|(\*)|(\\\/)/,
+        operatorRegex = /(!=)|(===)|(==)|(\|\|)|(>)|(<)|(>=)|(<=)|(&&)|(%)|(\+)|(\-)|(\*)|(\\\/)|(last\(.*?\))/,
+        functionRegex = /(last\(.*?\))/,
         
         equalityRegex = /(!=)|(===)|(==)|(%)/,
         LogicalDisjunctionRegex = /(&&)|(\|\|)/,
@@ -138,8 +139,10 @@
     //***********************************************
 
     String.prototype.getNesting = function (startTag, endTag) {
+        
+        var dontNest = /\((?:!last\()/;
 
-        var matchStartTag = new RegExp(startTag.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")), /// Comment to fix chrome web inspector
+        var matchStartTag = new RegExp(dontNest + startTag.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")), /// Comment to fix chrome web inspector
             matchEndTag = new RegExp(endTag.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")), /// Comment to fix chrome web inspector
             contents = [],
             startMatchIndex = (matchStartTag.exec(this) || { index: -1 }).index,
@@ -316,7 +319,17 @@
         }
         
         return distinctValues;
-    }    
+    }   
+
+    //***********************************************
+    //
+    //      Is Expression
+    //
+    //***********************************************
+    
+    function isExpression(value){
+        return typeof value == "string" && value.match(operatorRegex);
+    }
 
     //***********************************************
     //
@@ -388,9 +401,13 @@
     function set(path, value, model) {
     
         //passed a null or undefined path, do nothing.
-        if(!path || ( typeof path == "string" && path.match(operatorRegex))){
-            throw("No path provided");
+        if(!path){
             return;
+        }
+        
+        //passed an expression, splode.
+        if(isExpression(path)){
+            throw("Cannot set to an expression");
         }
     
         //passed an array binding, take the first as default.
@@ -585,7 +602,10 @@
         var bindingParts = binding.split(operatorRegex);
         if (bindingParts.length > 1) {
             bindingParts.fastEach(function (value) {
-                if (value && !value.match(operatorRegex) && value.indexOf("$") != 0) {
+                if(value && value.match(functionRegex)){
+                    setBinding(value.slice(value.indexOf("(")+1,value.indexOf(")")), callback);
+                }
+                if (value && !value.match(operatorRegex) && value.indexOf("$") != 0 && value.indexOf("#") != 0) {
                     setBinding(value, callback);
                 }
             });
@@ -876,23 +896,29 @@
     //      Parse Expression
     //
     //***********************************************
+    
+    
 
     function parseExpression(expression, model) {
-        var matches = {
+        var floatOrString = function(value){
+                return !isNaN(value) && parseFloat(value) || value;
+            },
+            matches = {
             "!=": { regex: /(!=)/, func: function (a, b) { return a != b; } },
             "===": { regex: /(===)/, func: function (a, b) { return a === b; } },
             "==": { regex: /(==)/, func: function (a, b) { return a == b; } },
-            ">": { regex: /(>)/, func: function (a, b) { return a > b; } },
-            "<": { regex: /(<)/, func: function (a, b) { return a < b; } },
-            ">=": { regex: /(>=)/, func: function (a, b) { return a >= b; } },
-            "<=": { regex: /(<=)/, func: function (a, b) { return a <= b; } },
+            ">": { regex: /(>)/, func: function (a, b) { return floatOrString(a) > floatOrString(b); } },
+            "<": { regex: /(<)/, func: function (a, b) { return floatOrString(a) < floatOrString(b); } },
+            ">=": { regex: /(>=)/, func: function (a, b) { return floatOrString(a) >= floatOrString(b); } },
+            "<=": { regex: /(<=)/, func: function (a, b) { return floatOrString(a) <= floatOrString(b); } },
             "||": { regex: /(\|\|)/, func: function (a, b) { return a || b; } },
             "&&": { regex: /(\&\&)/, func: function (a, b) { return a && b; } },
-            "+": { regex: /(\+)/, func: function (a, b) { return a + b; } },
-            "-": { regex: /(\-)/, func: function (a, b) { return a - b; } },
-            "*": { regex: /(\*)/, func: function (a, b) { return a * b; } },
-            "\\/": { regex: /(\\\/)/, func: function (a, b) { return a / b; } },
-            "%": { regex: /(%)/, func: function (a, b) { return (typeof(a) === "string" && typeof(b) === "string" && a.toLowerCase().indexOf(b.toLowerCase())>=0) === true; } }
+            "+": { regex: /(\+)/, func: function (a, b) { return floatOrString(a) + floatOrString(b); }},
+            "-": { regex: /(\-)/, func: function (a, b) { return floatOrString(a) - floatOrString(b); } },
+            "*": { regex: /(\*)/, func: function (a, b) { return floatOrString(a) * floatOrString(b); } },
+            "\\/": { regex: /(\\\/)/, func: function (a, b) { return floatOrString(a) / floatOrString(b); } },
+            "%": { regex: /(%)/, func: function (a, b) { return (typeof(a) === "string" && typeof(b) === "string" && a.toLowerCase().indexOf(b.toLowerCase())>=0) === true; } },
+            "last": { regex: /last(.*?)/, func: function (a) { return a[a.length-1]; } }
         },
             expressionParts = [],
             result;
@@ -906,7 +932,7 @@
                     } else {
                         var value,
                             partType = getPartType(part);
-                            
+                           
                         if (partType === "$") {
                             value = part.slice(1, part.length);
                         } else if(partType === "#"){
@@ -932,6 +958,14 @@
                 }
             });
         }
+        if (expressionParts.length === 1 && typeof expressionParts[0] === "string" && expressionParts[0].match(functionRegex)){
+            var parts = expressionParts[0].slice(0,expressionParts[0].length-1).split("("),
+                part = [matches[parts[0]].func(parseExpression(parts[1].getNesting("(",")"), model))];
+                
+            part.isExpressionParts = true;
+                
+            return part;
+        }
         if (expressionParts.length > 2) {
             result = matches[expressionParts[1]].func(expressionParts[0], expressionParts[2]);
             for (var i = 3; i < expressionParts.length; i += 3) {
@@ -953,78 +987,10 @@
     }
 
     //Public Objects ******************************************************************************
-
-    //***********************************************
-    //
-    //      View Object NOT CURRENTLY IN USE!!!!!
-    //
-    //***********************************************
-
-    function view() {
-
-    }
-
-    view.Prototype = {
-        render: function (viewModel) {
-            //only render if the view has not previously been rendered.                            
-            if (viewModel.renderedElement) {
-                return;
-            }
-
-            //extend the passed in view with default options for that view type.
-            gaffa.extend(true, viewModel, defaults, viewModel);
-
-            //create the root level element for the view
-            viewModel.renderedElement = createElement(viewModel);
-            viewModel.renderedElement.viewModel = viewModel;
-
-            //Automatically fire all of the update functions when the view is first rendered.
-            for (var key in viewModel.properties) {
-                var updateFunction = gaffa.views[viewType].update[key];
-                if (updateFunction && typeof updateFunction === "function") {
-                    updateFunction(viewModel, viewModel.properties[key].value, true);
-                }
-            }
-        },
-
-        //functions under this are executed whenever the data bound to by properties of the same name changes.
-        update: {
-            //optionally put standard update methods in here, like for example view visibility:
-            visible: gaffa.propertyUpdaters.bool("visible", function (viewModel, value) {
-                if (value) {
-                    $(viewModel.renderedElement).css("display", "");
-                } else {
-                    $(viewModel.renderedElement).css("display", "none");
-                }
-            }),
-
-            classes: function (viewModel, value, firstRun) {
-                if (viewModel.properties.classes.value !== value || firstRun) {
-                    var element = $(viewModel.renderedElement);
-                    if (element) {
-                        if (viewModel.properties.classes.value) {
-                            element.removeClass(viewModel.properties.classes.value);
-                        }
-                        element.addClass(viewModel.properties.classes.value = value);
-                    }
-                }
-            }
-        },
-
-        binding: gaffa.relativePath,
-
-        properties: {
-            visible: { value: true },
-
-            classes: {}
-        },
-
-        isView: true
-    };
     
     function path(path){
         this.path = path;
-    };
+    }
 
     //***********************************************
     //
@@ -1366,7 +1332,8 @@
                                 }
 
                             index = parseInt(index);
-                            if (value && value.isArray || !isNaN(index)) {
+                            
+                            if ((value && value.isArray && !isNaN(index))||!isNaN(index)) {
                                 if (property.value[index] !== value || firstRun) {
                                     property.value[index] = value;
                                     if (element) {
