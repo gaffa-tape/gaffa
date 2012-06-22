@@ -1,3 +1,4 @@
+
 //    Properties:
 //        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function (undefined) {
@@ -15,8 +16,10 @@
 
         renderedElement = $(renderedElement.cloneNode(true)).addClass(classes);
 
+        renderedElement.attr('type', 'datetime-local');
+
         renderedElement.bind(viewModel.updateEventName || "change", function () {
-            window.gaffa.model.set(viewModel.properties.value.binding, new Date($(this).val()));
+            window.gaffa.model.set(viewModel.properties.value.binding, Date.parse($(this).val()));
         });
 
         return renderedElement[0];
@@ -35,7 +38,20 @@
                         var element = $(viewModel.renderedElement);
                         if (element) {
                             if (value !== undefined) {
-                                $(element).val(value.toString());
+                                if (/iPad/i.test(navigator.userAgent) || /iPhone/i.test(navigator.userAgent)) {
+                                    // Have to use magical iOS format bullshit...
+                                    if (value === null) {
+                                        // More iPad awesome. If the default of today is used sets value to null
+                                        value = new Date();
+                                    }
+                                    element.value = value.toString('yyyy-MM-ddThh:mm:ssZ').substring(0, 19);
+                                } else {
+                                    if (typeof window.gaffa.dateFormatter === 'function') {
+                                        $(element).val(window.gaffa.dateFormatter(value));
+                                    } else {
+                                        $(element).val(value.toString());
+                                    }
+                                }
                             } else {
                                 $(element).val("");
                             }
