@@ -29,7 +29,13 @@
         memoisedModel = {},
 
 
-        operatorRegex = /(!=)|(===)|(==)|(\|\|)|(>)|(<)|(>=)|(<=)|(&&)|(%)/;
+        operatorRegex = /(!=)|(===)|(==)|(\|\|)|(>)|(<)|(>=)|(<=)|(&&)|(%)|(\+)|(\-)|(\*)|(\\\/)/,
+        
+        equalityRegex = /(!=)|(===)|(==)|(%)/,
+        LogicalDisjunctionRegex = /(&&)|(\|\|)/,
+        numericalComparisonRegex = /(>)|(<)|(>=)|(<=)/,
+        arithmeticRegex = /(\+)|(\-)|(\*)|(\\\/)/;
+        
 
     //internal functions
 
@@ -621,10 +627,19 @@
         //un-comment to delegate rendering to happen as soon as possible, but not if it blocks the UI.
         //this will cause all kinds of hilariously stupid layout if you breakpoint during the render loop.
         //setTimeout(function () {
-        if (viewModel.type === undefined && viewModel.text !== undefined) {
+        
+        //Easy text/html views
+        if (viewModel.type === undefined && viewModel.html !== undefined) {
             viewModel.type = "html";
             viewModel.properties = {
-                html: { value: viewModel.text }
+                html: { value: viewModel.html }
+            };
+        }
+        
+        if (viewModel.type === undefined && viewModel.text !== undefined) {
+            viewModel.type = "text";
+            viewModel.properties = {
+                text: { value: viewModel.text }
             };
         }
 
@@ -867,7 +882,11 @@
             ">=": { regex: /(>=)/, func: function (a, b) { return a >= b; } },
             "<=": { regex: /(<=)/, func: function (a, b) { return a <= b; } },
             "||": { regex: /(\|\|)/, func: function (a, b) { return a || b; } },
-            "&&": { regex: /(\&\&)/, func: function (a, b) { return a && b; } },
+            "&&": { regex: /(\&\&)/, func: function (a, b) { return a && b} },
+            "+": { regex: /(\+)/, func: function (a, b) { return a + b; } },
+            "-": { regex: /(\-)/, func: function (a, b) { return a - b; } },
+            "*": { regex: /(\*)/, func: function (a, b) { return a * b; } },
+            "\/": { regex: /(\\\/)/, func: function (a, b) { return a / b; } },
             "%": { regex: /(%)/, func: function (a, b) { return (typeof(a) === "string" && typeof(b) === "string" && a.toLowerCase().indexOf(b.toLowerCase())>=0) === true; } }
         },
             expressionParts = [],
@@ -1349,7 +1368,7 @@
                                         var string;
                                         if(property.value && property.value.isArray){
                                             property.value.fastEach(function(subValue, index, values){
-                                                values[index] = convertDateToString(subValue);
+                                                values[index] = convertDateToString();
                                             });
                                             if (property.format && typeof property.format === "string") {
                                                 string = property.format.format(property.value);
@@ -1365,6 +1384,9 @@
                                 }
                             } else {
                                 if (property.value !== value || firstRun) {
+                                    if(property.binding){
+                                        value = parseExpression(property.binding.getNesting("(", ")"), gaffa.model.get());
+                                    }
                                     value = convertDateToString(value);
                                     property.value = value;
                                     if (element) {

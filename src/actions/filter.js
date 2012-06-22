@@ -1,5 +1,7 @@
 (function (undefined) {
-    var actionType = "filter";
+    var actionType = "filter",
+        gaffa = window.gaffa;
+        
     window.gaffa.actions[actionType] = function (action) {
         var source = action.bindings.source.value,
             filtered = {},

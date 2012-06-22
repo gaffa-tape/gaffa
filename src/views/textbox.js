@@ -12,14 +12,14 @@
         var input = this;
         var matchFail = function(){
             $(input).addClass('error');
-        }
+        };
         
         $(input).removeClass('error');
                 
         if ($(input).attr("type") === "numeric") {
-                window.gaffa.propertyUpdaters.string(input.viewModel.properties.value, parseFloat($(input).val()), matchFail);
-            } else {
-                window.gaffa.propertyUpdaters.string(input.viewModel.properties.value, $(input).val(), matchFail);
+            window.gaffa.propertyUpdaters.string(input.viewModel.properties.value, parseFloat($(input).val()), matchFail);
+        } else {
+            window.gaffa.propertyUpdaters.string(input.viewModel.properties.value, $(input).val(), matchFail);
         } 
     }  
     
@@ -29,7 +29,7 @@
         var renderedElement = cachedElement || (cachedElement = document.createElement('input'));
 
         renderedElement = $(renderedElement.cloneNode(true)).addClass(classes)[0];
-        
+                
         $(renderedElement).bind(viewModel.updateEventName || "change", setValue);
 
         return renderedElement;
