@@ -882,11 +882,11 @@
             ">=": { regex: /(>=)/, func: function (a, b) { return a >= b; } },
             "<=": { regex: /(<=)/, func: function (a, b) { return a <= b; } },
             "||": { regex: /(\|\|)/, func: function (a, b) { return a || b; } },
-            "&&": { regex: /(\&\&)/, func: function (a, b) { return a && b} },
+            "&&": { regex: /(\&\&)/, func: function (a, b) { return a && b; } },
             "+": { regex: /(\+)/, func: function (a, b) { return a + b; } },
             "-": { regex: /(\-)/, func: function (a, b) { return a - b; } },
             "*": { regex: /(\*)/, func: function (a, b) { return a * b; } },
-            "\/": { regex: /(\\\/)/, func: function (a, b) { return a / b; } },
+            "\\/": { regex: /(\\\/)/, func: function (a, b) { return a / b; } },
             "%": { regex: /(%)/, func: function (a, b) { return (typeof(a) === "string" && typeof(b) === "string" && a.toLowerCase().indexOf(b.toLowerCase())>=0) === true; } }
         },
             expressionParts = [],
@@ -1368,7 +1368,7 @@
                                         var string;
                                         if(property.value && property.value.isArray){
                                             property.value.fastEach(function(subValue, index, values){
-                                                values[index] = convertDateToString();
+                                                values[index] = convertDateToString(subValue);
                                             });
                                             if (property.format && typeof property.format === "string") {
                                                 string = property.format.format(property.value);
@@ -1434,7 +1434,7 @@
                                 }else if(typeof value === "object"){
                                     return Object.keys(value).length;
                                 }
-                            }
+                            };
                             
                         if (value && typeof value === "object"){
                             var filtered,
@@ -1455,7 +1455,7 @@
                                     if(parseExpression(filter.getNesting("(", ")"), internalModel)){
                                         filtered[key] = item;
                                     }
-                                };
+                                }
                                 property.value = filtered;
                             }else{
                                 property.value = value;
