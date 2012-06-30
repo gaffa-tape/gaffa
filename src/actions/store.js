@@ -25,7 +25,7 @@
                     dataType: 'json',
                     contentType: 'application/json',
                     success:function(data){
-                        if (!data.status || (data.status && data.status === 2)) { // TODO add Status codes to gaffa. Currently assuming 1 == Success, 2 (or not set) == Error
+                        if (data && (!data.status || (data.status && data.status === 2))) { // TODO add Status codes to gaffa. Currently assuming 1 == Success, 2 (or not set) == Error
                             errorHandler(data);
                         } else {
                             if (action.successActions && action.successActions.length) {
