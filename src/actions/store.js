@@ -2,7 +2,7 @@
     var actionType = "store";
     window.gaffa.actions[actionType] = function (action) {
         var data,
-            errorHandeler = function (error) {
+            errorHandler = function (error) {
                 if (action.errorActions && action.errorActions.length) {
                     window.gaffa.actions.trigger(action.errorActions, action.binding);
                 }
@@ -26,14 +26,14 @@
                     contentType: 'application/json',
                     success:function(data){
                         if (!data.status || (data.status && data.status === 2)) { // TODO add Status codes to gaffa. Currently assuming 1 == Success, 2 (or not set) == Error
-                            errorHandeler(data);
+                            errorHandler(data);
                         } else {
                             if (action.successActions && action.successActions.length) {
                                 window.gaffa.actions.trigger(action.successActions, action.binding);
                             }
                         }
                     },
-                    error: errorHandeler
+                    error: errorHandler
                 });
             }
         }
