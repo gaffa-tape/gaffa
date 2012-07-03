@@ -25,12 +25,12 @@
 
     window.gaffa.actions[actionType] = function(action){
         if (action.location === "local") {
-            if(window.gaffa.utils.propExists(action, "bindings.setTo.binding")) {
-                var localData = localStorage.getItem(action.source);
+            if(window.gaffa.utils.propExists(action, "bindings.target.binding")) {
+                var localData = localStorage.getItem(action.bindings.source.value);
                 if(localData === "undefined"){
-                    handleData(action.bindings.setTo.binding, undefined);                
+                    handleData(action.bindings.target.binding, undefined);                
                 }else{
-                    handleData(action.bindings.setTo.binding, JSON.parse(localData));
+                    handleData(action.bindings.target.binding, JSON.parse(localData));
                 }
             }
         } else if (action.location === "server") {
