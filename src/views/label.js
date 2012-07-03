@@ -24,13 +24,13 @@
                 text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
                     viewModel.renderedElement.innerHTML = value || "";
                 }),
-                for: window.gaffa.propertyUpdaters.string("for", function (viewModel, value) {
+                labelFor: window.gaffa.propertyUpdaters.string("labelFor", function (viewModel, value) {
                     if (value === null || value === undefined) {
-                        viewModel.renderedElement.setAttribute("for", value);
+                        viewModel.renderedElement.setAttribute("labelFor", value);
                     } else {
-                        viewModel.renderedElement.removeAttribute("for");
+                        viewModel.renderedElement.removeAttribute("labelFor");
                     }
-                }),
+                })
             },
             defaults: {
                 properties: {
