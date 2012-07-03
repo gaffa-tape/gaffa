@@ -32,10 +32,13 @@
         operatorRegex = /(!=)|(===)|(==)|(\|\|)|(>)|(<)|(>=)|(<=)|(&&)|(%)|(\+)|(\-)|(\*)|(\\\/)|(last\(.*?\))/,
         functionRegex = /(last\(.*?\))/,
         
+        valueIdentifierRegex = /(\$)|(\#)/,
         equalityRegex = /(!=)|(===)|(==)|(%)/,
-        LogicalDisjunctionRegex = /(&&)|(\|\|)/,
+        logicalDisjunctionRegex = /(&&)|(\|\|)/,
         numericalComparisonRegex = /(>)|(<)|(>=)|(<=)/,
-        arithmeticRegex = /(\+)|(\-)|(\*)|(\\\/)/;
+        arithmeticRegex = /(\+)|(\-)|(\*)|(\\\/)/,
+
+        expressionRegexes = [valueIdentifierRegex, equalityRegex, logicalDisjunctionRegex, numericalComparisonRegex, arithmeticRegex];
         
 
     //internal functions
@@ -78,6 +81,7 @@
         for (var i = 0; i < this.length; i++) {
             if(callback(this[i], i, this)) break;
         }
+        return this;
     };
 
     //***********************************************
@@ -328,7 +332,14 @@
     //***********************************************
     
     function isExpression(value){
-        return typeof value == "string" && value.match(operatorRegex);
+        var isExpression = false,
+            eachFunction = function(regex){
+                return isExpression = value.match(regex);
+            };
+
+        typeof value == "string" && expressionRegexes.fastEach(eachFunction);
+
+        return isExpression;
     }
 
     //***********************************************
@@ -346,7 +357,7 @@
             //         return memoisedModel[model][path];
             // }
             
-            if(path.match(operatorRegex)){
+            if(isExpression(path)){
                 return parseExpression(path.getNesting("(", ")"), gaffa.model.get());
             }
             
