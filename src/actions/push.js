@@ -3,17 +3,18 @@
         gaffa = window.gaffa;
         
     gaffa.actions[actionType] = function(action){
-        var toObject = action.bindings.pushTo.value;
+        var toObject = action.properties.pushTo.value;
         if(toObject === undefined || toObject === null){
             toObject = [];
-            gaffa.model.set(action.bindings.pushTo.binding, toObject);
+            gaffa.model.set(action.properties.pushTo.binding, toObject);
         }
         if(toObject.isArray){
-            var fromObj = action.bindings.pushFrom.value;
-            if(!(action.bindings.clone && action.bindings.clone.value === false)){
+            var fromObj = action.properties.pushFrom.value;
+            if(!(action.properties.clone && action.properties.clone.value === false)){
                 fromObj = gaffa.clone(fromObj);
             }
-            gaffa.model.set(action.bindings.pushTo.binding + gaffa.pathSeparator + toObject.length, fromObj);            
+            pushToBinding = gaffa.paths.getViewItemPath(action, action.properties.pushTo.binding, gaffa.pathSeparator + toObject.length);
+            gaffa.model.set(pushToBinding, fromObj);            
         }
     };
 })();

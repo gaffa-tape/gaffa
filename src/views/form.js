@@ -59,7 +59,7 @@
             }
         };
         
-        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
+        gaffa.extend(view.prototype, window.gaffa.views.base(viewType, createElement));
                 
         return new view();
     }

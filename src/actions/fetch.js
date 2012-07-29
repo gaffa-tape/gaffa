@@ -26,29 +26,29 @@
     window.gaffa.actions[actionType] = function(action){
         if (action.location === "local") {
             if(window.gaffa.utils.propExists(action, "bindings.target.binding")) {
-                var localData = localStorage.getItem(action.bindings.source.value);
+                var localData = localStorage.getItem(action.properties.source.value);
                 if(localData === "undefined"){
-                    handleData(action.bindings.target.binding, undefined);                
+                    handleData(action.properties.target.binding, undefined);                
                 }else{
-                    handleData(action.bindings.target.binding, JSON.parse(localData));
+                    handleData(action.properties.target.binding, JSON.parse(localData));
                 }
             }
         } else if (action.location === "server") {
 
-            if (action.useCache && action.bindings.target.value) {
+            if (action.useCache && action.properties.target.value) {
                 return;
             }else{
                 if (window.gaffa.utils.propExists(action, "bindings.source.binding")) {
                     $.ajax({
                         cache: false,
                         type: 'get',
-                        url: action.bindings.source.value, //binding,
-                        data: action.bindings.data.value, // && gaffa.model.get(action.bindings.data.binding) || null,
+                        url: action.properties.source.value, //binding,
+                        data: action.properties.data.value, // && gaffa.model.get(action.properties.data.binding) || null,
                         dataType: 'json',
                         contentType: 'application/json',
                         success: function (data) {
                             if (data) {
-                                handleData(action.bindings.target.binding, data);
+                                handleData(action.properties.target.binding, data);
                             }
                         },
                         error: function (error) {

@@ -8,9 +8,9 @@
                 }
             };
         if (gaffa.utils.propExists(action, "bindings.setFrom.binding")) {
-            data = JSON.stringify(gaffa.model.get(action.bindings.setFrom.binding));
+            data = JSON.stringify(gaffa.model.get(action.properties.setFrom.binding));
         } else {
-            data = JSON.stringify(action.bindings.setFrom.value);
+            data = JSON.stringify(action.properties.setFrom.value);
         }
 
         if (action.location === "local") {
