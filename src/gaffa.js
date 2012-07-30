@@ -1592,6 +1592,8 @@
                 if(typeof value === "object"){
                     if(value.isArray){
                         return value.slice();
+                    }else if (value instanceof Date) {
+                        return new Date(value);
                     }else{
                         return gaffa.extend(true, {}, value);
                     }                    

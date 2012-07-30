@@ -28,6 +28,10 @@
                         if (data && (!data.status || (data.status && data.status === 2))) { // TODO add Status codes to gaffa. Currently assuming 1 == Success, 2 (or not set) == Error
                             errorHandler(data);
                         } else {
+                            if (action.bindings.returnValue.binding && data && data.returnValue) {
+                                window.gaffa.model.set(action.bindings.returnValue.binding, data.returnValue);
+                            }
+                            
                             if (action.successActions && action.successActions.length) {
                                 window.gaffa.actions.trigger(action.successActions, action.binding);
                             }
