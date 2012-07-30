@@ -9,7 +9,7 @@
     function createElement(viewModel) {
         var classes = viewType;
         
-        var renderedElement = document.createElement('div')
+        var renderedElement = document.createElement('div');
         renderedElement.className = classes;
         
         viewModel.viewContainers.content.element = renderedElement;
