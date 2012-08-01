@@ -28,7 +28,7 @@
                     function(viewModel, groups, addedItem){
                         var listViews = viewModel.viewContainers.groups,
                             property = viewModel.properties.groups,
-                            expression = "(filter [~] {item (= item." + property.group + " " + addedItem.group + ")})";
+                            expression = "(filterKeys [~] {item (= item." + property.group + " " + addedItem.group + ")})";
                             
                         $.extend(true, addedItem, property.template);
                         

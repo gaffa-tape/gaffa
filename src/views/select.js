@@ -17,7 +17,7 @@
         renderedElement = $(renderedElement.cloneNode(true)).addClass(classes)[0];
         
         $(renderedElement).bind(viewModel.updateEventName || "change", function(){
-            window.gaffa.model.set(viewModel.properties.value.binding, $(this).val());    
+            window.gaffa.model.set(viewModel.properties.value.binding, $(this).val(), viewModel);    
         });
         
         viewModel.viewContainers.list.element = renderedElement;

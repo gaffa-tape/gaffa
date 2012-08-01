@@ -13,7 +13,7 @@
         var renderedElement = $(document.createElement('input')).attr('type', 'checkbox').addClass(classes)[0];
         
         $(renderedElement).bind(viewModel.updateEventName || "change", function(event){
-            window.gaffa.model.set(viewModel.properties.checked.binding,renderedElement.checked);    
+            window.gaffa.propertyUpdaters.bool(this.viewModel, this.viewModel.properties.value, $(this).val());            
         });
                 
         return renderedElement;
@@ -26,18 +26,8 @@
         
         view.prototype = {
             update: {
-                checked: function(viewModel, value, firstRun) {
-                    if(viewModel.properties.checked.value !== value || firstRun){
-                        viewModel.properties.checked.value = value;
-                        var element = viewModel.renderedElement;
-                        if(element){
-                            if(value){                                 
-                                element.checked = true;
-                            }else{
-                                element.checked = false;
-                            }
-                        }
-                    }                    
+                checked: function(viewModel) {                                
+                    viewModel.renderedElement.checked = viewModel.properties.checked.value;      
                 },
                 text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
                     if(value !== null && value !== undefined){

@@ -873,6 +873,10 @@
     function path(path){
         this.path = path;
     }
+    
+    function View(){
+        
+    }
 
     //***********************************************
     //
@@ -943,7 +947,10 @@
                     return get(path, internalModel);
                 },
 
-                set: function (path, value) {
+                set: function (path, value, viewItem) {
+                    if(viewItem){
+                        path = getAbsolutePath(getViewItemPath(viewItem), path);
+                    }
                     set(path, value, internalModel);
                 },
                 
@@ -1215,8 +1222,9 @@
                 string: function (propertyName, callback, matchError) {
                     if (typeof propertyName === "object") {
                         //passed a property object, doing a set.
-                        var propertyObject = propertyName,
-                        string = callback;
+                        var viewModel = propertyName,
+                        propertyObject = callback,
+                        string = matchError;
 
                         if (propertyObject.binding.isArray && propertyObject.format) {
                             var inputValues = string.deformat(propertyObject.format);
@@ -1227,11 +1235,11 @@
                                 }
                             } else {
                                 inputValues.fastEach(function (value, index) {
-                                    gaffa.model.set(propertyObject.binding[index], value);
+                                    gaffa.model.set(propertyObject.binding[index], value, viewModel);
                                 });
                             }
                         } else {
-                            gaffa.model.set(propertyObject.binding, string);
+                            gaffa.model.set(propertyObject.binding, string, viewModel);
                         }
                     } else {
                         return function (viewModel, firstRun) {
@@ -1259,10 +1267,11 @@
                 number: function (propertyName, callback, matchError) {
                     if (typeof propertyName === "object") {
                         //passed a property object, doing a set.
-                        var propertyObject = propertyName,
-                        string = callback;
+                        var viewModel = propertyName,
+                        propertyObject = callback,
+                        number = matchError;
 
-                        gaffa.model.set(propertyObject.binding, string);
+                        gaffa.model.set(propertyObject.binding, number, viewModel);
                         
                     } else {
                         return function (viewModel, firstRun) {
@@ -1328,8 +1337,8 @@
                             }
                         }else{
                             childViews.fastEach(function(childView, index){
-                                    childViews.splice(index, 1);
-                                    remove(viewModel, value, childView);
+                                childViews.splice(index, 1);
+                                remove(viewModel, value, childView);
                             });
                         }
                     };
@@ -1377,15 +1386,24 @@
                     };
                 },
 
-                bool: function (propertyName, callback) {
-                    return function (viewModel, firstRun) {
-                        var property = viewModel.properties[propertyName],
-                            value = property.value;
-                        if (property.previousValue !== value || firstRun) {
-                            property.previousValue = value;
-                            callback(viewModel, property.value);
-                        }
-                    };
+                bool: function (propertyName, callback, value) {
+                    if (typeof propertyName === "object") {
+                        //passed a property object, doing a set.
+                        var viewModel = propertyName,
+                        propertyObject = callback;
+
+                        gaffa.model.set(propertyObject.binding, value, viewModel);
+                        
+                    } else {
+                        return function (viewModel, firstRun) {
+                            var property = viewModel.properties[propertyName],
+                                value = property.value;
+                            if (property.previousValue !== value || firstRun) {
+                                property.previousValue = value;
+                                callback(viewModel, property.value);
+                            }
+                        };
+                    }
                 },
                 
                 // ToDo: I dont like this...
