@@ -32,43 +32,34 @@
         
         view.prototype = {
             update: {             
-                options: function(viewModel, value, firstRun) {
-                    if (value && value.isArray && (!viewModel.properties.options.value || viewModel.properties.options.value.length !== value.length || firstRun)) {
-                        viewModel.properties.options.value = value.slice();   
-                        var optionsObj = viewModel.properties.options;
-                        var element = $(viewModel.renderedElement);
+                options: function(viewModel, firstRun) {
+                    var value = viewModel.properties.options.value,
+                        optionsObj = viewModel.properties.options,
+                        element = $(viewModel.renderedElement);
                         
-                        if(element){
-                            element.empty();                            
-                            element.append($(document.createElement("option")).val(""));
-                            for(var i = 0; i < value.length; i ++){
-                                var optionData = value[i];
-                                if(optionData !== undefined){
-                                    var option = document.createElement('option');
-                                    
-                                    option.value = window.gaffa.model.get(
-                                        gaffa.paths.getAbsolutePath(
-                                            viewModel.properties.options.binding + gaffa.pathSeparator + i ,                                                
-                                            optionsObj.valueBinding
-                                        )
-                                    );
+                    if(!Array.isArray(value)){
+                        value = [];
+                    }
+                    
+                    if(element){
+                        element.empty();                            
+                        element.append($(document.createElement("option")).val(""));
+                        for(var i = 0; i < value.length; i ++){
+                            var optionData = value[i];
+                            if(optionData !== undefined){
+                                var option = document.createElement('option');
                                 
-                                    option.innerHTML = window.gaffa.model.get(
-                                        gaffa.paths.getAbsolutePath(
-                                            viewModel.properties.options.binding + gaffa.pathSeparator + i ,                                                
-                                            optionsObj.textBinding
-                                        )
-                                    );    
+                                option.value = gaffa.utils.getProp(value, i + gaffa.pathSeparator +  optionsObj.valuePath);
+                                option.innerHTML = gaffa.utils.getProp(value, i + gaffa.pathSeparator +  optionsObj.textPath);
 
-                                    element.append(option);
-                                }
+                                element.append(option);
                             }
                         }
                     }
                 },
-                value: function(viewModel, value, firstRun) {
-                    viewModel.properties.value.value = value;
-                    var element = $(viewModel.renderedElement);
+                value: function(viewModel, firstRun) {
+                    var value = viewModel.properties.value.value,
+                        element = $(viewModel.renderedElement);
                     if(element){
                         if(value === null || value === undefined || value === ""){
                             element.val("");

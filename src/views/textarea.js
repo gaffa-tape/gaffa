@@ -37,6 +37,17 @@
             update: {
                 value: window.gaffa.propertyUpdaters.string("value", function(viewModel, value){
                     $(viewModel.renderedElement).val(value);
+                }),
+                placeholder: window.gaffa.propertyUpdaters.string("placeholder", function(viewModel, value){
+                    $(viewModel.renderedElement).attr('placeholder', value);
+                }),
+                disabled: window.gaffa.propertyUpdaters.bool("disabled", function(viewModel, value){
+                    if (value)
+                    {
+                        viewModel.renderedElement.setAttribute('disabled', 'disabled');
+                    }else{
+                        viewModel.renderedElement.removeAttribute('disabled');
+                    }
                 })
             },
             defaults: {

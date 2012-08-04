@@ -144,9 +144,9 @@
                 
             if(key){
                 if(value){
-                    gaffa.model.set(key, value);
+                    gaffa.model.set(rawToPath(key), value);
                 }else{
-                    gaffa.model.set(key, null);
+                    gaffa.model.set(rawToPath(key), null);
                 }
             }
         });
@@ -250,7 +250,8 @@
     //      Get
     //
     //***********************************************
-
+    
+    
     // Lots of similarities between get and set, refactor later to reuse code.
     function get(path, model) {
         if (path) {
@@ -954,7 +955,10 @@
                     set(path, value, internalModel);
                 },
                 
-                remove: function (path) {
+                remove: function (path, viewItem) {
+                    if(viewItem){
+                        path = getAbsolutePath(getViewItemPath(viewItem), path);
+                    }
                     remove(path, internalModel);
                 },
 
@@ -1191,7 +1195,7 @@
                 set: set,
                 //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
                 getProp: function (object, propertiesString) {
-                    var properties = propertiesString.split(".").reverse();
+                    var properties = propertiesString.split(gaffa.pathSeparator).reverse();
                     while (properties.length) {
                         var nextProp = properties.pop();
                         if (object[nextProp] !== undefined && object[nextProp] !== null) {
@@ -1443,6 +1447,8 @@
                 if(typeof value === "object"){
                     if(value.isArray){
                         return value.slice();
+                    }else if (value instanceof Date) {
+                        return new Date(value);
                     }else{
                         return $.extend(true, {}, value);
                     }                    

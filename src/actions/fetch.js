@@ -39,7 +39,7 @@
             if (action.useCache && action.properties.target.value) {
                 return;
             }else{
-                if (window.gaffa.utils.propExists(action, "properties.source.binding")) {
+                if (window.gaffa.utils.propExists(action, "properties.source.value")) {
                     $.ajax({
                         cache: false,
                         type: 'get',
