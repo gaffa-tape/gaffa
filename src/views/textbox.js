@@ -16,7 +16,7 @@
         
         $(input).removeClass('error');
                 
-        if ($(input).attr("type") === "numeric") {
+        if ($(input).attr("type") === "number") {
             window.gaffa.propertyUpdaters.string(input.viewModel, input.viewModel.properties.value, parseFloat($(input).val()), matchFail);
         } else {
             window.gaffa.propertyUpdaters.string(input.viewModel, input.viewModel.properties.value, $(input).val(), matchFail);

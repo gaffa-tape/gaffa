@@ -175,9 +175,11 @@
                 window.history.pushState(data, title, url);
                 
                 load(data, model);
+                
+                window.scrollTo(0,0);
             }
         });
-    }    
+    }
     
     //***********************************************
     //
@@ -231,19 +233,19 @@
                     if(distinctValues.indexOf(candidate)<0){
                         distinctValues.push(candidate);
                     }
-                }); 
+                });
             }else{
                 for(var key in collection){
                     var candidate = gaffa.utils.getProp(collection[key], property);
                     if(distinctValues.indexOf(candidate)<0){
                         distinctValues.push(candidate);
                     }
-                }   
+                }
             }
         }
         
         return distinctValues;
-    }   
+    }
 
     //***********************************************
     //
@@ -265,7 +267,7 @@
                 reference = model;
 
             for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
-                /*  
+                /*
                 if the thing at the current key in the model is an object
                 or an array (both typeof to object),
                 set it as the thing we want to look into next.
@@ -275,7 +277,7 @@
                 } else if (typeof reference[keys[keyIndex]] === "object") {
                     reference = reference[keys[keyIndex]];
 
-                    /* 
+                    /*
                     else if there isn't anything at this key, exit the loop,
                     and return undefined.
                     */
@@ -284,7 +286,7 @@
                     reference = undefined;
                     break;
 
-                    /*  
+                    /*
                     otherwise, we're at the end of the line. return whatever's
                     there
                     */
@@ -418,7 +420,7 @@
                 
                 if (!isNaN(reference.length)) {
                     reference.splice(key, 1);
-                }else{                
+                }else{
                     delete reference[key];
                 }
                 
@@ -541,7 +543,7 @@
     //
     //***********************************************
 
-    function renderView(viewModel, renderTarget, appendFunction) {
+    function renderView(viewModel, renderTarget, appendFunction, index) {
         //un-comment to delegate rendering to happen as soon as possible, but not if it blocks the UI.
         //this will cause all kinds of hilariously stupid layout if you breakpoint during the render loop.
         //setTimeout(function () {
@@ -576,9 +578,14 @@
                 }else if (renderTarget) {
                     //A custom append function can also be passed to handle non-html elements like SVG etc.
                     if (appendFunction) {
-                        appendFunction(renderTarget, viewModel.renderedElement);
+                        appendFunction(renderTarget, viewModel.renderedElement, index);
                     } else {
-                        renderTarget.appendChild(viewModel.renderedElement);
+                        var children = renderTarget.childNodes;
+                        if(index != null && children.length > index){
+                            renderTarget.insertBefore(viewModel.renderedElement, children[index]);
+                        }else{
+                            renderTarget.appendChild(viewModel.renderedElement);
+                        }
                     }
                 }
                 
@@ -624,7 +631,7 @@
             if (property && property.binding) {
                 property.value = gaffa.model.get(property.binding, absoluteActionPath);
             }
-        } 
+        }
         if (typeof gaffa.actions[action.type] === "function") {
             action.parent = parent;
             gaffa.actions[action.type](action);
@@ -749,7 +756,7 @@
     //
     //      Get Path
     //
-    //***********************************************  
+    //***********************************************
 
     function getViewItemPath(viewModel){
         var resolvedPath = viewModel.path,
@@ -771,7 +778,7 @@
     //
     //      Path to Raw
     //
-    //***********************************************  
+    //***********************************************
     
     function pathToRaw(path){
         return path && path.slice(1,-1);
@@ -781,7 +788,7 @@
     //
     //      Raw To Path
     //
-    //***********************************************  
+    //***********************************************
     
     function rawToPath(rawPath){
         return gaffa.pathStart + rawPath + gaffa.pathEnd;
@@ -791,7 +798,7 @@
     //
     //      Get Absolute Path
     //
-    //***********************************************  
+    //***********************************************
     
     function getAbsolutePath(){
         var args = Array.prototype.slice.call(arguments),
@@ -803,11 +810,11 @@
             absolutePath = parentPath;
         } else if(childPath.indexOf(gaffa.relativePath) === 0){
             absolutePath = gaffa.paths.stripUpALevels(parentPath + (parentPath && gaffa.pathSeparator) + childPath.slice(1));
-        } else {        
+        } else {
             absolutePath = gaffa.paths.stripUpALevels(childPath);
         }
         
-        absolutePath = rawToPath(absolutePath)
+        absolutePath = rawToPath(absolutePath);
         
         if(args[2] !== undefined && args[2] !== null){
             args.shift();
@@ -822,7 +829,7 @@
     //
     //      Extend
     //
-    //***********************************************  
+    //***********************************************
     
     function extend(target, source){
         var args = Array.prototype.slice.call(arguments),
@@ -841,7 +848,7 @@
                         sourceProperty.fastEach(function(value){
                             targetProperty.push(internalExtend({}, value));
                         });
-                    }else{                                 
+                    }else{
                         if(visited.indexOf(sourceProperty)>=0){
                             target[key] = sourceProperty;
                             continue;
@@ -850,7 +857,7 @@
                         targetProperty = targetProperty || {};
                         internalExtend(targetProperty, sourceProperty);
                     }
-                }else{                        
+                }else{
                     if(targetProperty === undefined){
                         targetProperty = sourceProperty;
                     }
@@ -859,14 +866,14 @@
             }
         }
         
-        internalExtend(target, source);  
+        internalExtend(target, source);
         
         if(args[2] !== undefined && args[2] !== null){
             args[0] = args.shift();
             extend.apply(this, args);
         }
         
-        return target;    
+        return target;
     }
 
     //Public Objects ******************************************************************************
@@ -909,7 +916,7 @@
                 }
             },
             model: {
-                get: function (path, parentPath, noGel) {                                        
+                get: function (path, parentPath, noGel) {
                     if(path && !noGel && gel){
                     
                     
@@ -977,8 +984,8 @@
 
                     //if its a list of views, render them all
                     if (viewModels && viewModels.length) {
-                        viewModels.fastEach(function (viewModel) {
-                            renderView(viewModel, parent, appendFunction);
+                        viewModels.fastEach(function (viewModel, index) {
+                            renderView(viewModel, parent, appendFunction, index);
                         });
                     }
 
@@ -990,15 +997,15 @@
                     //if nothing is passed in, render ALL the viewModels!
                     else {
                         var renderTarget = this.renderTarget || document.getElementsByTagName('body')[0];
-                        internalViewModels.fastEach(function (internalViewModel) {
-                            renderView(internalViewModel, renderTarget, appendFunction);
+                        internalViewModels.fastEach(function (internalViewModel, index) {
+                            renderView(internalViewModel, renderTarget, appendFunction, index);
                         });
                     }
                 },
 
                 //Add a view or viewModels to another view, or the root list of viewModels if a parent isnt passed.
                 //Set up the viewModels bindings as they are added.
-                add: function (viewModels, parentView, parentViewChildArray) {
+                add: function (viewModels, parentView, parentViewChildArray, index) {
                     //if the viewModels isnt an array, make it one.
                     if (viewModels && !viewModels.length) {
                         viewModels = [viewModels];
@@ -1010,13 +1017,17 @@
                             
                             if (parentView && parentViewChildArray) {
                                 viewModel.parent = parentView;
-                                parentViewChildArray.push(viewModel);
+                                if(index != null){
+                                    parentViewChildArray.splice(index, 0, viewModel);
+                                }else{
+                                    parentViewChildArray.push(viewModel);
+                                }
                             } else {
                                 internalViewModels.push(viewModel);
                             }
                             
                             //bind ALL the things!
-                            bindView(viewModel);      
+                            bindView(viewModel);
                         } else {
                             console.error("No view is loaded to handle view of type " + viewModel.type);
                         }
@@ -1067,7 +1078,7 @@
                     return {
                         //This is executed when a view is inserted into the page
                         render: function (viewModel) {
-                            //only render if the view has not previously been rendered.                            
+                            //only render if the view has not previously been rendered.
                             if (viewModel.renderedElement) {
                                 return;
                             }
@@ -1134,7 +1145,7 @@
                         actions = [actions];
                     }
                     
-                    internalActions[key] = actions;                    
+                    internalActions[key] = actions;
                 },
                 trigger: function (actions, parent) {
                     if(typeof actions === "string"){
@@ -1172,7 +1183,7 @@
                             var now = new Date();
                             if(!behaviour.lastTrigger || now - behaviour.lastTrigger > throttleTime){
                                 behaviour.lastTrigger = now;
-                                gaffa.actions.trigger(behaviour.actions, behaviour.binding);                                
+                                gaffa.actions.trigger(behaviour.actions, behaviour.binding);
                             }else{
                                 clearTimeout(behaviour.timeout);
                                 behaviour.timeout = setTimeout(function(){
@@ -1255,7 +1266,7 @@
                                     }else{
                                         return date;
                                     }
-                                }
+                                };
                                 
                             if (property.value !==  property.previousValue || firstRun) {
                                 property.value = convertDateToString(property.value);
@@ -1296,6 +1307,7 @@
                 collection: function (propertyName, insert, remove) {
                     return function (viewModel, firstRun) {
                         var property = viewModel.properties[propertyName],
+                            sort = property.sort,
                             valueLength = 0,
                             childViews = viewModel.viewContainers[propertyName],
                             value = property.value,
@@ -1313,6 +1325,7 @@
                             if (element && property.template) {
                                 var newView;
                                 
+                                //Remove any child nodes who no longer exist in the data
                                 for(var i = 0; i < childViews.length; i++){
                                     var childView = childViews[i];
                                     if(!value[childView.key]){
@@ -1322,22 +1335,40 @@
                                     }
                                 }
                                 
+                                //Add items which do not exist in the dom
                                 for (var key in value) {
                                     if(value.isArray && isNaN(key)){
                                         continue;
                                     }
-                                    var exists = false;
-                                    childViews.fastEach(function(child){
+                                    var existingChildView = false;
+                                    for(var i = 0; i < childViews.length; i++){
+                                        var child = childViews[i];
                                         if(child.key === key){
-                                            exists = true;
-                                        }    
+                                            existingChildView = child;
+                                        }
+                                    }
+                                    
+                                    var index;
+                                    
+                                    if (!existingChildView) {
+                                        newView = {key: key};
+                                        insert(viewModel, value, newView, index);
+                                    }
+                                }
+                                    
+                                if(sort){
+                                    childViews.sort(function(a,b){
+                                    
+                                        //Im hyjacking the fact that sort hits every childView
+                                        //to reset the isRendered flag. I could run a loop before this that
+                                        //reset it but this cuts down on a loop...
+                                        b.isRendered = false;
+                                        
+                                        return gaffa.utils.getProp(value[a.key], sort) > gaffa.utils.getProp(value[b.key], sort);
                                     });
                                     
-                                    if (!exists) {
-                                        newView = {key: key};
-                                        insert(viewModel, value, newView);
-                                    }
-                                }                                    
+                                    window.gaffa.views.render(childViews, childViews.element);
+                                }
                             }
                         }else{
                             childViews.fastEach(function(childView, index){
@@ -1373,14 +1404,14 @@
                                 childViews.fastEach(function(child){
                                     if(child.group === group){
                                         exists = true;
-                                    }    
+                                    }
                                 });
                                 
                                 if (!exists) {
                                     newView = {group: group};
                                     insert(viewModel, value, newView);
                                 }
-                            });    
+                            });
                         }else{
                             childViews.fastEach(function(childView, index){
                                 childViews.splice(index, 1);
@@ -1429,7 +1460,7 @@
                         
                 if(app !== undefined && app !== null && app.title){
                     title = app.title;
-                }                
+                }
                 if(pushPageState){
                     // ToDo: Push state no worksies in exploder.
                     window.history.pushState(app, title, document.location);
@@ -1451,7 +1482,7 @@
                         return new Date(value);
                     }else{
                         return $.extend(true, {}, value);
-                    }                    
+                    }
                 }else{
                     return value;
                 }
