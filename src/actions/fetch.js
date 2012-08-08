@@ -1,6 +1,7 @@
 (function(undefined) {
-    var actionType = "fetch",
-        handleData = function(modelBinding, data) {
+    var actionType = "fetch";
+    
+    function handleData(action, modelBinding, data) {
         if (data) {
             if (data.behaviours || data.model || data.views) {
                 if (data.behaviours) {
@@ -17,7 +18,7 @@
                     }
                 }
             } else {
-                window.gaffa.model.set(modelBinding, data);
+                window.gaffa.model.set(modelBinding, data, action);
             }
         }
         window.gaffa.views.render();
@@ -25,30 +26,30 @@
 
     window.gaffa.actions[actionType] = function(action){
         if (action.location === "local") {
-            if(window.gaffa.utils.propExists(action, "bindings.target.binding")) {
-                var localData = localStorage.getItem(action.bindings.source.value);
+            if(window.gaffa.utils.propExists(action, "properties.target.binding")) {
+                var localData = localStorage.getItem(action.properties.source.value);
                 if(localData === "undefined"){
-                    handleData(action.bindings.target.binding, undefined);                
+                    handleData(action, action.properties.target.binding, undefined);
                 }else{
-                    handleData(action.bindings.target.binding, JSON.parse(localData));
+                    handleData(action, action.properties.target.binding, JSON.parse(localData));
                 }
             }
         } else if (action.location === "server") {
 
-            if (action.useCache && action.bindings.target.value) {
+            if (action.useCache && action.properties.target.value) {
                 return;
             }else{
-                if (window.gaffa.utils.propExists(action, "bindings.source.binding")) {
+                if (window.gaffa.utils.propExists(action, "properties.source.value")) {
                     $.ajax({
                         cache: false,
                         type: 'get',
-                        url: action.bindings.source.value, //binding,
-                        data: action.bindings.data.value, // && gaffa.model.get(action.bindings.data.binding) || null,
+                        url: action.properties.source.value,
+                        data: action.properties.data.value,
                         dataType: 'json',
                         contentType: 'application/json',
                         success: function (data) {
                             if (data) {
-                                handleData(action.bindings.target.binding, data);
+                                handleData(action, action.properties.target.binding, data);
                             }
                         },
                         error: function (error) {

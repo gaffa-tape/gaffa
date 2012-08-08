@@ -28,7 +28,7 @@
         if(action.location === "local"){
             if(window.gaffa.utils.propExists(action, "bindings.resource.binding")) {
                 var data = JSON.parse(localStorage.getItem(action.path));
-                handleData(action.bindings.setTo.binding, data);
+                handleData(action.properties.setTo.binding, data);
             }
         } else if (action.location === "server") {
             if(window.gaffa.utils.propExists(action, "bindings.resource.binding")){
@@ -41,7 +41,7 @@
                     contentType: 'application/json',
                     success: function (data) {
                         if (data) {
-                            handleData(action.bindings.resource.binding, data);
+                            handleData(action.properties.resource.binding, data);
                         }                      
                     },
                     error: function (error) {

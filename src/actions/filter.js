@@ -3,7 +3,7 @@
         gaffa = window.gaffa;
         
     window.gaffa.actions[actionType] = function (action) {
-        var source = action.bindings.source.value,
+        var source = action.properties.source.value,
             filtered = {},
             pathSeperator = gaffa.pathSeparator,
             key,
@@ -12,7 +12,7 @@
 
 
         if (source && typeof source === "object") {
-            if (action.bindings.filter) {
+            if (action.properties.filter) {
                 if (source.isArray) {
                     filtered = [];
                 } else {
@@ -23,9 +23,9 @@
                         continue;
                     }
                     item = source[key];
-                    filter = action.bindings.filter.replace(/~/, [action.bindings.source.binding, pathSeperator, key, pathSeperator].join(""));
+                    filter = action.properties.filter.replace(/~/, [action.properties.source.binding, pathSeperator, key, pathSeperator].join(""));
                     if (gaffa.utils.parseExpression(filter.getNesting("(", ")"), gaffa.model.get())) {
-                        if (action.bindings.clone.value) {
+                        if (action.properties.clone.value) {
                             item = window.gaffa.extend(true, {}, item);
                         }
                         if (source.isArray) {
@@ -38,6 +38,6 @@
             }
         }
 
-        window.gaffa.model.set(action.bindings.target.binding, filtered);
+        window.gaffa.model.set(action.properties.target.binding, filtered);
     };
 }());

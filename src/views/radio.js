@@ -22,7 +22,7 @@
         $(renderedElement).delegate("input", viewModel.updateEventName || "change", function(event){
             var target = $(event.target);
             if(target.attr("checked")){
-                window.gaffa.model.set(viewModel.properties.checked.binding, viewModel.properties.value.value);
+                window.gaffa.model.set(viewModel.properties.checked.binding, viewModel.properties.value.value, viewModel);
             }   
         });
         

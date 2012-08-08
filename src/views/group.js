@@ -28,24 +28,14 @@
                     function(viewModel, groups, addedItem){
                         var listViews = viewModel.viewContainers.groups,
                             property = viewModel.properties.groups,
-                            expression = gaffa.relativePath + property.group + "===";
+                            expression = "(filterKeys [~] {item (= item." + property.group + " " + addedItem.group + ")})";
                             
                         $.extend(true, addedItem, property.template);
                         
-                        if(addedItem.key !== undefined && addedItem.key !== null){
-                            if(typeof addedItem.key === "string"){
-                                expression += "$" + addedItem.key;
-                            }else if(typeof addedItem.key === "number"){
-                                expression += "#" + addedItem.key;                                
-                            }
-                        }else{
-                            expression += "$";
-                        }
+                        addedItem.properties.list.binding = expression;
                             
-                        addedItem.properties.list.filter = expression;
-                            
-                        window.gaffa.views.add(addedItem, viewModel, listViews, property.binding);
-                        window.gaffa.views.render(viewModel.viewContainers.groups, viewModel.viewContainers.groups.element);
+                        window.gaffa.views.add(addedItem, viewModel, listViews);
+                        window.gaffa.views.render(listViews, listViews.element);
                     },
                     //decrement
                     function(viewModel, groups, removedItem){

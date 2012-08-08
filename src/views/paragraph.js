@@ -8,11 +8,12 @@
     
     function createElement(viewModel) {
         var classes = viewType;
-        
-        var renderedElement = $(document.createElement('p')).addClass(classes)[0];
-        
+
+        var renderedElement = document.createElement('p');
+        renderedElement.className = classes;
+
         viewModel.viewContainers.content.element = renderedElement;
-                
+
         return renderedElement;
     }
 
