@@ -11,7 +11,7 @@
                     source[index] = gaffa.clone(item);
                 });
             }        
-            window.gaffa.model.set(action.properties.target.binding, action.properties.target.value.concat(source)); 
+            window.gaffa.model.set(action.properties.target.binding, action.properties.target.value.concat(source), action); 
         }
     };
 })();

@@ -6,7 +6,7 @@
         var toObject = action.properties.target.value;
         if(toObject === undefined || toObject === null){
             toObject = [];
-            gaffa.model.set(action.properties.target.binding, toObject);
+            gaffa.model.set(action.properties.target.binding, toObject, action);
         }
         if(toObject.isArray){
             var fromObj = action.properties.source.value;
@@ -14,7 +14,7 @@
                 fromObj = gaffa.clone(fromObj);
             }
             pushToBinding = gaffa.paths.getViewItemPath(action, action.properties.target.binding, "[~" + toObject.length + "]");
-            gaffa.model.set(pushToBinding, fromObj);            
+            gaffa.model.set(pushToBinding, fromObj, action);            
         }
     };
 })();

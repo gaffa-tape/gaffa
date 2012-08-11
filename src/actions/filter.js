@@ -38,6 +38,6 @@
             }
         }
 
-        window.gaffa.model.set(action.properties.target.binding, filtered);
+        window.gaffa.model.set(action.properties.target.binding, filtered, action);
     };
 }());

@@ -24,12 +24,12 @@
                                 errorHandler(data);
                                 return;
                             } else if (action.properties.returnValue.binding && data.returnValue) {
-                                window.gaffa.model.set(action.properties.returnValue.binding, data.returnValue, action.parent);
+                                window.gaffa.model.set(action.properties.returnValue.binding, data.returnValue, action);
                             }
                         }
                         
                         if (action.successActions && action.successActions.length) {
-                            window.gaffa.actions.trigger(action.successActions, action.parent);
+                            window.gaffa.actions.trigger(action.successActions, action);
                         }
                     },
                     error: errorHandler

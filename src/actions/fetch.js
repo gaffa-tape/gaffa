@@ -10,7 +10,7 @@
                     }
                 }
                 if (data.model) {
-                    window.gaffa.model.set(modelBinding, data.model);
+                    window.gaffa.model.set(modelBinding, data.model, action);
                 }
                 if (data.views) {
                     for (var i = 0; i < data.views.length; i++) {
@@ -29,7 +29,7 @@
             if(window.gaffa.utils.propExists(action, "properties.target.binding")) {
                 var localData = localStorage.getItem(action.properties.source.value);
                 if(localData === "undefined"){
-                    handleData(action, action.properties.target.binding, undefined);
+                    handleData(action, action.properties.target.binding, undefined);                
                 }else{
                     handleData(action, action.properties.target.binding, JSON.parse(localData));
                 }
