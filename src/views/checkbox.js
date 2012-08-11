@@ -13,7 +13,7 @@
         var renderedElement = $(document.createElement('input')).attr('type', 'checkbox').addClass(classes)[0];
         
         $(renderedElement).bind(viewModel.updateEventName || "change", function(event){
-            window.gaffa.propertyUpdaters.bool(this.viewModel, this.viewModel.properties.value, $(this).val());            
+            window.gaffa.propertyUpdaters.bool(this.viewModel, this.viewModel.properties.checked, $(this).is(":checked"));            
         });
                 
         return renderedElement;
