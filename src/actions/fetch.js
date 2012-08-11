@@ -29,7 +29,7 @@
             if(window.gaffa.utils.propExists(action, "properties.target.binding")) {
                 var localData = localStorage.getItem(action.properties.source.value);
                 if(localData === "undefined"){
-                    handleData(action, action.properties.target.binding, undefined);                
+                    handleData(action, action.properties.target.binding, undefined);
                 }else{
                     handleData(action, action.properties.target.binding, JSON.parse(localData));
                 }

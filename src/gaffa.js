@@ -1234,28 +1234,14 @@
 
             propertyUpdaters: {
 
-                string: function (propertyName, callback, matchError) {
+                string: function (propertyName, callback, setValue) {
                     if (typeof propertyName === "object") {
                         //passed a property object, doing a set.
                         var viewModel = propertyName,
                         propertyObject = callback,
-                        string = matchError;
-
-                        if (propertyObject.binding.isArray && propertyObject.format) {
-                            var inputValues = string.deformat(propertyObject.format);
-
-                            if (!inputValues) {
-                                if (matchError) {
-                                    matchError();
-                                }
-                            } else {
-                                inputValues.fastEach(function (value, index) {
-                                    gaffa.model.set(propertyObject.binding[index], value, viewModel);
-                                });
-                            }
-                        } else {
-                            gaffa.model.set(propertyObject.binding, string, viewModel);
-                        }
+                        string = setValue;
+                        
+                        gaffa.model.set(propertyObject.binding, string, viewModel);
                     } else {
                         return function (viewModel, firstRun) {
                             var property = viewModel.properties[propertyName],
@@ -1279,12 +1265,12 @@
                     }
                 },
                 
-                number: function (propertyName, callback, matchError) {
+                number: function (propertyName, callback, setValue) {
                     if (typeof propertyName === "object") {
                         //passed a property object, doing a set.
                         var viewModel = propertyName,
                         propertyObject = callback,
-                        number = matchError;
+                        number = setValue;
 
                         gaffa.model.set(propertyObject.binding, number, viewModel);
                         
