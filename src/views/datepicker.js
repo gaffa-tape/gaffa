@@ -19,7 +19,7 @@
         renderedElement.attr('type', 'datetime-local');
 
         renderedElement.bind(viewModel.updateEventName || "change", function () {
-            window.gaffa.model.set(viewModel.properties.value.binding, Date.parse($(this).val()), viewModel);
+            window.gaffa.model.set(viewModel.properties.value.binding, this.value, viewModel);
         });
 
         return renderedElement[0];
@@ -37,22 +37,9 @@
                         value = viewModel.properties.value.value;
                     if (element) {
                         if (value !== undefined) {
-                            if (/iPad/i.test(navigator.userAgent) || /iPhone/i.test(navigator.userAgent)) {
-                                // Have to use magical iOS format bullshit...
-                                if (value === null) {
-                                    // More iPad awesome. If the default of today is used sets value to null
-                                    value = new Date();
-                                }
-                                element.value = value.toString('yyyy-MM-ddThh:mm:ssZ').substring(0, 19);
-                            } else {
-                                if (typeof window.gaffa.dateFormatter === 'function') {
-                                    $(element).val(window.gaffa.dateFormatter(value));
-                                } else {
-                                    $(element).val(value.toString());
-                                }
-                            }
+                            element.value = new Date(value).toJSON();
                         } else {
-                            $(element).val("");
+                            element.value = '';
                         }
                     }
                 }
