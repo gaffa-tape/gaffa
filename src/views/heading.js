@@ -1,5 +1,3 @@
-//    Properties:
-//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
     var viewType = "heading";
     
@@ -9,7 +7,7 @@
     function createElement(viewModel) {
         var classes = viewType;
         
-        var renderedElement = $(document.createElement('h1')).addClass(classes)[0];
+        var renderedElement = $(document.createElement(viewModel.level || 'h1')).addClass(classes)[0];
                 
         return renderedElement;
     }

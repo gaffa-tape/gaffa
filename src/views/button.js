@@ -1,5 +1,3 @@
-//    Properties:
-//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
         
     var viewType = "button";
@@ -10,7 +8,7 @@
     function createElement(viewModel) {
         var classes = viewType;
         
-        var renderedElement = $(document.createElement('button')).attr('button', 'text').addClass(classes)[0];
+        var renderedElement = $(document.createElement('button')).attr('type', 'text').addClass(classes)[0];
                 
         viewModel.viewContainers.content.element = renderedElement;
         
@@ -55,7 +53,7 @@
         return new view();
     }
     
-    $(document).delegate('button', 'click', function(event){
+    $(document).on('button', 'click', function(event){
         event.preventDefault();
     });
     

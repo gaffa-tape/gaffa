@@ -1,30 +1,14 @@
 (function(undefined) {
     var actionType = "fetch";
-    
-    function handleData(action, modelBinding, data) {
-        if (data) {
-            if (data.behaviours || data.model || data.views) {
-                if (data.behaviours) {
-                    for (var i = 0; i < data.behaviours.length; i++) {
-                        window.gaffa.behaviours.add(data.behaviours[i]);
-                    }
-                }
-                if (data.model) {
-                    window.gaffa.model.set(modelBinding, data.model, action);
-                }
-                if (data.views) {
-                    for (var i = 0; i < data.views.length; i++) {
-                        window.gaffa.views.add(data.views[i]);
-                    }
-                }
-            } else {
-                window.gaffa.model.set(modelBinding, data, action);
-            }
-        }
-        window.gaffa.views.render();
-    }
 
     window.gaffa.actions[actionType] = function(action){
+        var errorHandler = function (error) {
+            if (action.errorActions && action.errorActions.length) {
+                window.gaffa.actions.trigger(action.errorActions, action.binding);
+            }
+            gaffa.notifications.notify("fetch.error." + action.kind, error);
+        };
+        
         if (action.location === "local") {
             if(window.gaffa.utils.propExists(action, "properties.target.binding")) {
                 var localData = localStorage.getItem(action.properties.source.value);
@@ -40,6 +24,7 @@
                 return;
             }else{
                 if (window.gaffa.utils.propExists(action, "properties.source.value")) {
+                    gaffa.notifications.notify("fetch.begin." + action.kind);
                     $.ajax({
                         cache: false,
                         type: 'get',
@@ -47,13 +32,29 @@
                         data: action.properties.data.value,
                         dataType: 'json',
                         contentType: 'application/json',
-                        success: function (data) {
-                            if (data) {
-                                handleData(action, action.properties.target.binding, data);
+                        success:function(data){
+                            if(gaffa.responseIsError && gaffa.responseIsError(data)){
+                                errorHandler(data);
+                                return;
                             }
+                            
+                            if (action.properties.target.binding && data.returnValue) {
+                                var value = data.returnValue;
+                                if(action.merge){
+                                    var value = $.extend(true, window.gaffa.model.get(action.properties.target.binding), value);
+                                }
+                                window.gaffa.model.set(action.properties.target.binding, value, action);
+                            }
+                            
+                            if (action.successActions && action.successActions.length) {
+                                window.gaffa.actions.trigger(action.successActions, action);
+                            }
+                            
+                            gaffa.notifications.notify("fetch.success." + action.kind);
                         },
-                        error: function (error) {
-                            console.log("Fetch Action failed with Server Response: " + error.status);
+                        error: errorHandler,
+                        complete:function(){                    
+                            gaffa.notifications.notify("fetch.complete." + action.kind);
                         }
                     });
                 }

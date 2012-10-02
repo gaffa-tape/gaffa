@@ -28,6 +28,8 @@
         internalBindings = [],
         
         internalActions = {},
+        
+        internalNotifications = {},
 
         memoisedModel = {};
         
@@ -159,6 +161,8 @@
     //***********************************************
 
     function navigate(url, model, post) {
+        
+        gaffa.notifications.notify("navigation.begin");
         $.ajax({
             url: url,
             type: (post && "post") || "get",
@@ -176,7 +180,15 @@
                 
                 load(data, model);
                 
+                gaffa.notifications.notify("navigation.success");
+                
                 window.scrollTo(0,0);
+            },
+            error: function(error){
+                gaffa.notifications.notify("navigation.error", error);        
+            },
+            complete: function(){
+                gaffa.notifications.notify("navigation.complete");        
             }
         });
     }
@@ -539,6 +551,33 @@
 
     //***********************************************
     //
+    //      De-Dom
+    //
+    //***********************************************
+    
+    function deDom(node){
+        var parent = node.parentNode,
+            nextSibling;
+            
+        if(!parent || parent.childNodes.length<16){
+            return false;
+        }
+        
+        nextSibling = node.nextSibling;
+            
+        parent.removeChild(node);
+        
+        return function(){
+            if(nextSibling){
+                parent.insertBefore(node, nextSibling);
+            }else {
+                parent.appendChild(node);
+            }
+        }                            
+    }
+
+    //***********************************************
+    //
     //      Render View
     //
     //***********************************************
@@ -875,15 +914,72 @@
         
         return target;
     }
+    
+    //***********************************************
+    //
+    //      Add Notification
+    //
+    //***********************************************
+    
+    function addNotification(kind, callback){
+        internalNotifications[kind] = internalNotifications[kind] || [];
+        internalNotifications[kind].push(callback);
+    }
+    
+    //***********************************************
+    //
+    //      Notify
+    //
+    //***********************************************
+    
+    function notify(kind, data){
+        var subKinds = kind.split(".");
+            
+        subKinds.fastEach(function(subKind, index){
+            var notificationKind = subKinds.slice(0, index + 1).join(".");
+            
+            internalNotifications[notificationKind] && internalNotifications[notificationKind].fastEach(function(callback){
+                callback(data);
+            });            
+        });
+    }
 
     //Public Objects ******************************************************************************
     
+    //I seriously have no idea what this does, but if i remove it, it breaks.
+    //AKA: ToDo
     function path(path){
         this.path = path;
     }
     
     function View(){
         
+    }
+    
+    function sameAs(a,b){
+        var typeofA = typeof a,
+            typeofB = typeof b;
+            
+        if(typeofA !== typeofB){
+            return false;
+        }
+            
+        switch (typeof a){
+            case 'string': return a === b;
+            break;
+            
+            case 'number': 
+                if(isNaN(a) && isNaN(b)){
+                    return true;
+                }
+                return a === b;
+            break;
+            
+            case 'date': return +a === +b;
+            break;
+                        
+            default: return false;
+        }
     }
 
     //***********************************************
@@ -1177,24 +1273,33 @@
                 },
                 
                 modelChange: function(behaviour){
+                
+                    function executeBehaviour(behaviour){
+                        var currentValue = JSON.stringify(gaffa.model.get(behaviour.binding));
+                            if(currentValue !== behaviour.previousValue){
+                                behaviour.previousValue = currentValue;
+                                gaffa.actions.trigger(behaviour.actions, behaviour.binding);
+                            }
+                    }
+                
                     gaffa.model.bind(behaviour.binding.split('/').join("_"), function () {
                         var throttleTime = behaviour.throttle;
                         if(!isNaN(throttleTime)){
                             var now = new Date();
                             if(!behaviour.lastTrigger || now - behaviour.lastTrigger > throttleTime){
                                 behaviour.lastTrigger = now;
-                                gaffa.actions.trigger(behaviour.actions, behaviour.binding);
+                                executeBehaviour(behaviour);
                             }else{
                                 clearTimeout(behaviour.timeout);
                                 behaviour.timeout = setTimeout(function(){
                                         behaviour.lastTrigger = now;
-                                        gaffa.actions.trigger(behaviour.actions, behaviour.binding);
+                                        executeBehaviour(behaviour);
                                     },
                                     throttleTime - (now - behaviour.lastTrigger)
                                 );
                             }
                         }else{
-                            gaffa.actions.trigger(behaviour.actions, behaviour.binding);
+                            executeBehaviour(behaviour);
                         }
                     });
                 }
@@ -1255,7 +1360,10 @@
                                 };
                                 
                             if (property.value !==  property.previousValue || firstRun) {
-                                property.value = convertDateToString(property.value);
+                                if(property.value == null){
+                                    property.value = "";
+                                }
+                                property.value = convertDateToString(property.value).toString();
                                 if (element) {
                                     callback(viewModel, property.value);
                                 }
@@ -1334,15 +1442,14 @@
                                         }
                                     }
                                     
-                                    var index;
-                                    
                                     if (!existingChildView) {
                                         newView = {key: key};
-                                        insert(viewModel, value, newView, index);
+                                        insert(viewModel, value, newView);
                                     }
                                 }
                                     
                                 if(sort){
+                                                                
                                     childViews.sort(function(a,b){
                                     
                                         //Im hyjacking the fact that sort hits every childView
@@ -1350,7 +1457,7 @@
                                         //reset it but this cuts down on a loop...
                                         b.isRendered = false;
                                         
-                                        return gaffa.utils.getProp(value[a.key], sort) > gaffa.utils.getProp(value[b.key], sort);
+                                        return gaffa.utils.getProp(value[a.key], sort) - gaffa.utils.getProp(value[b.key], sort);
                                     });
                                     
                                     window.gaffa.views.render(childViews, childViews.element);
@@ -1440,6 +1547,11 @@
 
             navigate: navigate,
             
+            notifications:{  
+                add: addNotification,
+                notify: notify
+            },
+            
             load: function(app, pushPageState){
                         
                 var title;
@@ -1461,7 +1573,7 @@
             extend: extend,
             
             clone: function(value){
-                if(typeof value === "object"){
+                if(value != null && typeof value === "object"){
                     if(value.isArray){
                         return value.slice();
                     }else if (value instanceof Date) {
@@ -1469,9 +1581,8 @@
                     }else{
                         return $.extend(true, {}, value);
                     }
-                }else{
-                    return value;
                 }
+                return value;
             }
 
         };

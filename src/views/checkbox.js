@@ -10,11 +10,19 @@
     function createElement(viewModel) {
         var classes = viewType;
         
-        var renderedElement = $(document.createElement('input')).attr('type', 'checkbox').addClass(classes)[0];
+        var renderedElement = document.createElement('span'),        
+            label = document.createElement('label'),
+            checkboxId = parseInt(Math.random() * 100000), //Dodgy as.... don't like it? submit a pull request.
+            checkbox = $(document.createElement('input')).attr('type', 'checkbox').attr('id', checkboxId)[0];
         
-        $(renderedElement).bind(viewModel.updateEventName || "change", function(event){
-            window.gaffa.propertyUpdaters.bool(this.viewModel, this.viewModel.properties.checked, $(this).is(":checked"));            
-        });
+        $(checkbox).bind(viewModel.updateEventName || "change", function(event){
+            var viewModel = $(this).parent()[0].viewModel;
+            window.gaffa.propertyUpdaters.bool(viewModel, viewModel.properties.checked, $(this).is(":checked"));            
+        });     
+        label.setAttribute('for', checkboxId);
+        renderedElement.appendChild(checkbox);
+        renderedElement.appendChild(label);
+        renderedElement.className = classes;
                 
         return renderedElement;
     }
@@ -26,14 +34,18 @@
         
         view.prototype = {
             update: {
-                checked: function(viewModel) {                                
-                    viewModel.renderedElement.checked = viewModel.properties.checked.value;      
+                checked: function(viewModel) {   
+                    if(viewModel.properties.checked.value){
+                        $(viewModel.renderedElement).children('input').attr("checked", "checked");      
+                    }else{
+                        $(viewModel.renderedElement).children('input').removeAttr("checked");      
+                    }
                 },
                 text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
                     if(value !== null && value !== undefined){
-                        viewModel.renderedElement.innerHTML = value;
+                        viewModel.renderedElement.getElementsByTagName('label')[0].innerText = value;
                     }else{
-                        viewModel.renderedElement.innerHTML = "";
+                        viewModel.renderedElement.getElementsByTagName('label')[0].innerText = "";
                     }
                 })
             },

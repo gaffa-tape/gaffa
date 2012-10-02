@@ -1,10 +1,8 @@
-
-//    Properties:
-//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function (undefined) {
 
     var viewType = "datepicker",
-        cachedElement;
+        cachedElement,
+        isiPad = navigator.userAgent.match(/iPad/i) != null || navigator.userAgent.match(/iPhone/i) != null;
 
     window.gaffa.views = window.gaffa.views || {};
     window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
@@ -19,7 +17,7 @@
         renderedElement.attr('type', 'datetime-local');
 
         renderedElement.bind(viewModel.updateEventName || "change", function () {
-            window.gaffa.model.set(viewModel.properties.value.binding, this.value, viewModel);
+            window.gaffa.model.set(viewModel.properties.value.binding, this.value, viewModel);                
         });
 
         return renderedElement[0];
@@ -37,9 +35,9 @@
                         value = viewModel.properties.value.value;
                     if (element) {
                         if (value !== undefined) {
-                            element.value = new Date(value).toJSON();
+                            element.attr('value', value);                            
                         } else {
-                            element.value = '';
+                            element.attr('value', '');
                         }
                     }
                 }

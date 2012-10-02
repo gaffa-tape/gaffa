@@ -1,77 +1,88 @@
-//    Properties:
-//        styles: container | container-fluid | row | row-fluid | span* | offset*
-(function(undefined) {
-    var viewType = "radioOption",
-        cachedElement;
-    
+(function (undefined) {
+    var viewType = "radio";
+
     window.gaffa.views = window.gaffa.views || {};
     window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
-    
+
     function createElement(viewModel) {
         var classes = viewType;
-        
-        var renderedElement = cachedElement || (cachedElement = (function(){
-            var input = $(document.createElement('input')).attr('type','radio'),
-                label = $(document.createElement('span')).addClass('radioLabel').click(function(){input.click();}),
-                renderedElement = $(document.createElement('span')).addClass(viewType).append(input, label);
-                return renderedElement[0];
-        })());  
-        
-        renderedElement = renderedElement.cloneNode(true);      
-        
-        $(renderedElement).delegate("input", viewModel.updateEventName || "change", function(event){
-            var target = $(event.target);
-            if(target.attr("checked")){
-                window.gaffa.model.set(viewModel.properties.checked.binding, viewModel.properties.value.value, viewModel);
-            }   
+
+        var renderedElement = document.createElement('div');
+
+        renderedElement.className = classes;
+
+        $(renderedElement).bind(viewModel.updateEventName || "change", function () {
+            window.gaffa.model.set(viewModel.properties.value.binding, $(this).find(':checked').val(), viewModel);
         });
-        
+
         return renderedElement;
     }
 
     function newView() {
-        
+
         function view() {
-        }    
-        
+        }
+
         view.prototype = {
-            update: {            
-                text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
-                    $(viewModel.renderedElement).children('.radioLabel').html(value);
-                }),
-                value: window.gaffa.propertyUpdaters.string("value", function(viewModel, value){
-                    $(viewModel.renderedElement).children('input').attr('value', value);
-                }),
-                name: window.gaffa.propertyUpdaters.string("name", function(viewModel, value){
-                    $(viewModel.renderedElement).children('input').attr("name", value);
-                }),
-                checked: function(viewModel, value, firstRun) {
-                    var element = $(viewModel.renderedElement).children('input');
-                    if(element){
-                        if(value === viewModel.properties.value.value){
-                            element.attr("checked", "checked");
-                        }else if(value === null || value === undefined || value === ""){
-                            element.removeAttr("checked");
+            update: {
+                options: function (viewModel, firstRun) {
+                    var property = viewModel.properties.options,
+                        value = property.value,                        
+                        element = $(viewModel.renderedElement),
+                        groupName = viewModel.properties.groupName.value;
+
+                    if (!Array.isArray(value)) {
+                        value = [];
+                    }
+
+                    if (element) {
+                        element.empty();
+                        for (var i = 0; i < value.length; i++) {
+                            var optionData = value[i];
+                            if (optionData !== undefined) {
+                                var option = document.createElement('input'),
+                                    label = document.createElement('label'),
+                                    container = document.createElement('div'),
+                                    currentValue = gaffa.utils.getProp(value, i + gaffa.pathSeparator + property.valuePath);
+
+                                option.setAttribute('type', 'radio');
+                                option.setAttribute('name', groupName);
+
+                                option.setAttribute('value', currentValue);
+                                option.setAttribute('id', groupName + currentValue);
+                                label.innerHTML = gaffa.utils.getProp(value, i + gaffa.pathSeparator + property.textPath);
+                                label.setAttribute('for', groupName + currentValue);
+
+                                element.append($(container).append(option, label));
+                            }
                         }
-                    }                                   
+                    }
+                },
+                value: function (viewModel, firstRun) {
+                    var value = viewModel.properties.value.value,
+                        options = $(viewModel.renderedElement).find('input');
+                        
+                    options.each(function(){
+                        var option = $(this);
+                        if(value === option.attr('value')){
+                            option.attr("checked", "checked");
+                        }
+                    });
                 }
             },
             defaults: {
-                viewContainers:{
-                    content:[],
-                    header:[]
-                },
-                properties:{
+                properties: {
                     value: {},
-                    checked: {},
-                    name: {}
+                    options: {},
+                    optionText: {},
+                    optionValue: {}
                 }
             }
         };
-        
+
         $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-                
+
         return new view();
     }
-    
+
 })();
