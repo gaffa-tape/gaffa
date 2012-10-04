@@ -10,7 +10,8 @@
     "use strict";
 
     //Create gaffa
-    var gaffa = window.gaffa = window.gaffa || newGaffa();
+    var gaffa = window.gaffa = window.gaffa || newGaffa(),
+        gel = window.gel;
 
     //"constants"
     // functions to make it 'getter only'
