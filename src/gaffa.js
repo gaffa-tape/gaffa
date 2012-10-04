@@ -14,7 +14,6 @@
         gel = window.gel;
 
     //"constants"
-    // functions to make it 'getter only'
     gaffa.pathSeparator = "/";
     gaffa.upALevel =  "..";
     gaffa.relativePath = "~";

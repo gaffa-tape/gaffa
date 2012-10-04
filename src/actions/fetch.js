@@ -8,14 +8,35 @@
             }
             gaffa.notifications.notify("fetch.error." + action.kind, error);
         };
+	
+        function handleData(action, data){
+            if(gaffa.responseIsError && gaffa.responseIsError(data)){
+                errorHandler(data);
+                return;
+            }
+            
+            if (action.properties.target.binding && data.returnValue) {
+                var value = data.returnValue;
+                if(action.merge){
+                    var value = $.extend(true, window.gaffa.model.get(action.properties.target.binding), value);
+                }
+                window.gaffa.model.set(action.properties.target.binding, value, action);
+            }
+            
+            if (action.successActions && action.successActions.length) {
+                window.gaffa.actions.trigger(action.successActions, action);
+            }
+            
+            gaffa.notifications.notify("fetch.success." + action.kind);
+        }
         
         if (action.location === "local") {
             if(window.gaffa.utils.propExists(action, "properties.target.binding")) {
                 var localData = localStorage.getItem(action.properties.source.value);
                 if(localData === "undefined"){
-                    handleData(action, action.properties.target.binding, undefined);
+                    handleData(action, undefined);
                 }else{
-                    handleData(action, action.properties.target.binding, JSON.parse(localData));
+                    handleData(action, JSON.parse(localData));
                 }
             }
         } else if (action.location === "server") {
@@ -33,24 +54,7 @@
                         dataType: 'json',
                         contentType: 'application/json',
                         success:function(data){
-                            if(gaffa.responseIsError && gaffa.responseIsError(data)){
-                                errorHandler(data);
-                                return;
-                            }
-                            
-                            if (action.properties.target.binding && data.returnValue) {
-                                var value = data.returnValue;
-                                if(action.merge){
-                                    var value = $.extend(true, window.gaffa.model.get(action.properties.target.binding), value);
-                                }
-                                window.gaffa.model.set(action.properties.target.binding, value, action);
-                            }
-                            
-                            if (action.successActions && action.successActions.length) {
-                                window.gaffa.actions.trigger(action.successActions, action);
-                            }
-                            
-                            gaffa.notifications.notify("fetch.success." + action.kind);
+                            handleData(action, data);
                         },
                         error: errorHandler,
                         complete:function(){                    
