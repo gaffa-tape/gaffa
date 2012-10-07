@@ -19,6 +19,36 @@
     gaffa.relativePath = "~";
     gaffa.pathStart = "[";
     gaffa.pathEnd = "]";
+	
+	//generic 'path' tokenizer for gel
+	if(gel){
+		gel.tokenConverters.others.path = function(expression) {
+			if (expression[0] === '[') {
+				var index = 1,
+					escapes = 0;
+				do {
+					if (expression[index] === '\\' && (expression[index + 1] === '[' || expression[index + 1] === ']')) {
+						expression = expression.slice(0, index) + expression.slice(index + 1);
+						index++;
+						escapes++;
+					}
+					else {
+						index++;
+					}
+				} while (expression[index] !== ']' && index < expression.length);
+
+				if (index > 1) {
+					return {
+						value: expression.slice(0, index + 1),
+						index: index + escapes + 1,
+						callback: function() {
+							throw "This token is not intended to be evaluated";
+						}
+					};
+				}
+			}
+		};
+	}
 
     //internal varaibles
     var internalModel = {},
