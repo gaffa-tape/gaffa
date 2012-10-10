@@ -1,7 +1,3 @@
-/******************************************select******************************************/
-
-//    Properties:
-//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
     var viewType = "select",
         cachedElement;
@@ -17,7 +13,7 @@
         renderedElement = $(renderedElement.cloneNode(true)).addClass(classes)[0];
         
         $(renderedElement).bind(viewModel.updateEventName || "change", function(){
-            window.gaffa.model.set(viewModel.properties.value.binding, $(this).val(), viewModel);    
+            window.gaffa.model.set(viewModel.properties.value.binding, $(this).val(), viewModel);
         });
         
         viewModel.viewContainers.list.element = renderedElement;
@@ -28,13 +24,13 @@
     function newView() {
         
         function view() {
-        }    
+        }
         
         view.prototype = {
-            update: {             
+            update: {
                 options: function(viewModel, firstRun) {
-                    var value = viewModel.properties.options.value,
-                        optionsObj = viewModel.properties.options,
+                    var property = viewModel.properties.options,
+						value = property.value,
                         element = $(viewModel.renderedElement);
                         
                     if(!Array.isArray(value)){
@@ -42,19 +38,30 @@
                     }
                     
                     if(element){
-                        element.empty();                            
-                        element.append($(document.createElement("option")).val(""));
+                        element.empty();
+                        
+                        if(viewModel.properties.showBlank.value)
+                        {
+                            element.append($(document.createElement("option")).val(""));
+                        }
+
                         for(var i = 0; i < value.length; i ++){
                             var optionData = value[i];
                             if(optionData !== undefined){
                                 var option = document.createElement('option');
                                 
-                                option.value = gaffa.utils.getProp(value, i + gaffa.pathSeparator +  optionsObj.valuePath);
-                                option.innerHTML = gaffa.utils.getProp(value, i + gaffa.pathSeparator +  optionsObj.textPath);
+                                option.value = gaffa.utils.getProp(value, i + gaffa.pathSeparator +  property.valuePath);
+                                option.innerHTML = gaffa.utils.getProp(value, i + gaffa.pathSeparator +  property.textPath);
 
                                 element.append(option);
                             }
                         }
+
+                        if(viewModel.properties.defaultIndex.value >= 0){
+							element.prop('selectedIndex', viewModel.properties.defaultIndex.value).change();
+						} else {
+							element.prop('selectedIndex', -1);
+						}
                     }
                 },
                 value: function(viewModel, firstRun) {
@@ -66,7 +73,7 @@
                         }else{
                             element.val(value);
                         }
-                    }                                      
+                    }
                 }
             },
             defaults: {
@@ -75,7 +82,7 @@
                 },
                 properties: {
                     value: {},
-                    options: {},            
+                    options: {},
                     optionText: {},
                     optionValue: {}
                 }

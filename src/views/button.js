@@ -8,7 +8,7 @@
     function createElement(viewModel) {
         var classes = viewType;
         
-        var renderedElement = $(document.createElement('button')).attr('type', 'text').addClass(classes)[0];
+        var renderedElement = $(document.createElement('button')).addClass(classes)[0];
                 
         viewModel.viewContainers.content.element = renderedElement;
         
@@ -30,11 +30,7 @@
                     }
                 }),
                 subType: window.gaffa.propertyUpdaters.string("subType", function(viewModel, value){
-                    if(value !== null && value !== undefined){
-                        viewModel.renderedElement.setAttribute("type",value);
-                    }else{
-                        viewModel.renderedElement.removeAttribute("type");
-                    }
+					viewModel.renderedElement.setAttribute("type", value || 'button');
                 })
             },
             defaults: {

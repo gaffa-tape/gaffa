@@ -12,6 +12,8 @@
     //Create gaffa
     var gaffa = window.gaffa = window.gaffa || newGaffa(),
         gel = window.gel;
+        
+    
 
     //"constants"
     gaffa.pathSeparator = "/";
@@ -19,37 +21,7 @@
     gaffa.relativePath = "~";
     gaffa.pathStart = "[";
     gaffa.pathEnd = "]";
-	
-	//generic 'path' tokenizer for gel
-	if(gel){
-		gel.tokenConverters.others.path = function(expression) {
-			if (expression[0] === '[') {
-				var index = 1,
-					escapes = 0;
-				do {
-					if (expression[index] === '\\' && (expression[index + 1] === '[' || expression[index + 1] === ']')) {
-						expression = expression.slice(0, index) + expression.slice(index + 1);
-						index++;
-						escapes++;
-					}
-					else {
-						index++;
-					}
-				} while (expression[index] !== ']' && index < expression.length);
-
-				if (index > 1) {
-					return {
-						value: expression.slice(0, index + 1),
-						index: index + escapes + 1,
-						callback: function() {
-							throw "This token is not intended to be evaluated";
-						}
-					};
-				}
-			}
-		};
-	}
-
+    
     //internal varaibles
     var internalModel = {},
     //these must always be instantiated.
@@ -158,6 +130,41 @@
 
         return values;
     };
+    
+        
+    //***********************************************
+    //
+    //      Gel integration
+    //
+    //***********************************************
+    if(gel){
+        gel.tokenConverters.others.path = function(expression) {
+            if (expression[0] === '[') {
+                var index = 1,
+                    escapes = 0;
+                do {
+                    if (expression[index] === '\\' && (expression[index + 1] === '[' || expression[index + 1] === ']')) {
+                        expression = expression.slice(0, index) + expression.slice(index + 1);
+                        index++;
+                        escapes++;
+                    }
+                    else {
+                        index++;
+                    }
+                } while (expression[index] !== ']' && index < expression.length);
+    
+                if (index > 1) {
+                    return {
+                        value: expression.slice(0, index + 1),
+                        index: index + escapes + 1,
+                        callback: function() {
+                            return gaffa.model.get(expression.slice(0, index + 1), gaffa.model.get.context, true);
+                        }
+                    };
+                }
+            }
+        };
+    }
 
 
     //***********************************************
@@ -1044,36 +1051,19 @@
             model: {
                 get: function (path, parentPath, noGel) {
                     if(path && !noGel && gel){
-                    
-                    
-                        gel.tokenConverters.others.path = function(expression) {
-                            if (expression[0] === '[') {
-                                var index = 1,
-                                    escapes = 0;
-                                do {
-                                    if (expression[index] === '\\' && (expression[index + 1] === '[' || expression[index + 1] === ']')) {
-                                        expression = expression.slice(0, index) + expression.slice(index + 1);
-                                        index++;
-                                        escapes++;
-                                    }
-                                    else {
-                                        index++;
-                                    }
-                                } while (expression[index] !== ']' && index < expression.length);
-                    
-                                if (index > 1) {
-                                    return {
-                                        value: expression.slice(0, index + 1),
-                                        index: index + escapes + 1,
-                                        callback: function() {
-                                            return gaffa.model.get(expression.slice(0, index + 1), parentPath, true);
-                                        }
-                                    };
-                                }
-                            }
-                        };
+                        var gelResult;
                         
-                        return gel.parse(path);
+                        // Set the current path context
+                        gaffa.model.get.context = parentPath;  
+                        
+                        gelResult = gel.parse(path);
+                        
+                        // Clear the context so further calls without context dont have the old context.
+                        // This whole set-use-remove thing feels bad, but I can't do it with scope that I can think of
+                        // if you can make this better, send me a pull request.
+                        gaffa.model.get.context = undefined;
+                        
+                        return gelResult;
                     }
                     if(parentPath){
                         path = getAbsolutePath(parentPath, path);
@@ -1220,7 +1210,7 @@
                             for (var key in viewModel.properties) {
                                 var updateFunction = gaffa.views[viewType].update[key];
                                 if (updateFunction && typeof updateFunction === "function") {
-                                    updateFunction(viewModel, viewModel.properties[key].value, true);
+                                    updateFunction(viewModel, true);
                                 }
                             }
                         },
@@ -1237,17 +1227,10 @@
                                 }
                             }),
 
-                            classes: function (viewModel, value, firstRun) {
-                                if (viewModel.properties.classes.value !== value || firstRun) {
-                                    var element = $(viewModel.renderedElement);
-                                    if (element) {
-                                        if (viewModel.properties.classes.value) {
-                                            element.removeClass(viewModel.properties.classes.value);
-                                        }
-                                        element.addClass(viewModel.properties.classes.value = value);
-                                    }
-                                }
-                            }
+                            classes: gaffa.propertyUpdaters.string("classes", function (viewModel, value) {
+                                var internalClassNames = viewModel.renderedElement.internalClassNames = viewModel.renderedElement.internalClassNames || $(viewModel.renderedElement).attr("class");
+                                $(viewModel.renderedElement).attr("class", internalClassNames + " " + value);
+                            }),
                         },
 
                         defaults: {
