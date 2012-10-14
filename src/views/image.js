@@ -1,10 +1,16 @@
-//    Properties:
-//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function (undefined) {
     var viewType = "image";
 
     window.gaffa.views = window.gaffa.views || {};
     window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
+	
+	function imageToURI(image, callback) {
+        var reader = new window.FileReader();
+        reader.onload = function(event) {
+            callback(event.target.result);
+        };
+        reader.readAsDataURL(image);
+	}
 
     function createElement(viewModel) {
         var classes = viewType;
@@ -23,6 +29,18 @@
             update: {
                 source: window.gaffa.propertyUpdaters.string("source", function (viewModel, value) {
                     viewModel.renderedElement.setAttribute("src", value);
+                }),
+				image: window.gaffa.propertyUpdaters.object("image", function (viewModel, value) {
+					if(!value){
+						return;
+					}
+					if(typeof value === 'string'){
+						viewModel.renderedElement.setAttribute("src", value);
+					}else{
+						imageToURI(value, function(dataURI){
+							viewModel.renderedElement.setAttribute("src", dataURI);
+						});
+					}
                 })
             },
             defaults: {

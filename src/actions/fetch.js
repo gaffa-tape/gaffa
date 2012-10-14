@@ -15,12 +15,17 @@
                 return;
             }
             
-            if (action.properties.target.binding && data.returnValue) {
-                var value = data.returnValue;
-                if(action.merge){
-                    var value = $.extend(true, window.gaffa.model.get(action.properties.target.binding), value);
-                }
-                window.gaffa.model.set(action.properties.target.binding, value, action);
+            if (action.properties.target.binding) {
+				if (data.returnValue) {
+					var value = data.returnValue;
+					if(action.merge){
+						var value = $.extend(true, window.gaffa.model.get(action.properties.target.binding), value);
+					}
+					window.gaffa.model.set(action.properties.target.binding, value, action);
+				}
+				if (action.isModelRefresh && data.model) {
+					window.gaffa.model.set(data.model);
+				}
             }
             
             if (action.successActions && action.successActions.length) {

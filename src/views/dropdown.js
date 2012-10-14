@@ -11,14 +11,8 @@
 		get in the way if a developer wants to override it with CSS.	
 	*/
 	
-	var defaultStyle = document.createElement('style');
-	
-	defaultStyle.className = "dropdownDefaultStyle";
-	
-	defaultStyle.innerHTML = ".dropdown .content.hidden{display:none;}";
-	
-	//Prepend so it can be overriden easily.
-	$("head").prepend(defaultStyle);
+	gaffa.addDefaultStyle(".dropdown .content.hidden{display:none;}");
+
     
     function createElement(viewModel) {
         var classes = viewType;

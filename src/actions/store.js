@@ -13,13 +13,14 @@
             localStorage.setItem(action.properties.target.value, data);
         } else if (action.location === "server") {
             gaffa.notifications.notify("store.begin." + action.kind);
-            $.ajax({
+			
+			var ajaxSettings = {
                 cache: false,
                 type: 'post',
                 url: action.properties.target.value,
                 data: data,
                 dataType: 'json',
-                contentType: 'application/json',
+                contentType: action.contentType || 'application/json',
                 success:function(data){
                     if(gaffa.responseIsError && gaffa.responseIsError(data)){
                         errorHandler(data);
@@ -40,7 +41,20 @@
                 complete:function(){                    
                     gaffa.notifications.notify("store.complete." + action.kind);
                 }
-            });
+            }
+			
+			if(action.dataType === 'binary'){
+
+				data = new FormData();
+				data.append("items[]", action.properties.source.value);
+				ajaxSettings.contentType = false;
+				ajaxSettings.processData = false;
+				ajaxSettings.data = data;
+				dataType = false;
+				
+			}
+			
+			$.ajax(ajaxSettings);
         }
     };
 })();

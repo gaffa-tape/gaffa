@@ -32,8 +32,12 @@
         internalActions = {},
         
         internalNotifications = {},
+		
+		internalIntarvals = [],
 
-        memoisedModel = {};
+        memoisedModel = {},
+		
+		defaultViewStyles;
         
 
     //internal functions
@@ -240,6 +244,9 @@
     
         memoisedModel = {};
         internalBindings = [];
+		while(internalIntarvals.length){
+			clearInterval(internalIntarvals.pop());
+		}
 
         if (app.views) {
             gaffa.views.set(app.views);
@@ -638,11 +645,13 @@
                 text: { value: viewModel.text }
             };
         }
+		
+		var view = gaffa.views[viewModel.type];
 
         //Check if a renderer for the view type is loaded.
-        if (gaffa.views[viewModel.type] !== undefined) {
+        if (view !== undefined) {
             //it is, so render it.
-            gaffa.views[viewModel.type].render(viewModel);
+            view.render(viewModel);
             
             // if a renderTarget has been passed (for appending into)
             // Only append if it hasnt been rendered already
@@ -662,6 +671,7 @@
                         }else{
                             renderTarget.appendChild(viewModel.renderedElement);
                         }
+						typeof view.afterInsert === 'function' && view.afterInsert(viewModel);
                     }
                 }
                 
@@ -1018,6 +1028,21 @@
             default: return false;
         }
     }
+	
+	function addDefaultStyle(style){
+		defaultViewStyles = defaultViewStyles || (function(){
+			defaultViewStyles = document.createElement('style');
+			defaultViewStyles.className = "dropdownDefaultStyle";
+		
+			//Prepend so it can be overriden easily.
+			$("head").prepend(defaultViewStyles);
+			
+			return defaultViewStyles;
+		})();	
+		
+		defaultViewStyles.innerHTML += style;
+		
+	}
 
     //***********************************************
     //
@@ -1032,6 +1057,7 @@
         function innerGaffa() { }
 
         innerGaffa.prototype = {
+			addDefaultStyle: addDefaultStyle,
             path: path,
             paths: {
                 getViewItemPath: getViewItemPath,
@@ -1315,6 +1341,12 @@
                             executeBehaviour(behaviour);
                         }
                     });
+                },
+				                
+                interval: function(behaviour){
+					internalIntarvals.push(setInterval(function(){
+						gaffa.actions.trigger(behaviour.actions, behaviour.binding);
+					},behaviour.time || 5000)); //If you forget to set the interval, we will be nice and give you 5 seconds of debug time by default.
                 }
             },
 
