@@ -10,6 +10,7 @@
         var renderedElement = $(document.createElement('div')).addClass(classes)[0];
         
         viewModel.viewContainers.list.element = renderedElement;
+		viewModel.viewContainers.empty.element = renderedElement;
         
         return renderedElement;
     }
@@ -33,12 +34,33 @@
                     //decrement
                     function(viewModel, list, removedItem){
                         viewModel.renderedElement.removeChild(removedItem.renderedElement);
+                    },
+                    //empty
+                    function(viewModel, insert){
+                        var emptyViews = viewModel.viewContainers.empty,
+                            property = viewModel.properties.list;
+							
+						if(!property.emptyTemplate){
+							return;
+						}
+						
+						if(insert){
+							if(!emptyViews.length){
+								window.gaffa.views.add($.extend(true, {}, property.emptyTemplate), viewModel, emptyViews);
+								window.gaffa.views.render(emptyViews, emptyViews.element);
+							}
+						}else{
+							while(emptyViews.length){
+								viewModel.renderedElement.removeChild(emptyViews.pop().renderedElement);
+							}
+						}
                     }
                 )
             },
             defaults: {
                 viewContainers:{
-                    list: []
+                    list: [],
+                    empty: []
                 },
                 properties: {             
                     list: {}

@@ -5,7 +5,7 @@
     window.gaffa.actions[actionType] = function(action){
         var target = window.gaffa.model.get(action.properties.target.binding),
             source = window.gaffa.model.get(action.properties.source.binding);
-        if(target.isArray){ 
+        if(Array.isArray(target)){ 
             if(!(action.properties.clone && action.properties.clone.value === false)){
                 source.fastEach(function(item, index){
                     source[index] = gaffa.clone(item);

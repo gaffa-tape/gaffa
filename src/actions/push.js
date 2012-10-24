@@ -8,7 +8,7 @@
             toObject = [];
             gaffa.model.set(action.properties.target.binding, toObject, action);
         }
-        if(toObject.isArray){
+        if(Array.isArray(toObject)){
             var fromObj = action.properties.source.value;
             if(!(action.properties.clone && action.properties.clone.value === false)){
                 fromObj = gaffa.clone(fromObj);

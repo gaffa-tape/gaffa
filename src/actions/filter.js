@@ -13,13 +13,13 @@
 
         if (source && typeof source === "object") {
             if (action.properties.filter) {
-                if (source.isArray) {
+                if (Array.isArray(source)) {
                     filtered = [];
                 } else {
                     filtered = {};
                 }
                 for (key in source) {
-                    if (source.isArray && isNaN(key)) {
+                    if (Array.isArray(source) && isNaN(key)) {
                         continue;
                     }
                     item = source[key];
@@ -28,7 +28,7 @@
                         if (action.properties.clone.value) {
                             item = window.gaffa.extend(true, {}, item);
                         }
-                        if (source.isArray) {
+                        if (Array.isArray(source)) {
                             filtered.push(item);
                         } else {
                             filtered[key] = item;

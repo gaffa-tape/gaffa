@@ -1,5 +1,6 @@
 (function(undefined) {
-    var viewType = "container";
+    var viewType = "container",
+		cachedElement;
     
     window.gaffa.views = window.gaffa.views || {};
     window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
@@ -7,7 +8,8 @@
     function createElement(viewModel) {
         var classes = viewType;
         
-        var renderedElement = document.createElement('div');
+        var renderedElement = (cachedElement = cachedElement || document.createElement('div'));
+		renderedElement = renderedElement.cloneNode(true);
         renderedElement.className = classes;
         
         viewModel.viewContainers.content.element = renderedElement;

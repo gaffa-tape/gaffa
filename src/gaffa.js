@@ -11,7 +11,8 @@
 
     //Create gaffa
     var gaffa = window.gaffa = window.gaffa || newGaffa(),
-        gel = window.gel;
+        gel = window.gel,
+        history = window.History || window.history; //Allow custom history implementations if defined.
         
     
 
@@ -32,12 +33,12 @@
         internalActions = {},
         
         internalNotifications = {},
-		
-		internalIntarvals = [],
+        
+        internalIntervals = [],
 
         memoisedModel = {},
-		
-		defaultViewStyles;
+        
+        defaultViewStyles;
         
 
     //internal functions
@@ -57,18 +58,17 @@
             }
         });
     };
+    
+    // http://stackoverflow.com/questions/498970/how-do-i-trim-a-string-in-javascript
+    String.prototype.trim=String.prototype.trim||function(){return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '');};
+
+    // http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+    Array.isArray = Array.isArray || function(obj){
+        return Object.prototype.toString.call(obj) === '[object Array]';
+    };
 
     //End IE land.
 
-
-    /*
-    Now I can detect arrays.
-    */
-    Array.prototype.isArray = true;
-
-    /* maybe switch to this if needed, however i havent had the requirement yet, and mine is faster
-    http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
-    */
 
     //***********************************************
     //
@@ -143,11 +143,11 @@
     //***********************************************
     if(gel){
         gel.tokenConverters.others.path = function(expression) {
-            if (expression[0] === '[') {
+            if (expression.charAt(0) === '[') {
                 var index = 1,
                     escapes = 0;
                 do {
-                    if (expression[index] === '\\' && (expression[index + 1] === '[' || expression[index + 1] === ']')) {
+                    if (expression.charAt(index) === '\\' && (expression.charAt(index+1) === '[' || expressioncharAt(index+1) === ']')) {
                         expression = expression.slice(0, index) + expression.slice(index + 1);
                         index++;
                         escapes++;
@@ -155,7 +155,7 @@
                     else {
                         index++;
                     }
-                } while (expression[index] !== ']' && index < expression.length);
+                } while (expression.charAt(index) !== ']' && index < expression.length);
     
                 if (index > 1) {
                     return {
@@ -201,13 +201,22 @@
     //
     //***********************************************
 
-    function navigate(url, model, post) {
+    function navigate(url, model, post, pushState) {
         
         gaffa.notifications.notify("navigation.begin");
         $.ajax({
+        
+            // Internet explorer is an ABSOLUTE PIECE OF SHIT.
+            // If you don't set this to false, it JUST RESPONDS WITH WHATEVER IT LAST GOT FROM THAT URL.
+            // Changed the contentType to application/json? WHO CARES! JUST FUCKING RESPOND WITH HTML :D!
+            
+            // I fucking hate internet explorer.
+        
+            cache: false, 
             url: url,
             type: (post && "post") || "get",
-            contentType: "application/json",
+            contentType: "application/json; charset=utf-8",
+            data: "",
             dataType: "json",
             success: function (data) {
                 var title;
@@ -216,8 +225,8 @@
                     title = data.title;
                 }
                 
-                // ToDo: Push state no worksies in exploder.
-                window.history.pushState(data, title, url);
+                // Always use pushstate unless triggered by onpopstate
+                !(pushState === false) && history.pushState(data, title, url);
                 
                 load(data, model);
                 
@@ -226,14 +235,31 @@
                 window.scrollTo(0,0);
             },
             error: function(error){
-                gaffa.notifications.notify("navigation.error", error);        
+                gaffa.notifications.notify("navigation.error", error);
             },
             complete: function(){
-                gaffa.notifications.notify("navigation.complete");        
+                gaffa.notifications.notify("navigation.complete");
             }
         });
     }
     
+    //***********************************************
+    //
+    //      Pop State
+    //
+    //***********************************************
+
+     // ToDo: Pop state no worksies in exploder.
+    window.onpopstate = function(event){
+        if(event.state){
+        
+            navigate(window.location.toString(),undefined,undefined,false);
+            
+            //load(event.state);
+            
+        }
+    };
+
     //***********************************************
     //
     //      Load
@@ -244,9 +270,9 @@
     
         memoisedModel = {};
         internalBindings = [];
-		while(internalIntarvals.length){
-			clearInterval(internalIntarvals.pop());
-		}
+        while(internalIntervals.length){
+            clearInterval(internalIntervals.pop());
+        }
 
         if (app.views) {
             gaffa.views.set(app.views);
@@ -265,14 +291,7 @@
         
         queryStringToModel();
     }
-    
-    // ToDo: Pop state no worksies in exploder.
-    window.onpopstate = function(event){
-        if(event.state){
-            load(event.state);
-        }
-    };
-
+       
     //***********************************************
     //
     //      Get Distinct Groups
@@ -283,7 +302,7 @@
         var distinctValues = [];
         
         if(collection && typeof collection === "object"){
-            if(collection.isArray){
+            if(Array.isArray(collection)){
                 collection.fastEach(function(value){
                     var candidate = gaffa.utils.getProp(value, property);
                     if(distinctValues.indexOf(candidate)<0){
@@ -533,7 +552,7 @@
             });
 
             for (var key in reference) {
-                if (reference.hasOwnProperty(key) && reference[key].isArray) {
+                if (reference.hasOwnProperty(key) && Array.isArray(reference[key])) {
                 
                     //un-excape underscored array properties.
                     if (key.indexOf("_") === 0 && (!isNaN(key.substr(1))||[].hasOwnProperty(key.substr(1)))) {
@@ -617,7 +636,7 @@
             }else {
                 parent.appendChild(node);
             }
-        };                        
+        };
     }
 
     //***********************************************
@@ -645,8 +664,8 @@
                 text: { value: viewModel.text }
             };
         }
-		
-		var view = gaffa.views[viewModel.type];
+        
+        var view = gaffa.views[viewModel.type];
 
         //Check if a renderer for the view type is loaded.
         if (view !== undefined) {
@@ -671,7 +690,7 @@
                         }else{
                             renderTarget.appendChild(viewModel.renderedElement);
                         }
-						typeof view.afterInsert === 'function' && view.afterInsert(viewModel);
+                        typeof view.afterInsert === 'function' && view.afterInsert(viewModel);
                     }
                 }
                 
@@ -688,7 +707,7 @@
                     for (var actionKey in viewModel.actions) {
                         var action = viewModel.actions[actionKey];
                         if (!action.bound) {
-                            $(viewModel.renderedElement).bind(actionKey, function () {
+                            $(viewModel.renderedElement).on(actionKey, function (event) {
                                 gaffa.actions.trigger(action, viewModel);
                             });
                             action.bound = true;
@@ -1028,21 +1047,26 @@
             default: return false;
         }
     }
-	
-	function addDefaultStyle(style){
-		defaultViewStyles = defaultViewStyles || (function(){
-			defaultViewStyles = document.createElement('style');
-			defaultViewStyles.className = "dropdownDefaultStyle";
-		
-			//Prepend so it can be overriden easily.
-			$("head").prepend(defaultViewStyles);
-			
-			return defaultViewStyles;
-		})();	
-		
-		defaultViewStyles.innerHTML += style;
-		
-	}
+    
+    function addDefaultStyle(style){
+        defaultViewStyles = defaultViewStyles || (function(){
+            defaultViewStyles = document.createElement('style');
+            defaultViewStyles.setAttribute("type", "text/css");
+            defaultViewStyles.className = "dropdownDefaultStyle";
+        
+            //Prepend so it can be overriden easily.
+            $("head").prepend(defaultViewStyles);
+            
+            return defaultViewStyles;
+        })();    
+
+        if (defaultViewStyles.styleSheet) {   // for IE
+            defaultViewStyles.styleSheet.cssText = style;
+        } else {                // others
+            defaultViewStyles.innerHTML += style;
+        }
+        
+    }
 
     //***********************************************
     //
@@ -1057,7 +1081,7 @@
         function innerGaffa() { }
 
         innerGaffa.prototype = {
-			addDefaultStyle: addDefaultStyle,
+            addDefaultStyle: addDefaultStyle,
             path: path,
             paths: {
                 getViewItemPath: getViewItemPath,
@@ -1181,7 +1205,7 @@
                 },
 
                 set: function (path, value) {
-                    if (path !== undefined && path.isArray) {
+                    if (path !== undefined && Array.isArray(path)) {
                         while (internalViewModels.length) {
                             var parent;
 
@@ -1256,7 +1280,7 @@
                             classes: gaffa.propertyUpdaters.string("classes", function (viewModel, value) {
                                 var internalClassNames = viewModel.renderedElement.internalClassNames = viewModel.renderedElement.internalClassNames || $(viewModel.renderedElement).attr("class");
                                 $(viewModel.renderedElement).attr("class", internalClassNames + " " + value);
-                            }),
+                            })
                         },
 
                         defaults: {
@@ -1342,11 +1366,11 @@
                         }
                     });
                 },
-				                
+                                
                 interval: function(behaviour){
-					internalIntarvals.push(setInterval(function(){
-						gaffa.actions.trigger(behaviour.actions, behaviour.binding);
-					},behaviour.time || 5000)); //If you forget to set the interval, we will be nice and give you 5 seconds of debug time by default.
+                    internalIntervals.push(setInterval(function(){
+                        gaffa.actions.trigger(behaviour.actions, behaviour.binding);
+                    },behaviour.time || 5000)); //If you forget to set the interval, we will be nice and give you 5 seconds of debug time by default.
                 }
             },
 
@@ -1443,7 +1467,7 @@
                     }
                 },
                 
-                collection: function (propertyName, insert, remove) {
+                collection: function (propertyName, insert, remove, empty) {
                     return function (viewModel, firstRun) {
                         var property = viewModel.properties[propertyName],
                             sort = property.sort,
@@ -1451,7 +1475,7 @@
                             childViews = viewModel.viewContainers[propertyName],
                             value = property.value,
                             calculateValueLength = function(){
-                                if(value.isArray){
+                                if(Array.isArray(value)){
                                     return value.length;
                                 }else if(typeof value === "object"){
                                     return Object.keys(value).length;
@@ -1462,7 +1486,8 @@
 
                             var element = viewModel.renderedElement;
                             if (element && property.template) {
-                                var newView;
+                                var newView,
+                                    isEmpty = true;
                                 
                                 //Remove any child nodes who no longer exist in the data
                                 for(var i = 0; i < childViews.length; i++){
@@ -1476,9 +1501,12 @@
                                 
                                 //Add items which do not exist in the dom
                                 for (var key in value) {
-                                    if(value.isArray && isNaN(key)){
+                                    if(Array.isArray(value) && isNaN(key)){
                                         continue;
                                     }
+                                    
+                                    isEmpty = false;
+                                    
                                     var existingChildView = false;
                                     for(var i = 0; i < childViews.length; i++){
                                         var child = childViews[i];
@@ -1492,8 +1520,10 @@
                                         insert(viewModel, value, newView);
                                     }
                                 }
+                                
+                                empty(viewModel, isEmpty);
                                     
-                                if(sort){
+                                if(sort && !isEmpty){
                                                                 
                                     childViews.sort(function(a,b){
                                     
@@ -1606,7 +1636,7 @@
                 }
                 if(pushPageState){
                     // ToDo: Push state no worksies in exploder.
-                    window.history.pushState(app, title, document.location);
+                    history.pushState(app, title, document.location);
                 }
                 load(app);
             },
@@ -1619,7 +1649,7 @@
             
             clone: function(value){
                 if(value != null && typeof value === "object"){
-                    if(value.isArray){
+                    if(Array.isArray(value)){
                         return value.slice();
                     }else if (value instanceof Date) {
                         return new Date(value);

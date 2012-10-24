@@ -20,7 +20,7 @@
                 url: action.properties.target.value,
                 data: data,
                 dataType: 'json',
-                contentType: action.contentType || 'application/json',
+                contentType: action.contentType || 'application/json; charset=utf-8',
                 success:function(data){
                     if(gaffa.responseIsError && gaffa.responseIsError(data)){
                         errorHandler(data);

@@ -31,6 +31,13 @@
                 }),
                 subType: window.gaffa.propertyUpdaters.string("subType", function(viewModel, value){
 					viewModel.renderedElement.setAttribute("type", value || 'button');
+                }),
+                disabled: window.gaffa.propertyUpdaters.bool("disabled", function(viewModel, value){
+					if(value){
+						viewModel.renderedElement.setAttribute("disabled", "disabled");
+					}else{
+						viewModel.renderedElement.removeAttribute("disabled");					
+					}
                 })
             },
             defaults: {

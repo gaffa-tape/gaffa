@@ -23,6 +23,8 @@
         renderedElement.appendChild(checkbox);
         renderedElement.appendChild(label);
         renderedElement.className = classes;
+		
+        viewModel.viewContainers.content.element = label;
                 
         return renderedElement;
     }
@@ -43,13 +45,16 @@
                 },
                 text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
                     if(value !== null && value !== undefined){
-                        viewModel.renderedElement.getElementsByTagName('label')[0].innerText = value;
+                        $(viewModel.renderedElement).find('label').text(value);
                     }else{
-                        viewModel.renderedElement.getElementsByTagName('label')[0].innerText = "";
+                        $(viewModel.renderedElement).find('label').text("");
                     }
                 })
             },
             defaults: {
+				viewContainers:{
+					content:[]
+				},
                 properties: {
                     checked:{}
                 }

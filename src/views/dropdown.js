@@ -18,16 +18,17 @@
         var classes = viewType;
         
         var renderedElement = $(document.createElement('div')),
-			activater = $(document.createElement('button')),
+			activator = $(document.createElement('button')),
 			content = $(document.createElement('div')),
 			showEvent = viewModel.showEvent || 'click';
 			
-		activater.addClass('activator').attr('type','button');
+		activator.addClass('activator').attr('type','button');
 		content.addClass('content hidden');
         renderedElement.addClass(classes + " closed");
 		
-		renderedElement.append(activater, content);
+		renderedElement.append(activator, content);
         
+        viewModel.viewContainers.activator.element = activator[0];
         viewModel.viewContainers.content.element = content[0];
 		
 		//Hook up any show/hide events if needed. Skip if not needed.
@@ -77,7 +78,8 @@
         view.prototype = {
             defaults: {
                 viewContainers:{
-                    content:[]
+                    content:[],
+                    activator:[]
                 },
                 properties: {
                     visible: {}
