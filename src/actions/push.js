@@ -13,7 +13,7 @@
             if(!(action.properties.clone && action.properties.clone.value === false)){
                 fromObj = gaffa.clone(fromObj);
             }
-            pushToBinding = gaffa.paths.getViewItemPath(action, action.properties.target.binding, "[~" + toObject.length + "]");
+            pushToBinding = action.getPath().append(action.properties.target.binding, gaffa.relativePath + gaffa.pathSeparator + toObject.length);
             gaffa.model.set(pushToBinding, fromObj, action);            
         }
     };

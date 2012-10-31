@@ -3,8 +3,8 @@
     window.gaffa.actions[actionType] = function (action) {
         var data = JSON.stringify(action.properties.source.value),
             errorHandler = function (error) {
-                if (action.errorActions && action.errorActions.length) {
-                    window.gaffa.actions.trigger(action.errorActions, action.binding);
+                if (action.actions.error && action.actions.error.length) {
+                    window.gaffa.actions.trigger(action.actions.error, action.binding);
                 }
                 gaffa.notifications.notify("store.error." + action.kind, error);
             };
@@ -31,8 +31,8 @@
                         window.gaffa.model.set(action.properties.returnValue.binding, data.returnValue, action);
                     }
                     
-                    if (action.successActions && action.successActions.length) {
-                        window.gaffa.actions.trigger(action.successActions, action);
+                    if (action.actions.success && action.actions.success.length) {
+                        window.gaffa.actions.trigger(action.actions.success, action);
                     }
                     
                     gaffa.notifications.notify("store.success." + action.kind);
