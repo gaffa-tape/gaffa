@@ -144,39 +144,39 @@
     //***********************************************
     
     function detectPathToken(expression) {
-        if (expression.charAt(0) === '[') {
-            var index = 1,
-                escapes = 0;
-            do {
-                if (expression.charAt(index) === '\\' && (expression.charAt(index+1) === '[' || expressioncharAt(index+1) === ']')) {
-                    expression = expression.slice(0, index) + expression.slice(index + 1);
-                    index++;
-                    escapes++;
-                }
-                else {
-                    index++;
-                }
-            } while (expression.charAt(index) !== ']' && index < expression.length);
-
-            if (index > 1) {
+            if (expression.charAt(0) === '[') {
+                var index = 1,
+                    escapes = 0;
+                do {
+                    if (expression.charAt(index) === '\\' && (expression.charAt(index+1) === '[' || expressioncharAt(index+1) === ']')) {
+                        expression = expression.slice(0, index) + expression.slice(index + 1);
+                        index++;
+                        escapes++;
+                    }
+                    else {
+                        index++;
+                    }
+                } while (expression.charAt(index) !== ']' && index < expression.length);
+    
+                if (index > 1) {
                 var value = expression.slice(0, index + 1);
-                return {
+                    return {
                     value: value,
-                    index: index + escapes + 1,
+                        index: index + escapes + 1,
                     callback: function(value, scopedVariables) {
                         return get(Path.parse(scopedVariables._gaffaModelContext_).append(value), internalModel);
-                    }
-                };
+                        }
+                    };
+                }
             }
-        }
     }
-        
+
     //***********************************************
     //
     //      Gel integration
     //
     //***********************************************
-    
+
     if(gel){
         gel.tokenConverters.others.path = detectPathToken;
     }
@@ -284,7 +284,7 @@
         while(internalIntervals.length){
             clearInterval(internalIntervals.pop());
         }
-        
+
         //clear state first
         if (app.views) {
             gaffa.views.set([]);
@@ -351,9 +351,9 @@
     // Lots of similarities between get and set, refactor later to reuse code.
     function get(path, model) {
         if (path) {
-            
+                        
             var reference = model;
-            
+
             path = Path.parse(path);
             
             path.fastEach(function(key, index){
@@ -394,12 +394,12 @@
     //
     //***********************************************
 
-    function set(path, value, model) {    
+    function set(path, value, model) {
         //passed a null or undefined path, do nothing.
         if(!path){
             return;
         }
-
+        
         //If you just pass in an object, you are overwriting the model.
         if (typeof path === "object" && !(path instanceof Path) && !(path instanceof Expression)) {
             for (var modelProp in model) {
@@ -414,7 +414,7 @@
         }
         
         path = Path.parse(path);
-        
+
         var reference = model;
 
         path.fastEach(function (key, index, path) {
@@ -434,7 +434,7 @@
             if (index === path.length - 1) {
                 // if we are at the end of the line, set to the model
                 reference[key] = value;
-            }
+                }
             //otherwise, RECURSANIZE!
             else {
                 reference = reference[key];
@@ -454,9 +454,9 @@
 
     function remove(path, model) {
         var reference = model;
-        
-        path = Path.parse(path);
 
+        path = Path.parse(path);
+        
         path.fastEach(function (key, index, path) {
             //if we have hit a non-object and we have more keys after this one,
             //return
@@ -479,7 +479,7 @@
         });
 
         memoisedModel[model] = {};
-        
+
         gaffa.model.trigger(path);
     }
 
@@ -491,14 +491,14 @@
 
     function triggerBinding(path, modelChangeEvent) {
         path = Path.parse(path);
-        
+
         var reference = internalBindings,
             references = [];
 
         modelChangeEvent = modelChangeEvent || {
             target: path
         };
-            
+
         function triggerListeners(reference, sink){
             if (reference != undefined && reference !== null) {
                 reference.fastEach(function (callback) {
@@ -525,15 +525,15 @@
                 references.push(reference);
             }
         });
-        
+
         triggerListeners(references.pop(), true);
-        
+
         while(references.length){
             var reference = references.pop();
-
+                
             triggerListeners(reference);
-        }
-    }
+                    }
+                }
 
     //***********************************************
     //
@@ -549,13 +549,13 @@
         //If the binding has opperators in it, break them apart and set them individually.
         if(!(binding instanceof Path)){
             var bindingParts = getPathsInExpression(binding);
-
+                
             bindingParts.fastEach(function (path) {
                 setBinding(path, callback);
             });
             return;
         }
-        
+
         path = binding;
 
         path.fastEach(function (key, index, path) {
@@ -767,7 +767,7 @@
                 });
             }
         }
-    }    
+    }
 
     //***********************************************
     //
@@ -811,14 +811,14 @@
         var args = Array.prototype.slice.call(arguments),
             paths = [],
             parent = this;
-            
+        
         // Push + Reverse is the fasterestest at the moment...
         // http://jsperf.com/array-push-vs-unshift/11
         
         while(parent){
             if(parent.key){
                 paths.push(new Path(gaffa.relativePath + gaffa.pathSeparator + parent.key));
-            }
+        }
             paths.push(parent.path);
             parent = parent.parent;
         }
@@ -858,9 +858,9 @@
             
         args.fastEach(function(path){
             path = Path.parse(path);
-            
+        
             path.fastEach(function(pathPart, partIndex, parts){
-            
+        
                 if(pathPart === gaffa.upALevel){
                 // Up a level? Remove the last item in absoluteParts
                     absoluteParts.pop();
@@ -902,7 +902,7 @@
                 // Absolute path, clear the current absoluteParts
                     absoluteParts = [pathPart];
                     
-                }
+        }
             });
         });
         
@@ -1542,7 +1542,7 @@
                 },
                 
                 modelChange: function(behaviour){
-                                
+                
                     function executeBehaviour(behaviour, context){
                         var currentValue = JSON.stringify(gaffa.model.get(behaviour.binding));
                             if(currentValue !== behaviour.previousValue){
