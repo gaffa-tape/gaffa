@@ -36,6 +36,8 @@
         internalNotifications = {},
         
         internalIntervals = [],
+        
+        changeModel = window.changeModel = {},
 
         memoisedModel = {},
         
@@ -295,7 +297,7 @@
         
         //set up state
         if (app.model) {
-            gaffa.model.set(app.model);
+            gaffa.model.set(app.model, null, null, false);
         }
         if (app.views) {
             gaffa.views.set(app.views);
@@ -408,7 +410,7 @@
             }
             for (var pathProp in path) {
                 model[pathProp] = path[pathProp];
-                gaffa.model.trigger(pathProp, model[pathProp]);
+                gaffa.model.trigger(new Path(pathProp), model[pathProp]);
             }
             return;
         }
@@ -418,8 +420,6 @@
         var reference = model;
 
         path.fastEach(function (key, index, path) {
-
-            var rawPath;
             
             //if we have hit a non-object property on the reference and we have more keys after this one
             //make an object (or array) here and move on.
@@ -441,7 +441,7 @@
             }
         });
 
-        memoisedModel[model] = {};
+        //memoisedModel[model] = {};
 
         gaffa.model.trigger(path);
     }
@@ -1113,7 +1113,68 @@
             binding = getAbsolutePath(parentPath, binding);
         }
         return get(binding, internalModel);
+    }  
+        
+    //***********************************************
+    //
+    //      Set Dirty State
+    //
+    //***********************************************  
+    
+    function setDirtyState(path, dirty){
+        var reference = changeModel;
+        
+        dirty = dirty !== false;
+        
+        path = Path.parse(path);
+        
+        path.fastEach(function(key, index){
+            if ((typeof reference[key] !== "object" || reference[key] === null) && index < path.length - 1) {
+                reference[key] = {};                
+            }
+            if (index === path.length - 1) {
+                reference[key] = {};
+                reference[key]['_isDirty_'] = dirty;
+            }
+            else {
+                reference = reference[key];
+            }
+        });
     }
+    
+    window.setDirtyState = setDirtyState;
+        
+    //***********************************************
+    //
+    //      Is Dirty
+    //
+    //***********************************************  
+    
+    function isDirty(path){
+        var reference,
+            hasDirtyChildren = function(ref){ 
+                if(typeof ref !== 'object'){
+                    return false;
+                }
+                if(ref['_isDirty_']){
+                    return true;
+                }else{
+                    for(var key in ref){
+                        if(hasDirtyChildren(ref[key])){
+                            return true;
+                        }
+                    }
+                }
+            };
+        
+        path = Path.parse(path);
+        
+        reference = get(path, changeModel);
+        
+        return !!hasDirtyChildren(reference);
+    }
+    
+    window.isDirty = isDirty;
 
     //Public Objects ******************************************************************************
     
@@ -1271,6 +1332,9 @@
         
         return path instanceof this && path || new Path(path);
     };
+    Path.mightParse = function(path){    
+        return path instanceof this || path instanceof Expression || typeof path === 'string' || Array.isArray(path);
+    };
     
     //***********************************************
     //
@@ -1308,6 +1372,26 @@
         
         return expression instanceof this && expression || new Expression(expression);
     };
+    
+    //***********************************************
+    //
+    //      Property Object
+    //
+    //***********************************************
+    
+    function Property(propertyDescription){
+        if(!propertyDescription){
+            return this;
+        }
+        
+        extend(this, propertyDescription);
+        
+        this.binding = Expression.parse(this.binding);
+    }    
+    Property.prototype.bind = function(parent){
+        this.parent = parent;
+    };
+    Property.prototype.getPath = getViewItemPath;
 
     //***********************************************
     //
@@ -1345,17 +1429,27 @@
             model: {
                 get: modelGet,
 
-                set: function (path, value, viewItem) {
-                    if(viewItem){
-                        path = viewItem.getPath().append(path);
+                set: function (path, value, viewItem, dirty) {
+                    if(Path.mightParse(path)){
+                        if(viewItem){
+                            path = viewItem.getPath().append(path);
+                        }                    
+                        
+                        setDirtyState(path, dirty);
                     }
+                    
                     set(path, value, internalModel);
                 },
                 
-                remove: function (path, viewItem) {
-                    if(viewItem){
-                        path = viewItem.getPath().append(path);
+                remove: function (path, viewItem, dirty) {
+                    if(Path.mightParse(path)){
+                        if(viewItem){
+                            path = viewItem.getPath().append(path);
+                        }
+                        
+                        setDirtyState(path, false, dirty);
                     }
+                    
                     remove(path, internalModel);
                 },
 
