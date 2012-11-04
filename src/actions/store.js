@@ -1,6 +1,29 @@
 (function (undefined) {
     var actionType = "store";
-    window.gaffa.actions[actionType] = function (action) {
+    
+    
+    
+    
+    
+    function Store(actionDefinition){
+        this.constructor.apply(this, arguments);
+        
+        this.properties.target = new gaffa.Property(this.properties.target);
+        this.properties.source = new gaffa.Property(this.properties.source);
+        this.properties.returnValue = new gaffa.Property(this.properties.returnValue);
+        this.properties.dirty = new gaffa.Property(this.properties.dirty);
+    }
+    Store.prototype = new gaffa.Action();
+    Store.prototype.trigger = function(){
+        trigger(this);
+    };
+    
+    window.gaffa.actions[actionType] = Store;
+    
+    
+    
+    
+    function trigger(action) {
         var data = JSON.stringify(action.properties.source.value),
             errorHandler = function (error) {
                 if (action.actions.error && action.actions.error.length) {
@@ -28,7 +51,17 @@
                     }
                     
                     if (action.properties.returnValue.binding && data.returnValue) {
-                        window.gaffa.model.set(action.properties.returnValue.binding, data.returnValue, action);
+                        window.gaffa.model.set(
+                            action.properties.returnValue.binding,
+                            data.returnValue, 
+                            action,
+                            !!action.properties.dirty.value
+                        );
+                    }
+                    
+                    // Mark a portion of the model as clean after a successful store.
+                    if(action.cleans){
+                        gaffa.model.setDirtyState(action.cleans, false, action);
                     }
                     
                     if (action.actions.success && action.actions.success.length) {

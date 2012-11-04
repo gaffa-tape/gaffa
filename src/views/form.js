@@ -8,13 +8,23 @@
         var classes = viewType;
         
         var form = document.createElement('form'),
-            renderedElement = $(document.createElement('div')).append(form).addClass(classes)[0];
+            renderedElement;
+        
+        if (viewModel.action) {
+            form.setAttribute("action", viewModel.action);
+        } else {
+            $(form).on('submit', function (event) {
+                event.preventDefault();
+            });
+        }
+
+        if (viewModel.method) {
+            form.setAttribute("method", viewModel.method);
+        }
+
+        renderedElement = $(document.createElement('div')).append(form).addClass(classes)[0];
         
         viewModel.viewContainers.content.element = form;
-                
-        $(form).on('submit', function(event){
-            event.preventDefault();
-        });
                 
         return renderedElement;
     }

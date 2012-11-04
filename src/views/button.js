@@ -56,8 +56,4 @@
         return new view();
     }
     
-    $(document).on('button', 'click', function(event){
-        event.preventDefault();
-    });
-    
 })();

@@ -26,6 +26,10 @@
 
         var renderedElement = cachedElement || (cachedElement = document.createElement('input'));
 
+        if (viewModel.properties.name.value) {
+            renderedElement.setAttribute("name", viewModel.properties.name.value)
+        }
+
         renderedElement = $(renderedElement.cloneNode(true)).addClass(classes)[0];
                 
         $(renderedElement).bind(viewModel.updateEventName || "change", setValue);
@@ -60,7 +64,10 @@
             },
             defaults: {
                 properties: {
-                    value: {}
+                    value: {},
+                    subType: {},
+                    placeholder: {},
+                    disabled: {}
                 }
             }
         };
