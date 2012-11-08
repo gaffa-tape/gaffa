@@ -1467,6 +1467,27 @@
         this.parent = parent;
     };
     Property.prototype.getPath = getViewItemPath;
+    
+    //***********************************************
+    //
+    //      View Container Object
+    //
+    //***********************************************
+    
+    function ViewContainer(viewContainerDescription){
+        if(viewContainerDescription){
+            extend(this, viewContainerDescription);
+        }
+        
+        this.render = new Property(this.render || {value:true});
+        this.render.update = function(viewModel){
+            
+        };
+    }    
+    ViewContainer.prototype.bind = function(parent){
+        this.parent = parent;
+    };
+    ViewContainer.prototype.getPath = getViewItemPath;
 
     //***********************************************
     //
@@ -1722,7 +1743,7 @@
                 },
                 
                 pageLoad: function(behaviour){
-                    gaffa.actions.trigger(behaviour.actions, behaviour);
+                    gaffa.actions.trigger(behaviour.actions.load, behaviour);
                 },
                 
                 modelChange: function(behaviour){

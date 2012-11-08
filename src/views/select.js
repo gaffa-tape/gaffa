@@ -84,7 +84,17 @@
                     value: {},
                     options: {},
                     optionText: {},
-                    optionValue: {}
+                    optionValue: {},
+                    showBlank: {},
+                    defaultIndex: {}
+                }
+            },
+            afterInsert:function(viewModel){
+                if(viewModel.properties.defaultIndex.value >= 0){
+                    viewModel.renderedElement.selectedIndex = viewModel.properties.defaultIndex.value;
+                    $(viewModel.renderedElement).change();
+                } else {
+                    viewModel.renderedElement.selectedIndex = -1;
                 }
             }
         };
