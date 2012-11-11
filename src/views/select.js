@@ -27,6 +27,19 @@
         return renderedElement;
     }
 
+    function addCurrentValue(renderedElement, value) {
+        if (value && !$(renderedElement).children('[value='+ value + ']').length) {
+            var fakeOption = document.createElement('option');
+            fakeOption.innerText = value;
+            fakeOption.value = value;
+            fakeOption.setAttribute("disabled", "disabled");
+            fakeOption.setAttribute("selected", "selected");
+            renderedElement.selectedIndex = 0;
+            $(renderedElement).prepend(fakeOption);
+
+        }
+    }
+
     function newView() {
         
         function view() {
@@ -63,16 +76,22 @@
                             }
                         }
 
-                        if(viewModel.properties.defaultIndex.value >= 0){
-							element.prop('selectedIndex', viewModel.properties.defaultIndex.value).change();
-						} else {
-							element.prop('selectedIndex', -1);
-						}
+                        if (viewModel.properties.value.value == null) {
+
+                            if (viewModel.properties.defaultIndex.value >= 0) {
+							    element.prop('selectedIndex', viewModel.properties.defaultIndex.value).change();
+						    } else {
+							    element.prop('selectedIndex', -1);
+                            }
+
+                        }
+
+
                     }
                 },
                 value: function(viewModel, firstRun) {
                     var value = viewModel.properties.value.value;
-					
+
                     viewModel.renderedElement.value = value;
                 }
             },
@@ -95,6 +114,12 @@
                     $(viewModel.renderedElement).change();
                 } else {
                     viewModel.renderedElement.selectedIndex = -1;
+                }
+
+                addCurrentValue(viewModel.renderedElement, viewModel.properties.value.value);
+
+                if (viewModel.properties.value.value) {
+                    viewModel.renderedElement.value = viewModel.properties.value.value;
                 }
             }
         };

@@ -1970,12 +1970,13 @@
                     };
                 },
                 
-                group: function (propertyName, insert, remove) {
+                group: function (propertyName, insert, remove, empty) {
                     return function (viewModel, firstRun) {
                         var property = viewModel.properties[propertyName],
                             value = property.value,
                             childViews = viewModel.viewContainers[propertyName],
-                            newView;
+                            newView,
+                            isEmpty;
                         
                         if (value && typeof value === "object"){
                             
@@ -2003,6 +2004,10 @@
                                     insert(viewModel, value, newView);
                                 }
                             });
+                                                        
+                            isEmpty = !childViews.length;
+                                                        
+                            empty(viewModel, isEmpty);
                         }else{
                             childViews.fastEach(function(childView, index){
                                 childViews.splice(index, 1);
