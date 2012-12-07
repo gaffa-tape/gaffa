@@ -1,5 +1,8 @@
 # gaffa.js
 
+# Warning! #
+## master is unstable, the last stable(ish) branch was 0.1.1 #
+
 ## Overview
 Gaffa is a state management library that helps with highly data-dependant UIs. From a high level, you define how a UI should be layed out, how it should behave, and where in the model its data should come from, and Gaffa makes it all happen.
 
