@@ -9,7 +9,7 @@
         
         var renderedElement = $(document.createElement('div')).addClass(classes)[0];
         
-        viewModel.viewContainers.children.element = renderedElement;
+        viewModel.views.children.element = renderedElement;
         
         return renderedElement;
     }
@@ -25,9 +25,9 @@
                     "children",
                     //insert
                     function(viewModel, value, newView){
-                        var children = viewModel.viewContainers.children;
-                        window.gaffa.views.add($.extend(true, newView, viewModel.properties.children.template), viewModel, children, "~" + newView.key);
-                        window.gaffa.views.render(viewModel.viewContainers.children, viewModel.viewContainers.children.element);
+                        var children = viewModel.views.children;
+                        window.gaffa.views.add($.extend(true, newView, viewModel.children.template), viewModel, children, "~" + newView.key);
+                        window.gaffa.views.render(viewModel.views.children, viewModel.views.children.element);
                     },
                     //remove
                     function(viewModel, children, orphanedView){
@@ -36,7 +36,7 @@
                 )
             },
             defaults: {
-                viewContainers:{
+                views:{
                     children: []
                 }
             }

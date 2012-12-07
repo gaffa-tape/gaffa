@@ -16,7 +16,7 @@
         
         renderedElement = $(renderedElement.cloneNode(true)).addClass(classes)[0];
         
-        viewModel.viewContainers.list.element = renderedElement;
+        viewModel.views.list.element = renderedElement;
         
         return renderedElement;
     }
@@ -32,11 +32,11 @@
                     "list",                     
                     //increment
                     function(viewModel, list, addedItem){
-                        var listViews = viewModel.viewContainers.list,
-                            property = viewModel.properties.list;
+                        var listViews = viewModel.views.list,
+                            property = viewModel.list;
                         if(property.template.type === "accordionNode"){
                             window.gaffa.views.add($.extend(true, {}, property.template), viewModel, listViews, property.binding + gaffa.pathSeparator + addedItem.key);
-                            window.gaffa.views.render(viewModel.viewContainers.list, viewModel.viewContainers.list.element);
+                            window.gaffa.views.render(viewModel.views.list, viewModel.views.list.element);
                         }else{
                             throw "incorrect template type given, expected type of 'accordionNode'";
                         }
@@ -48,7 +48,7 @@
                 )
             },
             defaults: {
-                viewContainers:{
+                views:{
                     list: []
                 },
                 properties: {                
@@ -88,8 +88,8 @@
         
         var renderedElement = cachedElement.cloneNode(true);
         
-        viewModel.viewContainers.content.element = $(renderedElement).find('.content')[0];
-        viewModel.viewContainers.header.element = $(renderedElement).find('.header')[0];
+        viewModel.views.content.element = $(renderedElement).find('.content')[0];
+        viewModel.views.header.element = $(renderedElement).find('.header')[0];
         
         return renderedElement;
     }
@@ -102,8 +102,8 @@
         view.prototype = {
             update: {                            
                 expanded: function(viewModel, value, firstRun) {
-                    if(viewModel.properties.expanded.value !== value || firstRun){
-                        viewModel.properties.expanded.value = value;
+                    if(viewModel.expanded.value !== value || firstRun){
+                        viewModel.expanded.value = value;
                         var element = $(viewModel.renderedElement);
                         if(element){
                             if(value !== false){
@@ -116,7 +116,7 @@
                 }
             },
             defaults: {
-                viewContainers:{
+                views:{
                     content:[],
                     header:[]
                 },
@@ -140,16 +140,16 @@
         accordionNode.siblings().each(function(){
             var viewModel = this.viewModel;
             if(window.gaffa.utils.propExists(viewModel, "properties.expanded.binding")){
-                window.gaffa.model.set(viewModel.properties.expanded.binding, false);
+                window.gaffa.model.set(viewModel.expanded.binding, false);
             }else if(window.gaffa.utils.propExists(viewModel, "properties.expanded.value")){
                 window.gaffa.views[viewType].update.expanded(viewModel, false);
             }
         });        
         var viewModel = accordionNode[0].viewModel;
         if(window.gaffa.utils.propExists(viewModel, "properties.expanded.binding")){
-            window.gaffa.model.set(viewModel.properties.expanded.binding, window.gaffa.model.get(viewModel.properties.expanded.binding));
+            window.gaffa.model.set(viewModel.expanded.binding, window.gaffa.model.get(viewModel.expanded.binding));
         }else if(window.gaffa.utils.propExists(viewModel, "properties.expanded.value")){
-            window.gaffa.views[viewType].update.expanded(viewModel, !viewModel.properties.expanded.value);
+            window.gaffa.views[viewType].update.expanded(viewModel, !viewModel.expanded.value);
         }
     });
     

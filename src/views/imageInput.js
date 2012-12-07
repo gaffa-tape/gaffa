@@ -20,7 +20,7 @@
         var input = this,
 			viewModel = input.parentNode.viewModel,
 			element = $(viewModel.renderedElement),
-			properties = viewModel.properties,
+			properties = viewModel,
 			image = input.files[0],
 			setDataURL = function(file){
 				window.gaffa.model.set(properties.dataURL.binding, file, viewModel);
@@ -62,7 +62,7 @@
                 
         $(renderedElement).on("change", 'input[type="file"]', setValue);
 		
-        viewModel.viewContainers.content.element = renderedElement;
+        viewModel.views.content.element = renderedElement;
 
         return renderedElement;
     }
@@ -98,7 +98,7 @@
                 })
             },
             defaults: {
-                viewContainers:{
+                views:{
                     content:[]
                 },
                 properties: {

@@ -14,7 +14,7 @@
             $(textArea).addClass('error');
         }
         
-        window.gaffa.propertyUpdaters.string(textArea.viewModel, textArea.viewModel.properties.value, $(textArea).val(), matchFail); 
+        window.gaffa.propertyUpdaters.string(textArea.viewModel, textArea.viewModel.value, $(textArea).val(), matchFail); 
     }
 
     function createElement(viewModel) {

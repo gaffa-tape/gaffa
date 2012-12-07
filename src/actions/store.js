@@ -6,17 +6,16 @@
     
     
     function Store(actionDefinition){
-        this.constructor.apply(this, arguments);
-        
-        this.properties.target = new gaffa.Property(this.properties.target);
-        this.properties.source = new gaffa.Property(this.properties.source);
-        this.properties.returnValue = new gaffa.Property(this.properties.returnValue);
-        this.properties.dirty = new gaffa.Property(this.properties.dirty);
     }
-    Store.prototype = new gaffa.Action();
+    Store = gaffa.createSpec(Store, gaffa.Action);
+    Store.prototype.type = actionType;
     Store.prototype.trigger = function(){
         trigger(this);
     };
+    Store.prototype.target = new gaffa.Property();
+    Store.prototype.source = new gaffa.Property();
+    Store.prototype.returnValue = new gaffa.Property();
+    Store.prototype.dirty = new gaffa.Property();
     
     window.gaffa.actions[actionType] = Store;
     
@@ -24,7 +23,7 @@
     
     
     function trigger(action) {
-        var data = JSON.stringify(action.properties.source.value),
+        var data = JSON.stringify(action.source.value),
             errorHandler = function (error) {
                 if (action.actions.error && action.actions.error.length) {
                     window.gaffa.actions.trigger(action.actions.error, action.binding);
@@ -33,14 +32,14 @@
             };
 
         if (action.location === "local") {
-            localStorage.setItem(action.properties.target.value, data);
+            localStorage.setItem(action.target.value, data);
         } else if (action.location === "server") {
             gaffa.notifications.notify("store.begin." + action.kind);
 			
 			var ajaxSettings = {
                 cache: false,
                 type: 'post',
-                url: action.properties.target.value,
+                url: action.target.value,
                 data: data,
                 dataType: 'json',
                 contentType: action.contentType || 'application/json; charset=utf-8',
@@ -50,12 +49,12 @@
                         return;
                     }
                     
-                    if (action.properties.returnValue.binding && data.returnValue) {
+                    if (action.returnValue.binding && data.returnValue) {
                         window.gaffa.model.set(
-                            action.properties.returnValue.binding,
+                            action.returnValue.binding,
                             data.returnValue, 
                             action,
-                            !!action.properties.dirty.value
+                            !!action.dirty.value
                         );
                     }
                     
@@ -79,7 +78,7 @@
 			if(action.dataType === 'binary'){
 
 				data = new FormData();
-				data.append("items[]", action.properties.source.value);
+				data.append("items[]", action.source.value);
 				ajaxSettings.contentType = false;
 				ajaxSettings.processData = false;
 				ajaxSettings.data = data;

@@ -1,42 +1,30 @@
 (function(undefined) {
-    var viewType = "heading";
+    var viewType = "heading",
+		cachedElement;
+        
+    function Heading(){
+        this.type = viewType;
+    }
+    Heading = gaffa.createSpec(Heading, gaffa.View);
     
-    window.gaffa.views = window.gaffa.views || {};
-    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
-    
-    function createElement(viewModel) {
+    Heading.prototype.render = function(){
         var classes = viewType;
         
-        var renderedElement = $(document.createElement(viewModel.level || 'h1')).addClass(classes)[0];
-                
-        return renderedElement;
-    }
-
-    function newView() {
+        var renderedElement = $(document.createElement(this.level || 'h1')).addClass(classes)[0];
         
-        function view() {
-        }    
+        this.renderedElement = renderedElement;
         
-        view.prototype = {
-            update: {
-                text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
-                    if(typeof value === "string"){
-                        viewModel.renderedElement.innerHTML = value;
-                    }else{
-                        viewModel.renderedElement.innerHTML = "";
-                    }
-                })
-            },
-            defaults: {
-                properties: {
-                    visible: {},
-                    text: {}
-                }
-            }
-        };
-        
-        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-                
-        return new view();
-    }
+        this.__super__.render.apply(this, arguments);
+    };
+    
+    Heading.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
+        if(typeof value === "string"){
+            viewModel.renderedElement.innerHTML = value;
+        }else{
+            viewModel.renderedElement.innerHTML = "";
+        }
+    }));
+    
+    gaffa.views[viewType] = Heading;
+    
 })();

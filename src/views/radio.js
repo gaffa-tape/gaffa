@@ -12,7 +12,7 @@
         renderedElement.className = classes;
 
         $(renderedElement).bind(viewModel.updateEventName || "change", function () {
-            window.gaffa.model.set(viewModel.properties.value.binding, $(this).find(':checked').val(), viewModel);
+            window.gaffa.model.set(viewModel.value.binding, $(this).find(':checked').val(), viewModel);
         });
 
         return renderedElement;
@@ -26,10 +26,10 @@
         view.prototype = {
             update: {
                 options: function (viewModel, firstRun) {
-                    var property = viewModel.properties.options,
+                    var property = viewModel.options,
                         value = property.value,                        
                         element = $(viewModel.renderedElement),
-                        groupName = viewModel.properties.groupName.value;
+                        groupName = viewModel.groupName.value;
 
                     if (!Array.isArray(value)) {
                         value = [];
@@ -59,7 +59,7 @@
                     }
                 },
                 value: function (viewModel, firstRun) {
-                    var value = viewModel.properties.value.value,
+                    var value = viewModel.value.value,
                         options = $(viewModel.renderedElement).find('input');
                         
                     options.each(function(){

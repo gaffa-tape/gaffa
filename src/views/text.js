@@ -1,20 +1,20 @@
-//    Properties:
-//        styles: container | container-fluid | row | row-fluid | span* | offset*
-(function (undefined) {
+(function(undefined) {
     var viewType = "text",
         shit,
         findShitBrowsersRegex = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
     
     if (navigator.appName == 'Microsoft Internet Explorer'&&
         parseFloat(findShitBrowsersRegex.exec(navigator.userAgent)[1])<9
-    ) {
+    ){
         shit = true;
     }
-
-    window.gaffa.views = window.gaffa.views || {};
-    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView()
-
-    function createElement(viewModel) {
+        
+    function Text(){
+        this.type = viewType;
+    }
+    Text = gaffa.createSpec(Text, gaffa.View);
+    
+    Text.prototype.render = function(){
         var classes = viewType,
             renderedElement;
         
@@ -25,44 +25,29 @@
         }else{
             renderedElement = document.createElement('span');
         }
-
-        return renderedElement;
-    }
-
-    function newView() {
-
-        function view() {
-        }
-
-        view.prototype = {
-            update: {
-                text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
-                    if(!shit){
-                        viewModel.renderedElement.data = value;
-                        if(value !== null && value !== undefined){
-                            viewModel.renderedElement.data = value;
-                        }else{
-                            viewModel.renderedElement.data = "";
-                        }
-                    }else{
-                        if(value !== null && value !== undefined){
-                            viewModel.renderedElement.innerHTML = value;
-                        }else{
-                            viewModel.renderedElement.innerHTML = "";
-                        }
-                    }
-                })
-            },
-            defaults: {
-                properties: {
-                    visible: {},
-                    text: {}
-                }
+        
+        this.renderedElement = renderedElement;
+        
+        this.__super__.render.apply(this, arguments);
+    };
+    
+    Text.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
+        if(!shit){
+            viewModel.renderedElement.data = value;
+            if(value !== null && value !== undefined){
+                viewModel.renderedElement.data = value;
+            }else{
+                viewModel.renderedElement.data = "";
             }
-        };
-
-        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-
-        return new view();
-    }
+        }else{
+            if(value !== null && value !== undefined){
+                viewModel.renderedElement.innerHTML = value;
+            }else{
+                viewModel.renderedElement.innerHTML = "";
+            }
+        }
+    }));
+    
+    gaffa.views[viewType] = Text;
+    
 })();

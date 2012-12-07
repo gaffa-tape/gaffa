@@ -10,8 +10,8 @@
         
         var renderedElement = $(document.createElement('div')).addClass(classes)[0];
         
-        viewModel.viewContainers.groups.element = renderedElement;
-		viewModel.viewContainers.empty.element = renderedElement;
+        viewModel.views.groups.element = renderedElement;
+		viewModel.views.empty.element = renderedElement;
         
         return renderedElement;
     }
@@ -27,8 +27,8 @@
                     "groups",                     
                     //increment
                     function(viewModel, groups, addedItem){
-                        var listViews = viewModel.viewContainers.groups,
-                            property = viewModel.properties.groups,
+                        var listViews = viewModel.views.groups,
+                            property = viewModel.groups,
                             expression = "(filterKeys [~] {item (= item." + property.group + " " + addedItem.group + ")})";
                             
                         $.extend(true, addedItem, property.template);
@@ -44,8 +44,8 @@
                     },
                     //empty
                     function(viewModel, insert){
-                        var emptyViews = viewModel.viewContainers.empty,
-                            property = viewModel.properties.groups;
+                        var emptyViews = viewModel.views.empty,
+                            property = viewModel.groups;
 							
 						if(!property.emptyTemplate){
 							return;
@@ -65,7 +65,7 @@
                 )
             },
             defaults: {
-                viewContainers:{
+                views:{
                     groups: [],
                     empty: []
                 },

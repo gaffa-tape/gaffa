@@ -19,10 +19,10 @@
 				})[0],
 				data = option && option.data || undefined;
 			
-            window.gaffa.model.set(viewModel.properties.value.binding, data, viewModel);
+            window.gaffa.model.set(viewModel.value.binding, data, viewModel);
         });
         
-        viewModel.viewContainers.list.element = renderedElement;
+        viewModel.views.list.element = renderedElement;
         
         return renderedElement;
     }
@@ -48,7 +48,7 @@
         view.prototype = {
             update: {
                 options: function(viewModel, firstRun) {
-                    var property = viewModel.properties.options,
+                    var property = viewModel.options,
 						value = property.value,
                         element = $(viewModel.renderedElement);
                         
@@ -59,7 +59,7 @@
                     if(element){
                         element.empty();
                         
-                        if(viewModel.properties.showBlank.value)
+                        if(viewModel.showBlank.value)
                         {
                             element.append(document.createElement("option"));
                         }
@@ -76,10 +76,10 @@
                             }
                         }
 
-                        if (viewModel.properties.value.value == null) {
+                        if (viewModel.value.value == null) {
 
-                            if (viewModel.properties.defaultIndex.value >= 0) {
-							    element.prop('selectedIndex', viewModel.properties.defaultIndex.value).change();
+                            if (viewModel.defaultIndex.value >= 0) {
+							    element.prop('selectedIndex', viewModel.defaultIndex.value).change();
 						    } else {
 							    element.prop('selectedIndex', -1);
                             }
@@ -90,13 +90,13 @@
                     }
                 },
                 value: function(viewModel, firstRun) {
-                    var value = viewModel.properties.value.value;
+                    var value = viewModel.value.value;
 
                     viewModel.renderedElement.value = value;
                 }
             },
             defaults: {
-                viewContainers:{
+                views:{
                     list: []
                 },
                 properties: {
@@ -109,17 +109,17 @@
                 }
             },
             afterInsert:function(viewModel){
-                if(viewModel.properties.defaultIndex.value >= 0){
-                    viewModel.renderedElement.selectedIndex = viewModel.properties.defaultIndex.value;
+                if(viewModel.defaultIndex.value >= 0){
+                    viewModel.renderedElement.selectedIndex = viewModel.defaultIndex.value;
                     $(viewModel.renderedElement).change();
                 } else {
                     viewModel.renderedElement.selectedIndex = -1;
                 }
 
-                addCurrentValue(viewModel.renderedElement, viewModel.properties.value.value);
+                addCurrentValue(viewModel.renderedElement, viewModel.value.value);
 
-                if (viewModel.properties.value.value) {
-                    viewModel.renderedElement.value = viewModel.properties.value.value;
+                if (viewModel.value.value) {
+                    viewModel.renderedElement.value = viewModel.value.value;
                 }
             }
         };

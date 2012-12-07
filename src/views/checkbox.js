@@ -17,14 +17,14 @@
         
         $(checkbox).bind(viewModel.updateEventName || "change", function(event){
             var viewModel = $(this).parent()[0].viewModel;
-            window.gaffa.propertyUpdaters.bool(viewModel, viewModel.properties.checked, $(this).is(":checked"));            
+            window.gaffa.propertyUpdaters.bool(viewModel, viewModel.checked, $(this).is(":checked"));            
         });     
         label.setAttribute('for', checkboxId);
         renderedElement.appendChild(checkbox);
         renderedElement.appendChild(label);
         renderedElement.className = classes;
 		
-        viewModel.viewContainers.content.element = label;
+        viewModel.views.content.element = label;
                 
         return renderedElement;
     }
@@ -37,7 +37,7 @@
         view.prototype = {
             update: {
                 checked: function(viewModel) {   
-                    if(viewModel.properties.checked.value){
+                    if(viewModel.checked.value){
                         $(viewModel.renderedElement).children('input').attr("checked", "checked");      
                     }else{
                         $(viewModel.renderedElement).children('input').removeAttr("checked");      
@@ -52,7 +52,7 @@
                 })
             },
             defaults: {
-				viewContainers:{
+				views:{
 					content:[]
 				},
                 properties: {

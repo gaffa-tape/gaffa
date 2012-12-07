@@ -1,39 +1,26 @@
-//    Properties:
-//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "paragraph";
+    var viewType = "paragraph",
+		cachedElement;
     
-    window.gaffa.views = window.gaffa.views || {};
-    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
+    function Paragraph(){
+        this.type = viewType;
+        this.views.content = new gaffa.ViewContainer(this.views.content);
+    }
+    Paragraph = gaffa.createSpec(Paragraph, gaffa.ContainerView);
     
-    function createElement(viewModel) {
+    Paragraph.prototype.render = function(){
         var classes = viewType;
 
         var renderedElement = document.createElement('p');
         renderedElement.className = classes;
 
-        viewModel.viewContainers.content.element = renderedElement;
-
-        return renderedElement;
-    }
-
-    function newView() {
+        this.views.content.element = renderedElement;
         
-        function view() {
-        }    
+        this.renderedElement = renderedElement;
         
-        view.prototype = {
-            update: {
-            },
-            defaults: {
-                viewContainers:{
-                    content:[]
-                }
-            }
-        };
-        
-        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-                
-        return new view();
-    }
+        this.__super__.render.apply(this, arguments);
+    };
+    
+    gaffa.views[viewType] = Paragraph;
+    
 })();

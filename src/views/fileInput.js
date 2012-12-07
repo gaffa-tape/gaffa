@@ -20,9 +20,9 @@
         var input = this,
 			viewModel = input.parentNode.viewModel;
                 
-        window.gaffa.model.set(viewModel.properties.file.binding, input.files[0], viewModel);
+        window.gaffa.model.set(viewModel.file.binding, input.files[0], viewModel);
 		imageToBytes(input.files[0],function(bytes){
-			window.gaffa.model.set(viewModel.properties.bytes.binding, bytes, viewModel);		
+			window.gaffa.model.set(viewModel.bytes.binding, bytes, viewModel);		
 		});
     }  
     
@@ -45,7 +45,7 @@
                 
         $(renderedElement).on("change", 'input[type="file"]', setValue);
 		
-        viewModel.viewContainers.content.element = renderedElement;
+        viewModel.views.content.element = renderedElement;
 
         return renderedElement;
     }
@@ -72,7 +72,7 @@
                 })
             },
             defaults: {
-                viewContainers:{
+                views:{
                     content:[]
                 },
                 properties: {

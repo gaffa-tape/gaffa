@@ -33,16 +33,16 @@
                     $(viewModel.renderedElement).find('cite').html(value);
                 }),
                 citeHref: window.gaffa.propertyUpdaters.string("citeHref", function(viewModel, value){
-                    var anchor = $(document.createElement('a')).text(viewModel.properties.cite.value).attr('href', value).attr('target', '_blank');
+                    var anchor = $(document.createElement('a')).text(viewModel.cite.value).attr('href', value).attr('target', '_blank');
                     $(viewModel.renderedElement).find('cite').empty().append(anchor);
                 }),
                 alignment: function(viewModel, value, firstRun){
-                    if(viewModel.properties.alignment.value !== value || firstRun){
-                        viewModel.properties.alignment.value = value;
+                    if(viewModel.alignment.value !== value || firstRun){
+                        viewModel.alignment.value = value;
                         var element = $(viewModel.renderedElement);
                         if (element) {
                             element.removeClass("pull-right").removeClass("pull-left");
-                            switch (viewModel.properties.alignment.value)
+                            switch (viewModel.alignment.value)
                             {
                                 case "right":
                                     element.addClass("pull-right");

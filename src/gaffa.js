@@ -10,7 +10,7 @@
     "use strict";
 
     //Create gaffa
-    var gaffa = window.gaffa = window.gaffa || newGaffa(),
+    var gaffa = window.gaffa = {},
         gel = window.gel,
         history = window.History || window.history; //Allow custom history implementations if defined.
         
@@ -55,10 +55,59 @@
         
         // Storage for applications default styles
         defaultViewStyles;
+
+    //internal functions    
+    
+    //***********************************************
+    //
+    //      Object.create polyfill
+    //      https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/create
+    //
+    //***********************************************
+    
+    Object.create = Object.create || function (o) {
+        if (arguments.length > 1) {
+            throw new Error('Object.create implementation only accepts the first parameter.');
+        }
+        function F() {}
+        F.prototype = o;
+        return new F();
+    };
+    
+    
+    //***********************************************
+    //
+    //      Create Spec 
+    //      https://github.com/KoryNunn/JavascriptInheritance/blob/master/spec.js
+    //
+    //***********************************************
+    
+    function createSpec(child, parent){
+        var parentPrototype;
         
-
-    //internal functions
-
+        if(!parent){
+            //inherit from Object, throught Spec
+        
+        }
+        !parent && (parent = Object);
+        
+        !parent.prototype && (parent.prototype = {});
+        
+        parentPrototype = parent.prototype;
+        
+        child.prototype = Object.create(parent.prototype);
+        child.prototype.__super__ = parentPrototype;
+        
+        // Yes, This is 'bad'. However, it runs once per Spec creation.
+        var spec = new Function("child", "return function " + child.name + "(){child.prototype.__super__.constructor.apply(this, arguments);return child.apply(this, arguments);}")(child);
+        
+        spec.prototype = child.prototype;
+        spec.prototype.constructor = child.prototype.constructor = spec;
+        
+        return spec;
+    }
+    
+    
     //***********************************************
     //
     //      IE indexOf polyfill
@@ -98,6 +147,7 @@
         }
         return this;
     };
+    
 
     //***********************************************
     //
@@ -113,6 +163,7 @@
         }).replace(/{(\d+)}/g, "");
     };
 
+    
     //***********************************************
     //
     //      String De-Formatter
@@ -328,7 +379,7 @@
 
         //clear state first
         if (app.views) {
-            gaffa.views.set([]);
+            gaffa.views.remove();
         }
         if (app.model) {
             internalModel = {};
@@ -339,7 +390,7 @@
             gaffa.model.set(app.model, null, null, false);
         }
         if (app.views) {
-            gaffa.views.set(app.views);
+            gaffa.views.add(app.views);
         }
         if (app.behaviours) {
             gaffa.behaviours.add(app.behaviours);
@@ -679,82 +730,54 @@
 
     //***********************************************
     //
-    //      Render View
+    //      Insert View
     //
     //***********************************************
 
-    function renderView(viewModel, renderTarget, appendFunction, index) {
-        //un-comment to delegate rendering to happen as soon as possible, but not if it blocks the UI.
-        //this will cause all kinds of hilariously stupid layout if you breakpoint during the render loop.
-        //setTimeout(function () {
-        
-        //Easy text/html views
-        if (viewModel.type === undefined && viewModel.html !== undefined) {
-            viewModel.type = "html";
-            viewModel.properties = {
-                html: { value: viewModel.html }
-            };
-        }
-        
-        if (viewModel.type === undefined && viewModel.text !== undefined) {
-            viewModel.type = "text";
-            viewModel.properties = {
-                text: { value: viewModel.text }
-            };
-        }
-        
-        var view = gaffa.views[viewModel.type];
-
-        //Check if a renderer for the view type is loaded.
-        if (view !== undefined) {
-            //it is, so render it.
-            view.render(viewModel);
-            
-            // if a renderTarget has been passed (for appending into)
-            // Only append if it hasnt been rendered already
-            // ToDo: make this bettera maybe.
-            if(!viewModel.isRendered){
-                viewModel.isRendered = true;
-                if (viewModel.insertSelector && typeof viewModel.insertFunction === "function"){
-                    viewModel.insertFunction(viewModel.insertSelector, viewModel.renderedElement);
-                }else if (renderTarget) {
-                    //A custom append function can also be passed to handle non-html elements like SVG etc.
-                    if (appendFunction) {
-                        appendFunction(renderTarget, viewModel.renderedElement, index);
-                    } else {
-                        var children = renderTarget.childNodes;
-                        if(index != null && children.length > index){
-                            renderTarget.insertBefore(viewModel.renderedElement, children[index]);
-                        }else{
-                            renderTarget.appendChild(viewModel.renderedElement);
-                        }
-                        typeof view.afterInsert === 'function' && view.afterInsert(viewModel);
+    function insertView(viewModel, renderTarget, appendFunction, index) {
+        // if a renderTarget has been passed (for appending into)
+        // Only append if it hasnt been rendered already
+        // ToDo: make this bettera maybe.
+        if(!viewModel.isRendered){
+            viewModel.isRendered = true;
+            if (viewModel.insertSelector && typeof viewModel.insertFunction === "function"){
+                viewModel.insertFunction(viewModel.insertSelector, viewModel.renderedElement);
+            }else if (renderTarget) {
+                //A custom append function can also be passed to handle non-html elements like SVG etc.
+                if (appendFunction) {
+                    appendFunction(renderTarget, viewModel.renderedElement, index);
+                } else {
+                    var children = renderTarget.childNodes;
+                    if(index != null && children.length > index){
+                        renderTarget.insertBefore(viewModel.renderedElement, children[index]);
+                    }else{
+                        renderTarget.appendChild(viewModel.renderedElement);
                     }
+                    typeof view.afterInsert === 'function' && view.afterInsert(viewModel);
                 }
-                
-                //Render child views
-                for (var key in viewModel.viewContainers) {
-                    viewModel.viewContainers[key].fastEach(function (childViewModel) {
-                        renderView(childViewModel, viewModel.viewContainers[key].element);
-                    });
-                }
+            }
+            
+            //Render child views
+            for (var key in viewModel.views) {
+                viewModel.views[key].fastEach(function (childViewModel) {
+                    insertView(childViewModel, viewModel.views[key].element);
+                });
+            }
 
-                //Bind the views actions
-                //ToDo: this probaly shouldn't be here. refactor.
-                if (viewModel.actions) {
-                    for (var actionKey in viewModel.actions) {
-                        var action = viewModel.actions[actionKey];
-                        if (!action.bound) {
-                            $(viewModel.renderedElement).on(actionKey, function (event) {
-                                gaffa.actions.trigger(action, viewModel);
-                            });
-                            action.bound = true;
-                        }
+            //Bind the views actions
+            //ToDo: this probaly shouldn't be here. refactor.
+            if (viewModel.actions) {
+                for (var actionKey in viewModel.actions) {
+                    var action = viewModel.actions[actionKey];
+                    if (!action.bound) {
+                        $(viewModel.renderedElement).on(actionKey, function (event) {
+                            gaffa.actions.trigger(action, viewModel);
+                        });
+                        action.bound = true;
                     }
                 }
             }
         }
-        //}, 0);
     }
 
     //***********************************************
@@ -775,9 +798,9 @@
         
         absoluteActionPath = context || action.getPath();
         
-        for (var propertyName in action.properties) {
+        for (var propertyName in action) {
             var property = action.properties[propertyName];
-            if (property && property.binding) {
+            if (property instanceof Property && property.binding) {
                 property.value = gaffa.model.get(property.binding, absoluteActionPath);
             }
         }
@@ -789,6 +812,7 @@
             gaffa.actions[action.type](action);
         }
     }
+    
 
     //***********************************************
     //
@@ -796,56 +820,33 @@
     //
     //***********************************************
 
-    function bindProperty(viewModel, path, propertyName, absoluteViewPath) {
-        gaffa.model.bind(path, function () {
-            if(typeof gaffa.views[viewModel.type].update[propertyName] === "function"){
-                viewModel.properties[propertyName].value = gaffa.model.get(viewModel.properties[propertyName].binding, absoluteViewPath);
-                gaffa.views[viewModel.type].update[propertyName](viewModel);
-            }
+    function bindProperty(viewModel) {
+        var property = this,
+            absoluteViewPath = viewModel.getPath(),
+            updateProperty = function () {
+                if(property.update){
+                    if(property.binding.original){
+                        property.value = gaffa.model.get(property.binding, absoluteViewPath);                    
+                    }
+                    property.update.call(viewModel);
+                }
+            };
+        
+        this.binding = new Expression(this.binding);
+        this.binding.paths.fastEach(function(path){            
+            gaffa.model.bind(absoluteViewPath.append(path), updateProperty)
         });
+        updateProperty();
     }
 
+    
     //***********************************************
     //
-    //      Bind Properties
-    //
-    //***********************************************
-
-    //ToDo: genericise this so it can be used for action properties when they get implemented.
-    function bindProperties(viewModel) {
-
-        //bind each of the views properties to the model.
-        for (var propertyName in viewModel.properties) {
-            var property = viewModel.properties[propertyName];
-            if (property && property.binding) {
-            
-                property.binding = new Expression(property.binding);
-            
-                var paths = property.binding.paths,
-                    absoluteViewPath = viewModel.getPath();
-                    
-                paths.fastEach(function(path){
-                    path = absoluteViewPath.append(path);
-
-                    // this function is to create a closure so that 'propertyName' is still the same when the event fires.
-                    (function (propertyName, property, path, absoluteViewPath) {
-                        if (path.length) {
-                            property.value = gaffa.model.get(property.binding, absoluteViewPath);
-                            bindProperty(viewModel, path, propertyName, absoluteViewPath);
-                        }
-                    })(propertyName, property, path, absoluteViewPath);
-                });
-            }
-        }
-    }
-
-    //***********************************************
-    //
-    //      Insert View
+    //      Insert Function
     //
     //***********************************************
     
-    function insertView(selector, renderedElement){
+    function insertFunction(selector, renderedElement){
         $(selector).append(renderedElement);
     }
 
@@ -1000,7 +1001,7 @@
                 var sourceProperty = source[key],
                     targetProperty = target[key];
                                                             
-                if(typeof sourceProperty === "object"){
+                if(typeof sourceProperty === "object" && sourceProperty != null){
                     if(sourceProperty instanceof Array){
                         targetProperty = new sourceProperty.constructor();
                         sourceProperty.fastEach(function(value){
@@ -1014,7 +1015,7 @@
                             continue;
                         }
                         visited.push(sourceProperty);
-                        targetProperty = targetProperty || new sourceProperty.constructor();
+                        targetProperty = targetProperty || Object.create(sourceProperty);
                         internalExtend(targetProperty, sourceProperty);
                     }
                 }else{
@@ -1125,31 +1126,86 @@
     
     //***********************************************
     //
+    //      Initialise Action
+    //
+    //***********************************************
+    
+    function initialiseViewItem(viewItem, parentViewItem, spec) {
+        //if the viewModel is an array, recurse.
+        var newViewItem = viewItem,
+            specCollection;
+        
+        if (spec === Action){
+           specCollection = gaffa.actions;
+        }else if(spec === View){
+           specCollection = gaffa.views;        
+        }
+        
+        if(!(viewItem instanceof spec)){        
+            if (!specCollection[viewItem.type]) {
+                console.error("No action is loaded to handle view of type " + viewItem.type);
+            }
+            
+            newViewItem = new specCollection[viewItem.type]();
+            
+            newViewItem.path = Path.parse(viewItem.path);
+        
+            extend(newViewItem, viewItem);
+        }
+        
+        for(var key in newViewItem.views){
+            newViewItem.views[key].fastEach(function(view, index, views){
+                views[index] = initialiseViewItem(view, newViewItem, View);
+            });
+        }
+        
+        for(var key in newViewItem.actions){
+            newViewItem.actions[key].fastEach(function(action, index, actions){
+                actions[index] = initialiseViewItem(action, newViewItem, Action);
+            });
+        }
+        
+        
+        newViewItem.parent = parentViewItem;
+        
+        return newViewItem;
+    }
+    
+    //***********************************************
+    //
+    //      Initialise View
+    //
+    //***********************************************
+    
+    function initialiseView(viewModel, parentView) {        
+        return initialiseViewItem(viewModel, parentView, View);
+    }
+    
+    
+    //***********************************************
+    //
     //      Add View
     //
     //***********************************************
     
-    function addView(viewModel, parentView, parentViewChildArray, index) {
-        //if the viewModels isnt an array, make it one.
+    function addView(viewModel, parentView, parentViewChildArray, index, addInPlace) {
+        //if the viewModel is an array, recurse.
         if (viewModel instanceof Array) {
-            viewModel.fastEach(function (viewModel) {
-                addView(viewModel, parentView, parentViewChildArray, index)
+            viewModel.fastEach(function (viewModel, index, viewModels) {
+                addView(viewModel, parentView, viewModels, index, true);
             });
             return;
         }
         
-        if (!gaffa.views[viewModel.type]) {
-            console.error("No view is loaded to handle view of type " + viewModel.type);
-        }
-        
-        if(!(viewModel instanceof View)){
-            viewModel = new View(viewModel);
-        }
+        viewModel = initialiseView(viewModel, parentView);
             
         if (parentView && parentViewChildArray) {
-            viewModel.parent = parentView;
             if(index != null){
-                parentViewChildArray.splice(index, 0, viewModel);
+                if(addInPlace){
+                    parentViewChildArray[index] = viewModel;
+                }else{
+                    parentViewChildArray.splice(index, 0, viewModel);
+                }
             }else{
                 parentViewChildArray.push(viewModel);
             }
@@ -1157,7 +1213,33 @@
             internalViewModels.push(viewModel);
         }
         
+        viewModel.render();
         viewModel.bind();
+        
+        for(var key in viewModel.views){
+            addView(viewModel.views[key], viewModel, viewModel.views[key]);
+        }
+        
+        var renderTarget = viewModel.renderTarget || parentViewChildArray.element || gaffa.views.renderTarget || 'body';
+        viewModel.insertFunction(viewModel.insertSelector || renderTarget, viewModel.renderedElement);
+        
+        return viewModel;
+    }
+    
+    //***********************************************
+    //
+    //      Remove Views
+    //
+    //***********************************************
+    
+    function removeViews(views){
+        if(!views){
+            views = internalViewModels;
+        }
+        
+        views.fastEach(function(viewModel){
+            viewModel.remove();
+        });
     }
         
     //***********************************************
@@ -1244,8 +1326,38 @@
         
         return !!hasDirtyChildren(reference);
     }
+    
+    
+    function addProperty(viewModel, name, update){
+        var newProperty = new Property(),
+            update = function(){
+                return update.call(viewModel[name], viewModel);
+            };
+        
+        for(var key in viewModel[name]){
+            newProperty[key] = viewModel[name][key];
+        }
+        
+        newProperty.update = update;
+        
+        viewModel[name] = newProperty;
+    }
 
     //Public Objects ******************************************************************************
+    
+    //***********************************************
+    //
+    //      Property Object
+    //
+    //***********************************************
+    
+    function Property(updateFunction){
+        this.update = updateFunction;
+    }
+    Property = createSpec(Property); 
+    Property.prototype.bind = bindProperty;
+    Property.prototype.getPath = getViewItemPath;
+    
     
     //***********************************************
     //
@@ -1253,30 +1365,48 @@
     //
     //***********************************************
     
-    function ViewItem(viewItemDescription){
-        if(!viewItemDescription){
-            return this;
+    function ViewItem(){
+        console.log('ViewItem constructor for ' + this.constructor.name);
+        
+        for(var key in this){
+            if(this[key] instanceof Property){
+                this[key] = new Property(this[key].update);
+            }
         }
         
-        extend(this, viewItemDescription);
+        this.actions = {};
         
-        this.path == null && (this.path = "[~]");
-        
-        this.path = Path.parse(this.path);
-    }    
+        this.path = "[~]";
+    }
+    ViewItem = createSpec(ViewItem);
     ViewItem.prototype.bind = function(){
-        for(var key in this.actions){
-            this.actions[key].fastEach(function(action, index, actions){
-                if(gaffa.actions[action.type].prototype instanceof Action){
-                    // New way
-                    actions[index] = new gaffa.actions[action.type](action);
-                }else{
-                    // Legacy way
-                    actions[index] = new Action(action);
+        for(var actionKey in this.actions){
+            var viewModel = this;
+            this.actions[actionKey].fastEach(function(action, index, actions){
+                var action = actions[index];
+                action.bind();
+
+                if (!action.bound) {
+                    $(viewModel.renderedElement).on(actionKey, function (event) {
+                        action.trigger();
+                    });
+                    action.bound = true;
                 }
-                actions[index].bind();
             });
         }
+        
+        for(var propertyKey in this){
+            if(this[propertyKey] instanceof Property){
+                this[propertyKey].bind(this);
+            }
+        }
+    };
+    ViewItem.prototype.detach = function(){
+        $(this.renderedElement).detach()
+    };
+    ViewItem.prototype.remove = function(){
+        this.detach();
+        //remove handlers and such...
     };
     ViewItem.prototype.getPath = getViewItemPath;
     
@@ -1286,29 +1416,42 @@
     //
     //***********************************************
     
-    function View(viewDescription){
-        this.constructor.call(this, viewDescription);
-        
-        var constructor = gaffa.views[this.type];
-        
-        if(!constructor){
-            console.error("No constructor is defined for the view of type: " + this.type);
-        }
-        
-        for(var key in constructor.defaults){
-            extend(this, constructor.defaults);
-        }
-    }
-    View.prototype = new ViewItem();        
+    function View(viewDescription){}
+    View = createSpec(View, ViewItem);          
     View.prototype.bind = function(){
-        this.constructor.prototype.bind.call(this);
-        
-        for(var key in this.views){
-            addView(this.views[key], this, this.viewContainers[key]);
-        }
-                         
-        bindProperties(this);
+        ViewItem.prototype.bind.apply(this, arguments);
     };
+    View.prototype.render = function(){
+        this.renderedElement.viewModel = this;
+    };    
+    View.prototype.classes = new Property(function(){
+        var viewModel = this,
+            property = viewModel.classes,
+            internalClassNames = viewModel.renderedElement.internalClassNames = viewModel.renderedElement.internalClassNames || $(viewModel.renderedElement).attr("class");
+            
+        $(viewModel.renderedElement).attr("class", internalClassNames + " " + property.value);            
+    });
+    
+    // View.prototype.visible = new gaffa.Property(gaffa.propertyUpdaters.bool("visible", function (viewModel, value) {
+        // if (value === false) {
+            // $(viewModel.renderedElement).css("display", "none");
+        // } else {
+            // $(viewModel.renderedElement).css("display", "");
+            
+        // }
+    // }));
+    View.prototype.insertFunction = insertFunction;
+    
+    //***********************************************
+    //
+    //      Container View Object
+    //
+    //***********************************************
+    
+    function ContainerView(viewDescription){
+        this.views = this.views || {};
+    }
+    ContainerView = createSpec(ContainerView, View);    
     
     //***********************************************
     //
@@ -1317,9 +1460,8 @@
     //***********************************************
     
     function Action(actionDescription){
-        this.constructor.apply(this, arguments);
     }
-    Action.prototype = new ViewItem();
+    Action = createSpec(Action, ViewItem);
     
     //***********************************************
     //
@@ -1328,13 +1470,8 @@
     //***********************************************
     
     function Behaviour(behaviourDescription){
-        this.constructor.apply(this, arguments);
-        
-        this.path == null && (this.path = "[~]");
-        
-        this.path = Path.parse(this.path);
-    } 
-    Behaviour.prototype = new ViewItem();
+    }
+    Behaviour = createSpec(Behaviour, ViewItem); 
     
     //***********************************************
     //
@@ -1368,7 +1505,7 @@
         
         self.original = path;
     }
-    Path.prototype = new Array();
+    Path = createSpec(Path, Array); 
     Path.prototype.toString = function(){
         var str = this.join(gaffa.pathSeparator);
         return str && rawToPath(str) || undefined;
@@ -1438,7 +1575,7 @@
         
         self.paths = getPathsInExpression(self);
     }
-    Expression.prototype = new Array();
+    Expression = createSpec(Expression, Array); 
     Expression.prototype.toString = function(){
         return this.original;
     };
@@ -1450,40 +1587,22 @@
     
     //***********************************************
     //
-    //      Property Object
-    //
-    //***********************************************
-    
-    function Property(propertyDescription){
-        if(propertyDescription){
-            extend(this, propertyDescription);
-        }
-        
-        if(this.binding != null){
-            this.binding = Expression.parse(this.binding);
-        }
-    }    
-    Property.prototype.bind = function(parent){
-        this.parent = parent;
-    };
-    Property.prototype.getPath = getViewItemPath;
-    
-    //***********************************************
-    //
     //      View Container Object
     //
     //***********************************************
     
     function ViewContainer(viewContainerDescription){
-        if(viewContainerDescription){
-            extend(this, viewContainerDescription);
-        }
+        var viewContainer = this;
+        viewContainerDescription instanceof Array && viewContainerDescription.fastEach(function(childView){
+            viewContainer.push(childView);
+        });
         
         this.render = new Property(this.render || {value:true});
         this.render.update = function(viewModel){
             
         };
-    }    
+    }
+    ViewContainer = createSpec(ViewContainer, Array); 
     ViewContainer.prototype.bind = function(parent){
         this.parent = parent;
     };
@@ -1495,602 +1614,523 @@
     //
     //***********************************************
 
-    //Creates the public gaffa object
-    //ToDo: remove anonymous functions from here, make it just references to named functions.
-    function newGaffa() {
-
-        function innerGaffa() { }
-
-        innerGaffa.prototype = {
-            addDefaultStyle: addDefaultStyle,
-            Path: Path,
-            Expression: Expression,
-            ViewItem: ViewItem,
-            View: View,
-            Action: Action,
-            Property: Property,
-            paths: {
-                getAbsolutePath: getAbsolutePath,
-                stripUpALevels: function (path) {
-                    var keys = path.split(gaffa.pathSeparator);
-                    for (var index = 0; index < keys.length; index++) {
-                        var key = keys[index];
-                        if (key === gaffa.upALevel) {
-                            keys.splice(Math.max(index - 1, 0), 2);
-                            index -= 2;
-                        }
+    extend(gaffa, {
+        addDefaultStyle: addDefaultStyle,
+        createSpec: createSpec,
+        Path: Path,
+        Expression: Expression,
+        ViewItem: ViewItem,
+        View: View,
+        ContainerView: ContainerView,
+        Action: Action,
+        Property: Property,
+        ViewContainer: ViewContainer,
+        paths: {
+            getAbsolutePath: getAbsolutePath,
+            stripUpALevels: function (path) {
+                var keys = path.split(gaffa.pathSeparator);
+                for (var index = 0; index < keys.length; index++) {
+                    var key = keys[index];
+                    if (key === gaffa.upALevel) {
+                        keys.splice(Math.max(index - 1, 0), 2);
+                        index -= 2;
                     }
-                    return (keys.join(gaffa.pathSeparator));
                 }
+                return (keys.join(gaffa.pathSeparator));
+            }
+        },
+        model: {
+        
+            // *************************************************************************
+            // DO NOT USE THIS API.
+            // If you are using this, you are almost definitally doing something wrong.
+            pauseEvents: pauseModelEvents,
+            resumeEvents: resumeModelEvents,
+            // *************************************************************************
+                            
+            get: modelGet,
+
+            set: function (path, value, viewItem, dirty) {
+                if(Path.mightParse(path)){
+                    if(viewItem){
+                        path = viewItem.getPath().append(path);
+                    }                    
+                    
+                    setDirtyState(path, dirty);
+                }
+                
+                set(path, value, internalModel);
             },
-            model: {
             
-                // *************************************************************************
-                // DO NOT USE THIS API.
-                // If you are using this, you are almost definitally doing something wrong.
-                pauseEvents: pauseModelEvents,
-                resumeEvents: resumeModelEvents,
-                // *************************************************************************
+            remove: function (path, viewItem, dirty) {
+                if(Path.mightParse(path)){
+                    if(viewItem){
+                        path = viewItem.getPath().append(path);
+                    }
+                    
+                    setDirtyState(path, false, dirty);
+                }
+                
+                remove(path, internalModel);
+            },
+
+            bind: setBinding,
+
+            trigger: triggerBinding,
+            
+            isDirty: isDirty,
+            
+            setDirtyState: function(path, dirty, viewItem){
+                if(Path.mightParse(path)){
+                    if(viewItem){
+                        path = viewItem.getPath().append(path);
+                    }
+                }
+                
+                return setDirtyState(path, dirty);
+            }
+        },
+        views: {
+            insertTarget: null,
+            
+            //Add a view or viewModels to another view, or the root list of viewModels if a parent isnt passed.
+            //Set up the viewModels bindings as they are added.
+            add: addView,
+            
+            remove: removeViews,
+
+            //All viewModels get extended with the object that this returns.
+            base: function (viewType, createElement, defaults) {
+                return {
+                    //This is executed when a view is inserted into the page
+                    render: function (viewModel) {
+                        
+                    },
+
+                    //functions under this are executed whenever the data bound to by properties of the same name changes.
+                    update: {
+                        //optionally put standard update methods in here, like for example view visibility:
+                        visible: gaffa.propertyUpdaters.bool("visible", function (viewModel, value) {
+                            if (value === false) {
+                                $(viewModel.renderedElement).css("display", "none");
+                            } else {
+                                $(viewModel.renderedElement).css("display", "");
                                 
-                get: modelGet,
-
-                set: function (path, value, viewItem, dirty) {
-                    if(Path.mightParse(path)){
-                        if(viewItem){
-                            path = viewItem.getPath().append(path);
-                        }                    
-                        
-                        setDirtyState(path, dirty);
-                    }
-                    
-                    set(path, value, internalModel);
-                },
-                
-                remove: function (path, viewItem, dirty) {
-                    if(Path.mightParse(path)){
-                        if(viewItem){
-                            path = viewItem.getPath().append(path);
-                        }
-                        
-                        setDirtyState(path, false, dirty);
-                    }
-                    
-                    remove(path, internalModel);
-                },
-
-                bind: setBinding,
-
-                trigger: triggerBinding,
-                
-                isDirty: isDirty,
-                
-                setDirtyState: function(path, dirty, viewItem){
-                    if(Path.mightParse(path)){
-                        if(viewItem){
-                            path = viewItem.getPath().append(path);
-                        }
-                    }
-                    
-                    return setDirtyState(path, dirty);
-                }
-            },
-            views: {
-                renderTarget: null,
-
-                render: function (viewModels, parent, appendFunction) { //parameters optional.
-
-                    //if its a list of views, render them all
-                    if (viewModels && viewModels.length) {
-                        viewModels.fastEach(function (viewModel, index) {
-                            renderView(viewModel, parent, appendFunction, index);
-                        });
-                    }
-
-                    //if its just one view, just render it
-                    else if (viewModels) {
-                        renderView(viewModels, parent, appendFunction);
-                    }
-
-                    //if nothing is passed in, render ALL the viewModels!
-                    else {
-                        var renderTarget = this.renderTarget || document.getElementsByTagName('body')[0];
-                        internalViewModels.fastEach(function (internalViewModel, index) {
-                            renderView(internalViewModel, renderTarget, appendFunction, index);
-                        });
-                    }
-                },
-
-                //Add a view or viewModels to another view, or the root list of viewModels if a parent isnt passed.
-                //Set up the viewModels bindings as they are added.
-                add: addView,
-
-                get: function (path) {
-                    return get(path, internalViewModels);
-                },
-
-                set: function (path, value) {
-                    if (path !== undefined && Array.isArray(path)) {
-                        while (internalViewModels.length) {
-                            var parent;
-
-                            value = internalViewModels.pop();
-                            if (value.renderedElement && (parent = value.renderedElement.parentNode)) {
-                                parent.removeChild(value.renderedElement);
                             }
-                        }
-                        this.add(path);
+                        }),
 
+                        classes: gaffa.propertyUpdaters.string("classes", function (viewModel, value) {
+                            var internalClassNames = viewModel.renderedElement.internalClassNames = viewModel.renderedElement.internalClassNames || $(viewModel.renderedElement).attr("class");
+                            $(viewModel.renderedElement).attr("class", internalClassNames + " " + value);
+                        })
+                    },
 
-                        return this.render();
-                    }
-
-                    var viewModel,
-                        subPath = path.split(gaffa.pathSeparator),
-                        viewModelPathLength = subPath.length;
-
-                    while (!(viewModel && viewModel.isView)) {
-                        viewModel = get(subPath.slice(0, viewModelPathLength--).join(gaffa.pathSeparator), internalViewModels);
-                    }
-
-                    set(path, value, internalViewModels);
-
-                    if (viewModel.properties && gaffa.views[viewModel.type]) {
-                        for (var key in viewModel.properties) {
-                            gaffa.views[viewModel.type].update[key](viewModel, true);
-                        }
-                    }
-
-                    this.render();
-                },
-
-                //All viewModels get extended with the object that this returns.
-                base: function (viewType, createElement, defaults) {
-                    return {
-                        //This is executed when a view is inserted into the page
-                        render: function (viewModel) {
-                            //only render if the view has not previously been rendered.
-                            if (viewModel.renderedElement) {
-                                return;
-                            }
-
-                            //extend the passed in view with default options for that view type.
-                            extend(viewModel, defaults);
-
-                            //create the root level element for the view
-                            viewModel.renderedElement = createElement(viewModel);
-                            viewModel.renderedElement.viewModel = viewModel;
-
-                            //Automatically fire all of the update functions when the view is first rendered.
-                            for (var key in viewModel.properties) {
-                                var updateFunction = gaffa.views[viewType].update[key];
-                                if (updateFunction && typeof updateFunction === "function") {
-                                    updateFunction(viewModel, true);
-                                }
-                            }
+                    defaults: {
+                        //Set the default view binding to nothing but a relative path.
+                        //This is so all relative bindings flow on nicely.
+                        insertFunction: insertView,
+                        path: gaffa.pathStart + gaffa.relativePath +  gaffa.pathEnd,
+                        properties: {
+                            visible: { value: true },
+                            classes: {}
                         },
+                        isView: true
+                    }
+                };
+            }
+        },
 
-                        //functions under this are executed whenever the data bound to by properties of the same name changes.
-                        update: {
-                            //optionally put standard update methods in here, like for example view visibility:
-                            visible: gaffa.propertyUpdaters.bool("visible", function (viewModel, value) {
-                                if (value === false) {
-                                    $(viewModel.renderedElement).css("display", "none");
-                                } else {
-                                    $(viewModel.renderedElement).css("display", "");
-                                    
-                                }
-                            }),
-
-                            classes: gaffa.propertyUpdaters.string("classes", function (viewModel, value) {
-                                var internalClassNames = viewModel.renderedElement.internalClassNames = viewModel.renderedElement.internalClassNames || $(viewModel.renderedElement).attr("class");
-                                $(viewModel.renderedElement).attr("class", internalClassNames + " " + value);
-                            })
-                        },
-
-                        defaults: {
-                            //Set the default view binding to nothing but a relative path.
-                            //This is so all relative bindings flow on nicely.
-                            insertFunction: insertView,
-                            path: gaffa.pathStart + gaffa.relativePath +  gaffa.pathEnd,
-                            properties: {
-                                visible: { value: true },
-                                classes: {}
-                            },
-                            isView: true
-                        }
-                    };
+        actions: {
+            add: function(key, actions){
+                if(!Array.isArray(actions)){
+                    actions = [actions];
                 }
+                
+                internalActions[key] = actions;
             },
-
-            actions: {
-                add: function(key, actions){
-                    if(!Array.isArray(actions)){
-                        actions = [actions];
-                    }
-                    
-                    internalActions[key] = actions;
-                },
-                trigger: function (actions, parent, context) {
-                    if(typeof actions === "string"){
-                        actions = internalActions[actions];
-                    }
-                    actions instanceof Array && actions.fastEach(function (action) {
-                        triggerAction(action, parent, context);
-                    });
+            trigger: function (actions, parent, context) {
+                if(typeof actions === "string"){
+                    actions = internalActions[actions];
                 }
-            },
+                actions instanceof Array && actions.fastEach(function (action) {
+                    triggerAction(action, parent, context);
+                });
+            }
+        },
 
-            behaviours: {
-                add: function (behaviours) {
-                    //if the views isnt an array, make it one.
-                    if (behaviours && !behaviours.length) {
-                        behaviours = [behaviours];
-                    }
+        behaviours: {
+            add: function (behaviours) {
+                //if the views isnt an array, make it one.
+                if (behaviours && !behaviours.length) {
+                    behaviours = [behaviours];
+                }
 
-                    behaviours.fastEach(function (behaviour, index, behaviours) {
+                behaviours.fastEach(function (behaviour, index, behaviours) {
+                
+                    behaviour = behaviours[index] = new Behaviour(behaviour);
                     
-                        behaviour = behaviours[index] = new Behaviour(behaviour);
-                        
-                        behaviour.bind();
-                        
-                        var behaviourType = behaviour.type;
-                        
-                        if(typeof gaffa.behaviours[behaviourType] === "function"){
-                            behaviour.path = Path.parse(behaviour.path);
-                            gaffa.behaviours[behaviourType](behaviour);
-                        }
-                    });
-                },
-                
-                pageLoad: function(behaviour){
-                    gaffa.actions.trigger(behaviour.actions.load, behaviour);
-                },
-                
-                modelChange: function(behaviour){
-                
-                    function executeBehaviour(behaviour, context){
-                        var currentValue = JSON.stringify(gaffa.model.get(behaviour.path));
-                            if(currentValue !== behaviour.previousValue){
-                                behaviour.previousValue = currentValue;
-                                gaffa.actions.trigger(behaviour.actions.change, behaviour, context);
-                            }
+                    behaviour.bind();
+                    
+                    var behaviourType = behaviour.type;
+                    
+                    if(typeof gaffa.behaviours[behaviourType] === "function"){
+                        behaviour.path = Path.parse(behaviour.path);
+                        gaffa.behaviours[behaviourType](behaviour);
                     }
-                
-                    gaffa.model.bind(behaviour.path, function (modelChangeEvent) {
-                        var context;
-                        if(behaviour.context){
-                            context = Path.parse(behaviour.context);
-                            if(context.last() === gaffa.pathWildcard){
-                                context.pop();
-                                if(modelChangeEvent.target.toRawString().indexOf(context.toRawString()) === 0){
-                                    context.push(modelChangeEvent.target[context.length]);
-                                }
-                            }else{
-                                context = Path.parse(behaviour.path);
-                            }
+                });
+            },
+            
+            pageLoad: function(behaviour){
+                gaffa.actions.trigger(behaviour.actions.load, behaviour);
+            },
+            
+            modelChange: function(behaviour){
+            
+                function executeBehaviour(behaviour, context){
+                    var currentValue = JSON.stringify(gaffa.model.get(behaviour.path));
+                        if(currentValue !== behaviour.previousValue){
+                            behaviour.previousValue = currentValue;
+                            gaffa.actions.trigger(behaviour.actions.change, behaviour, context);
                         }
-                        var throttleTime = behaviour.throttle;
-                        if(!isNaN(throttleTime)){
-                            var now = new Date();
-                            if(!behaviour.lastTrigger || now - behaviour.lastTrigger > throttleTime){
-                                behaviour.lastTrigger = now;
-                                executeBehaviour(behaviour, context);
-                            }else{
-                                clearTimeout(behaviour.timeout);
-                                behaviour.timeout = setTimeout(function(){
-                                        behaviour.lastTrigger = now;
-                                        executeBehaviour(behaviour, context);
-                                    },
-                                    throttleTime - (now - behaviour.lastTrigger)
-                                );
+                }
+            
+                gaffa.model.bind(behaviour.path, function (modelChangeEvent) {
+                    var context;
+                    if(behaviour.context){
+                        context = Path.parse(behaviour.context);
+                        if(context.last() === gaffa.pathWildcard){
+                            context.pop();
+                            if(modelChangeEvent.target.toRawString().indexOf(context.toRawString()) === 0){
+                                context.push(modelChangeEvent.target[context.length]);
                             }
                         }else{
+                            context = Path.parse(behaviour.path);
+                        }
+                    }
+                    var throttleTime = behaviour.throttle;
+                    if(!isNaN(throttleTime)){
+                        var now = new Date();
+                        if(!behaviour.lastTrigger || now - behaviour.lastTrigger > throttleTime){
+                            behaviour.lastTrigger = now;
                             executeBehaviour(behaviour, context);
+                        }else{
+                            clearTimeout(behaviour.timeout);
+                            behaviour.timeout = setTimeout(function(){
+                                    behaviour.lastTrigger = now;
+                                    executeBehaviour(behaviour, context);
+                                },
+                                throttleTime - (now - behaviour.lastTrigger)
+                            );
                         }
-                    });
-                },
-                                
-                interval: function(behaviour){
-                    internalIntervals.push(setInterval(function(){
-                        gaffa.actions.trigger(behaviour.actions, behaviour.path);
-                    },behaviour.time || 5000)); //If you forget to set the interval, we will be nice and give you 5 seconds of debug time by default, rather than 0ms looping you to death.
-                }
+                    }else{
+                        executeBehaviour(behaviour, context);
+                    }
+                });
             },
-
-            utils: {
-                get: get,
-                
-                set: set,
-                //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
-                getProp: function (object, propertiesString) {
-                    var properties = propertiesString.split(gaffa.pathSeparator).reverse();
-                    while (properties.length) {
-                        var nextProp = properties.pop();
-                        if (object[nextProp] !== undefined && object[nextProp] !== null) {
-                            object = object[nextProp];
-                        } else {
-                            return;
-                        }
-                    }
-                    return object;
-                },
-                //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
-                propExists: function (object, propertiesString) {
-                    var properties = propertiesString.split(".").reverse();
-                    while (properties.length) {
-                        var nextProp = properties.pop();
-                        if (object[nextProp] !== undefined && object[nextProp] !== null) {
-                            object = object[nextProp];
-                        } else {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-            },
-
-            propertyUpdaters: {
-
-                string: function (propertyName, callback, setValue) {
-                    if (typeof propertyName === "object") {
-                        //passed a property object, doing a set.
-                        var viewModel = propertyName,
-                        propertyObject = callback,
-                        string = setValue;
-                        
-                        gaffa.model.set(propertyObject.binding, string, viewModel);
-                    } else {
-                        return function (viewModel, firstRun) {
-                            var property = viewModel.properties[propertyName],
-                                element = viewModel.renderedElement,
-                                convertDateToString = function (date){
-                                    if(date && date instanceof Date && typeof gaffa.dateFormatter === "function"){
-                                        return gaffa.dateFormatter(date);
-                                    }else{
-                                        return date;
-                                    }
-                                };
-                                
-                            if (property.value !==  property.previousValue || firstRun) {
-                                if(property.value == null){
-                                    property.value = "";
-                                }
-                                property.value = convertDateToString(property.value).toString();
-                                if (element) {
-                                    callback(viewModel, property.value);
-                                }
-                            }
-                            property.previousValue = property.value;
-                        };
-                    }
-                },
-                
-                number: function (propertyName, callback, setValue) {
-                    if (typeof propertyName === "object") {
-                        //passed a property object, doing a set.
-                        var viewModel = propertyName,
-                        propertyObject = callback,
-                        number = setValue;
-
-                        gaffa.model.set(propertyObject.binding, number, viewModel);
-                        
-                    } else {
-                        return function (viewModel, firstRun) {
-                            var property = viewModel.properties[propertyName],
-                                value = property.value,
-                                element = viewModel.renderedElement;
                             
-                            if (property.previousValue !== value || firstRun) {
-                                property.previousValue = value;
-                                if (element) {
-                                    callback(viewModel, value);
-                                }
-                            }
-                        };
+            interval: function(behaviour){
+                internalIntervals.push(setInterval(function(){
+                    gaffa.actions.trigger(behaviour.actions, behaviour.path);
+                },behaviour.time || 5000)); //If you forget to set the interval, we will be nice and give you 5 seconds of debug time by default, rather than 0ms looping you to death.
+            }
+        },
+
+        utils: {
+            get: get,
+            
+            set: set,
+            //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
+            getProp: function (object, propertiesString) {
+                var properties = propertiesString.split(gaffa.pathSeparator).reverse();
+                while (properties.length) {
+                    var nextProp = properties.pop();
+                    if (object[nextProp] !== undefined && object[nextProp] !== null) {
+                        object = object[nextProp];
+                    } else {
+                        return;
                     }
-                },
-                
-                collection: function (propertyName, insert, remove, empty) {
-                    return function (viewModel, firstRun) {
-                        var property = viewModel.properties[propertyName],
-                            sort = property.sort,
-                            valueLength = 0,
-                            childViews = viewModel.viewContainers[propertyName],
-                            value = property.value,
-                            calculateValueLength = function(){
-                                if(Array.isArray(value)){
-                                    return value.length;
-                                }else if(typeof value === "object"){
-                                    return Object.keys(value).length;
+                }
+                return object;
+            },
+            //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
+            propExists: function (object, propertiesString) {
+                var properties = propertiesString.split(".").reverse();
+                while (properties.length) {
+                    var nextProp = properties.pop();
+                    if (object[nextProp] !== undefined && object[nextProp] !== null) {
+                        object = object[nextProp];
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        },
+
+        propertyUpdaters: {
+
+            string: function (propertyName, callback, setValue) {
+                if (typeof propertyName === "object") {
+                    //passed a property object, doing a set.
+                    var viewModel = propertyName,
+                    propertyObject = callback,
+                    string = setValue;
+                    
+                    gaffa.model.set(propertyObject.binding, string, viewModel);
+                } else {
+                    return function () {
+                        var viewModel = this,
+                            property = viewModel[propertyName],
+                            element = viewModel.renderedElement,
+                            convertDateToString = function (date){
+                                if(date && date instanceof Date && typeof gaffa.dateFormatter === "function"){
+                                    return gaffa.dateFormatter(date);
+                                }else{
+                                    return date;
                                 }
                             };
                             
-                        if (value && typeof value === "object"){
-
-                            var element = viewModel.renderedElement;
-                            if (element && property.template) {
-                                var newView,
-                                    isEmpty = true;
-                                
-                                //Remove any child nodes who no longer exist in the data
-                                for(var i = 0; i < childViews.length; i++){
-                                    var childView = childViews[i];
-                                    if(!value[childView.key]){
-                                        childViews.splice(i, 1);
-                                        i--;
-                                        remove(viewModel, value, childView);
-                                    }
-                                }
-                                
-                                //Add items which do not exist in the dom
-                                for (var key in value) {
-                                    if(Array.isArray(value) && isNaN(key)){
-                                        continue;
-                                    }
-                                    
-                                    isEmpty = false;
-                                    
-                                    var existingChildView = false;
-                                    for(var i = 0; i < childViews.length; i++){
-                                        var child = childViews[i];
-                                        if(child.key === key){
-                                            existingChildView = child;
-                                        }
-                                    }
-                                    
-                                    if (!existingChildView) {
-                                        newView = {key: key};
-                                        insert(viewModel, value, newView);
-                                    }
-                                }
-                                
-                                empty(viewModel, isEmpty);
-                                    
-                                if(sort && !isEmpty){
-                                                                
-                                    childViews.sort(function(a,b){
-                                    
-                                        //Im hyjacking the fact that sort hits every childView
-                                        //to reset the isRendered flag. I could run a loop before this that
-                                        //reset it but this cuts down on a loop...
-                                        b.isRendered = false;
-                                        
-                                        return gaffa.utils.getProp(value[a.key], sort) - gaffa.utils.getProp(value[b.key], sort);
-                                    });
-                                    
-                                    window.gaffa.views.render(childViews, childViews.element);
-                                }
+                        if (property.value !==  property.previousValue) {
+                            if(property.value == null){
+                                property.value = "";
                             }
-                        }else{
-                            childViews.fastEach(function(childView, index){
-                                childViews.splice(index, 1);
-                                remove(viewModel, value, childView);
-                            });
+                            property.value = convertDateToString(property.value).toString();
+                            if (element) {
+                                callback(viewModel, property.value);
+                            }
+                        }
+                        property.previousValue = property.value;
+                    };
+                }
+            },
+            
+            number: function (propertyName, callback, setValue) {
+                if (typeof propertyName === "object") {
+                    //passed a property object, doing a set.
+                    var viewModel = propertyName,
+                    propertyObject = callback,
+                    number = setValue;
+
+                    gaffa.model.set(propertyObject.binding, number, viewModel);
+                    
+                } else {
+                    return function () {
+                        var viewModel = this,
+                            property = viewModel[propertyName],
+                            value = property.value,
+                            element = viewModel.renderedElement;
+                        
+                        if (property.previousValue !== value) {
+                            property.previousValue = value;
+                            if (element) {
+                                callback(viewModel, value);
+                            }
                         }
                     };
-                },
-                
-                group: function (propertyName, insert, remove, empty) {
-                    return function (viewModel, firstRun) {
-                        var property = viewModel.properties[propertyName],
-                            value = property.value,
-                            childViews = viewModel.viewContainers[propertyName],
-                            newView,
-                            isEmpty;
+                }
+            },
+            
+            collection: function (propertyName, insert, remove, empty) {
+                return function () {
+                    var viewModel = this,
+                        property = viewModel[propertyName],
+                        sort = property.sort,
+                        valueLength = 0,
+                        childViews = viewModel.views[propertyName],
+                        value = property.value,
+                        calculateValueLength = function(){
+                            if(Array.isArray(value)){
+                                return value.length;
+                            }else if(typeof value === "object"){
+                                return Object.keys(value).length;
+                            }
+                        };
                         
-                        if (value && typeof value === "object"){
+                    if (value && typeof value === "object"){
+
+                        var element = viewModel.renderedElement;
+                        if (element && property.template) {
+                            var newView,
+                                isEmpty = true;
                             
-                            viewModel.distinctGroups = getDistinctGroups(property.value, property.group);
-                            
+                            //Remove any child nodes who no longer exist in the data
                             for(var i = 0; i < childViews.length; i++){
                                 var childView = childViews[i];
-                                if(viewModel.distinctGroups.indexOf(childView.group)<0){
+                                if(!value[childView.key]){
                                     childViews.splice(i, 1);
                                     i--;
                                     remove(viewModel, value, childView);
                                 }
                             }
                             
-                            viewModel.distinctGroups.fastEach(function(group){
-                                var exists = false;
-                                childViews.fastEach(function(child){
-                                    if(child.group === group){
-                                        exists = true;
-                                    }
-                                });
+                            //Add items which do not exist in the dom
+                            for (var key in value) {
+                                if(Array.isArray(value) && isNaN(key)){
+                                    continue;
+                                }
                                 
-                                if (!exists) {
-                                    newView = {group: group};
+                                isEmpty = false;
+                                
+                                var existingChildView = false;
+                                for(var i = 0; i < childViews.length; i++){
+                                    var child = childViews[i];
+                                    if(child.key === key){
+                                        existingChildView = child;
+                                    }
+                                }
+                                
+                                if (!existingChildView) {
+                                    newView = {key: key};
                                     insert(viewModel, value, newView);
                                 }
-                            });
-                                                        
-                            isEmpty = !childViews.length;
-                                                        
+                            }
+                            
                             empty(viewModel, isEmpty);
-                        }else{
-                            childViews.fastEach(function(childView, index){
-                                childViews.splice(index, 1);
-                                remove(viewModel, property.value, childView);
+                                
+                            if(sort && !isEmpty){
+                                                            
+                                childViews.sort(function(a,b){
+                                
+                                    //Im hyjacking the fact that sort hits every childView
+                                    //to reset the isRendered flag. I could run a loop before this that
+                                    //reset it but this cuts down on a loop...
+                                    b.isRendered = false;
+                                    
+                                    return gaffa.utils.getProp(value[a.key], sort) - gaffa.utils.getProp(value[b.key], sort);
+                                });
+                                
+                                window.gaffa.views.render(childViews, childViews.element);
+                            }
+                        }
+                    }else{
+                        childViews.fastEach(function(childView, index){
+                            childViews.splice(index, 1);
+                            remove(viewModel, value, childView);
+                        });
+                    }
+                };
+            },
+            
+            group: function (propertyName, insert, remove, empty) {
+                return function () {
+                    var viewModel = this,
+                        property = viewModel[propertyName],
+                        value = property.value,
+                        childViews = viewModel.views[propertyName],
+                        newView,
+                        isEmpty;
+                    
+                    if (value && typeof value === "object"){
+                        
+                        viewModel.distinctGroups = getDistinctGroups(property.value, property.group);
+                        
+                        for(var i = 0; i < childViews.length; i++){
+                            var childView = childViews[i];
+                            if(viewModel.distinctGroups.indexOf(childView.group)<0){
+                                childViews.splice(i, 1);
+                                i--;
+                                remove(viewModel, value, childView);
+                            }
+                        }
+                        
+                        viewModel.distinctGroups.fastEach(function(group){
+                            var exists = false;
+                            childViews.fastEach(function(child){
+                                if(child.group === group){
+                                    exists = true;
+                                }
                             });
+                            
+                            if (!exists) {
+                                newView = {group: group};
+                                insert(viewModel, value, newView);
+                            }
+                        });
+                                                    
+                        isEmpty = !childViews.length;
+                                                    
+                        empty(viewModel, isEmpty);
+                    }else{
+                        childViews.fastEach(function(childView, index){
+                            childViews.splice(index, 1);
+                            remove(viewModel, property.value, childView);
+                        });
+                    }
+                };
+            },
+
+            bool: function (propertyName, callback, value) {
+                if (typeof propertyName === "object") {
+                    //passed a property object, doing a set.
+                    var viewModel = propertyName,
+                    propertyObject = callback;
+
+                    gaffa.model.set(propertyObject.binding, value, viewModel);
+                    
+                } else {
+                    return function () {
+                        var viewModel = this,
+                            property = viewModel[propertyName],
+                            value = property.value;
+                        if (property.previousValue !== value) {
+                            property.previousValue = value;
+                            callback(viewModel, property.value);
                         }
                     };
-                },
-
-                bool: function (propertyName, callback, value) {
-                    if (typeof propertyName === "object") {
-                        //passed a property object, doing a set.
-                        var viewModel = propertyName,
-                        propertyObject = callback;
-
-                        gaffa.model.set(propertyObject.binding, value, viewModel);
-                        
-                    } else {
-                        return function (viewModel, firstRun) {
-                            var property = viewModel.properties[propertyName],
-                                value = property.value;
-                            if (property.previousValue !== value || firstRun) {
-                                property.previousValue = value;
-                                callback(viewModel, property.value);
-                            }
-                        };
-                    }
-                },
-                
-                // ToDo: I dont like this...
-                object: function (propertyName, callback) {
-                    return function (viewModel, firstRun) {
-                        var property = viewModel.properties[propertyName],
-                            value = property.value;
-
-                        callback(viewModel, property.value);
-                    };
                 }
             },
+            
+            // ToDo: I dont like this...
+            object: function (propertyName, callback) {
+                return function () {
+                    var viewModel = this,
+                        property = viewModel[propertyName],
+                        value = property.value;
 
-            navigate: navigate,
-            
-            notifications:{  
-                add: addNotification,
-                notify: notify
-            },
-            
-            load: function(app, pushPageState){
-                        
-                var title;
-                        
-                if(app !== undefined && app !== null && app.title){
-                    title = app.title;
-                }
-                if(pushPageState){
-                    // ToDo: Push state no worksies in exploder.
-                    history.pushState(app, title, document.location);
-                }
-                load(app);
-            },
-            
-            //If you want to load the values in query strings into the pages model.
-            queryStringToModel: queryStringToModel,
-            
-            //This is here so i can remove it later and replace with a better verson.
-            extend: extend,
-            
-            clone: function(value){
-                if(value != null && typeof value === "object"){
-                    if(Array.isArray(value)){
-                        return value.slice();
-                    }else if (value instanceof Date) {
-                        return new Date(value);
-                    }else{
-                        return $.extend(true, {}, value);
-                    }
-                }
-                return value;
+                    callback(viewModel, property.value);
+                };
             }
+        },
 
-        };
+        navigate: navigate,
+        
+        notifications:{  
+            add: addNotification,
+            notify: notify
+        },
+        
+        load: function(app, pushPageState){
+                    
+            var title;
+                    
+            if(app !== undefined && app !== null && app.title){
+                title = app.title;
+            }
+            if(pushPageState){
+                // ToDo: Push state no worksies in exploder.
+                history.pushState(app, title, document.location);
+            }
+            load(app);
+        },
+        
+        //If you want to load the values in query strings into the pages model.
+        queryStringToModel: queryStringToModel,
+        
+        //This is here so i can remove it later and replace with a better verson.
+        extend: extend,
+        
+        clone: function(value){
+            if(value != null && typeof value === "object"){
+                if(Array.isArray(value)){
+                    return value.slice();
+                }else if (value instanceof Date) {
+                    return new Date(value);
+                }else{
+                    return $.extend(true, {}, value);
+                }
+            }
+            return value;
+        }
 
-        return new innerGaffa();
-
-    }
+    });
 })();

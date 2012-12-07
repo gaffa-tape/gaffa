@@ -1,26 +1,23 @@
 (function(undefined) {
     var viewType = "dropdown",
 		showEvents = {};
-    
-    window.gaffa.views = window.gaffa.views || {};
-    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
-	
-	/*
-		I dislike adding styling via JS, but i dislike adding functionality via CSS.
-		I think this is a good trade, as it will work without custom CSS, and it wont
-		get in the way if a developer wants to override it with CSS.	
-	*/
 	
 	gaffa.addDefaultStyle(".dropdown .content.hidden{display:none;}");
 
+    function Dropdown(){        
+        this.type = viewType;        
+        this.views.content = new gaffa.ViewContainer(this.views.content);
+        this.views.activator = new gaffa.ViewContainer(this.views.activator);
+    }
+    Dropdown = gaffa.createSpec(Dropdown, gaffa.ContainerView);
     
-    function createElement(viewModel) {
+    Dropdown.prototype.render = function(){
         var classes = viewType;
         
         var renderedElement = $(document.createElement('div')),
 			activator = $(document.createElement('button')),
 			content = $(document.createElement('div')),
-			showEvent = viewModel.showEvent || 'click';
+			showEvent = this.showEvent || 'click';
 			
 		activator.addClass('activator').attr('type','button');
 		content.addClass('content hidden');
@@ -28,8 +25,8 @@
 		
 		renderedElement.append(activator, content);
         
-        viewModel.viewContainers.activator.element = activator[0];
-        viewModel.viewContainers.content.element = content[0];
+        this.views.activator.element = activator[0];
+        this.views.content.element = content[0];
 		
 		//Hook up any show/hide events if needed. Skip if not needed.
 		showEvents[showEvent] = showEvents[showEvent] || (function(){
@@ -67,28 +64,13 @@
 			return true;
 		})();
         
-        return renderedElement[0];
-    }
-
-    function newView() {
+        this.views.content.element = renderedElement.find('.content')[0];
+        this.views.activator.element = renderedElement.find('.activator')[0];
         
-        function view() {
-        }    
+        this.renderedElement = renderedElement[0];
         
-        view.prototype = {
-            defaults: {
-                viewContainers:{
-                    content:[],
-                    activator:[]
-                },
-                properties: {
-                    visible: {}
-                }
-            }
-        };
-        
-        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-                
-        return new view();
-    }
+        this.__super__.render.apply(this, arguments);
+    };
+    
+    gaffa.views[viewType] = Dropdown;
 })();

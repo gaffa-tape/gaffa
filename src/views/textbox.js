@@ -15,9 +15,9 @@
         $(input).removeClass('error');
                 
         if ($(input).attr("type") === "number") {
-            window.gaffa.propertyUpdaters.string(input.viewModel, input.viewModel.properties.value, parseFloat($(input).val()), matchFail);
+            window.gaffa.propertyUpdaters.string(input.viewModel, input.viewModel.value, parseFloat($(input).val()), matchFail);
         } else {
-            window.gaffa.propertyUpdaters.string(input.viewModel, input.viewModel.properties.value, $(input).val(), matchFail);
+            window.gaffa.propertyUpdaters.string(input.viewModel, input.viewModel.value, $(input).val(), matchFail);
         } 
     }  
     
@@ -26,8 +26,8 @@
 
         var renderedElement = cachedElement || (cachedElement = document.createElement('input'));
 
-        if (viewModel.properties.name.value) {
-            renderedElement.setAttribute("name", viewModel.properties.name.value)
+        if (viewModel.name.value) {
+            renderedElement.setAttribute("name", viewModel.name.value)
         }
 
         renderedElement = $(renderedElement.cloneNode(true)).addClass(classes)[0];

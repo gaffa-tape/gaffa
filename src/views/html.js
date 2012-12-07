@@ -1,43 +1,30 @@
-//    Properties:
-//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "html";
+    var viewType = "html",
+		cachedElement;
+        
+    function Html(){
+        this.type = viewType;
+    }
+    Html = gaffa.createSpec(Html, gaffa.View);
     
-    window.gaffa.views = window.gaffa.views || {};
-    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
-    
-    function createElement(viewModel) {
+    Html.prototype.render = function(){
         var classes = viewType;
         
         var renderedElement = document.createElement('span');
-                
-        return renderedElement;
-    }
-
-    function newView() {
         
-        function view() {
-        }    
+        this.renderedElement = renderedElement;
         
-        view.prototype = {
-            update: {
-                html: window.gaffa.propertyUpdaters.string("html", function(viewModel, value){
-                    if(value !== null && value !== undefined){
-                        viewModel.renderedElement.innerHTML = value;
-                    }else{
-                        viewModel.renderedElement.innerHTML = "";
-                    }
-                })
-            },
-            defaults: {
-                properties: {
-                    visible: {}
-                }
-            }
-        };
-        
-        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-                
-        return new view();
-    }
+        this.__super__.render.apply(this, arguments);
+    };
+    
+    Html.prototype.html = new gaffa.Property(window.gaffa.propertyUpdaters.string("html", function(viewModel, value){
+        if(value !== null && value !== undefined){
+            viewModel.renderedElement.innerHTML = value;
+        }else{
+            viewModel.renderedElement.innerHTML = "";
+        }
+    }));
+    
+    gaffa.views[viewType] = Html;
+    
 })();

@@ -11,7 +11,7 @@
 
         var renderedElement = $(document.createElement('a')).addClass(classes)[0];
 
-        viewModel.viewContainers.content.element = renderedElement;
+        viewModel.views.content.element = renderedElement;
 
         return renderedElement;
     }
@@ -39,7 +39,7 @@
                 })
             },
             defaults: {
-                viewContainers: {
+                views: {
                     content: []
                 },
                 properties: {
