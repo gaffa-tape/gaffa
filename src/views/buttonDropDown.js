@@ -38,7 +38,7 @@
         </div>
         */
 
-        viewModel.views.content.element = renderedElement;
+        viewModel.viewContainers.content.element = renderedElement;
         
         return renderedElement;
     }
@@ -51,15 +51,15 @@
         view.prototype = {
             update: {  
                 showSplitButton: function(viewModel, value, firstRun) {
-                    if(viewModel.showSplitButton.value !== value || firstRun){
-                        viewModel.showSplitButton.value = value;
+                    if(viewModel.properties.showSplitButton.value !== value || firstRun){
+                        viewModel.properties.showSplitButton.value = value;
                         var element = $(viewModel.renderedElement);
                         if(element){
                             var button = $(document.createElement('button')).addClass('btn'),
                                 toggle = $(document.createElement('button')).addClass('btn dropdown-toggle'),
                                 caret = $(document.createElement('span')).addClass('caret'),
                                 menu = $(document.createElement('ul')).addClass('dropdown-menu');
-                            if (viewModel.showSplitButton.value === true) {
+                            if (viewModel.properties.showSplitButton.value === true) {
                                 element.append(button, toggle.append(caret), menu);    
                             } else {
                                 element.append(toggle.append(caret), menu);
@@ -69,7 +69,7 @@
                 }              
             },
             defaults: {
-                views:{
+                viewContainers:{
                     content:[]
                 },
                 properties: {

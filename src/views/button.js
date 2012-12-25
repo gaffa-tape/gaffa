@@ -28,7 +28,7 @@
         }
     }));
     
-    Button.prototype.subtype = new gaffa.Property(window.gaffa.propertyUpdaters.string("subType", function(viewModel, value){
+    Button.prototype.subType = new gaffa.Property(window.gaffa.propertyUpdaters.string("subType", function(viewModel, value){
         viewModel.renderedElement.setAttribute("type", value || 'button');
     }));
     

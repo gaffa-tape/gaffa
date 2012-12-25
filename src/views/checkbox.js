@@ -1,21 +1,21 @@
-//    Properties:
-//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-        
-    var viewType = "checkbox";
+    var gaffa = window.gaffa,
+        viewType = "checkbox",
+		cachedElement;
     
-    window.gaffa.views = window.gaffa.views || {};
-    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
-
-    function createElement(viewModel) {
-        var classes = viewType;
+    function Checkbox(){}
+    Checkbox = gaffa.createSpec(Checkbox, gaffa.View);
+    Checkbox.prototype.type = viewType;
+    
+    Checkbox.prototype.render = function(){
+         var classes = viewType;
         
         var renderedElement = document.createElement('span'),        
             label = document.createElement('label'),
             checkboxId = parseInt(Math.random() * 100000), //Dodgy as.... don't like it? submit a pull request.
             checkbox = $(document.createElement('input')).attr('type', 'checkbox').attr('id', checkboxId)[0];
         
-        $(checkbox).bind(viewModel.updateEventName || "change", function(event){
+        $(checkbox).bind(this.updateEventName || "change", function(event){
             var viewModel = $(this).parent()[0].viewModel;
             window.gaffa.propertyUpdaters.bool(viewModel, viewModel.checked, $(this).is(":checked"));            
         });     
@@ -24,45 +24,28 @@
         renderedElement.appendChild(label);
         renderedElement.className = classes;
 		
-        viewModel.views.content.element = label;
-                
-        return renderedElement;
-    }
-
-    function newView() {
+        this.views.content.element = label;
         
-        function view() {
-        }    
+        this.renderedElement = renderedElement;
         
-        view.prototype = {
-            update: {
-                checked: function(viewModel) {   
-                    if(viewModel.checked.value){
-                        $(viewModel.renderedElement).children('input').attr("checked", "checked");      
-                    }else{
-                        $(viewModel.renderedElement).children('input').removeAttr("checked");      
-                    }
-                },
-                text: window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
-                    if(value !== null && value !== undefined){
-                        $(viewModel.renderedElement).find('label').text(value);
-                    }else{
-                        $(viewModel.renderedElement).find('label').text("");
-                    }
-                })
-            },
-            defaults: {
-				views:{
-					content:[]
-				},
-                properties: {
-                    checked:{}
-                }
-            }
-        };
-        
-        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-        
-        return new view();
-    }
+        this.__super__.render.apply(this, arguments);
+    };
+    
+    Checkbox.prototype.checked = new gaffa.Property(function() {   
+        if(this.checked.value){
+            $(this.renderedElement).children('input').attr("checked", "checked");      
+        }else{
+            $(this.renderedElement).children('input').removeAttr("checked");      
+        }
+    });
+    Checkbox.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
+        if(value !== null && value !== undefined){
+            $(viewModel.renderedElement).find('label').text(value);
+        }else{
+            $(viewModel.renderedElement).find('label').text("");
+        }
+    }));
+    
+    gaffa.views[viewType] = Checkbox;
+    
 })();

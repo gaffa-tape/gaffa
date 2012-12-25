@@ -1,36 +1,31 @@
-//    Properties:
-//        styles: container | container-fluid | row | row-fluid | span* | offset*
 (function(undefined) {
-    var viewType = "code";
+    var gaffa = window.gaffa,
+        viewType = "code";
     
-    window.gaffa.views = window.gaffa.views || {};
-    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
+    if (navigator.appName == 'Microsoft Internet Explorer'&&
+        parseFloat(findShitBrowsersRegex.exec(navigator.userAgent)[1])<9
+    ){
+        shit = true;
+    }
+        
+    function Code(){}
+    Code = gaffa.createSpec(Code, gaffa.View);
+    Code.prototype.type = viewType;
     
-    function createElement(viewModel) {
+    Code.prototype.render = function(){
         var classes = viewType;
         
         var renderedElement = $(document.createElement('code')).addClass(classes).attr('tabindex','0')[0];
         
-        return renderedElement;
-    }
-
-    function newView() {
+        this.renderedElement = renderedElement;
         
-        function view() {
-        }    
-        
-        view.prototype = {
-            update: {
-                code: window.gaffa.propertyUpdaters.string("code", function(viewModel, value){
-                    viewModel.renderedElement.innerText = value;
-                })
-            },
-            defaults: {
-            }
-        };
-        
-        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-                
-        return new view();
-    }
+        this.__super__.render.apply(this, arguments);
+    };
+    
+    Code.prototype.code = new gaffa.Property(window.gaffa.propertyUpdaters.string("code", function(viewModel, value){
+        viewModel.renderedElement.innerText = value;
+    }));
+    
+    gaffa.views[viewType] = Code;
+    
 })();

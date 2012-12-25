@@ -1,88 +1,73 @@
 (function (undefined) {
-    var viewType = "radio";
+    var gaffa = window.gaffa,
+        viewType = "radio";
 
-    window.gaffa.views = window.gaffa.views || {};
-    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
-
-    function createElement(viewModel) {
-        var classes = viewType;
-
-        var renderedElement = document.createElement('div');
+    function Radio(){}
+    Radio = gaffa.createSpec(Radio, gaffa.View);
+    Radio.prototype.type = viewType;
+    Radio.prototype.render = function() {
+        var classes = viewType,
+            viewModel = this,
+            renderedElement = document.createElement('div');
 
         renderedElement.className = classes;
-
-        $(renderedElement).bind(viewModel.updateEventName || "change", function () {
+        
+        $(renderedElement).bind(this.updateEventName || "change", function () {
             window.gaffa.model.set(viewModel.value.binding, $(this).find(':checked').val(), viewModel);
         });
 
-        return renderedElement;
+        this.renderedElement = renderedElement;
+        
+        this.__super__.render.apply(this, arguments);
     }
 
-    function newView() {
+    
+    Radio.prototype.options = new gaffa.Property(function () {
+        var property = this.options,
+            value = property.value,                        
+            element = $(this.renderedElement),
+            groupName = this.groupName.value;
 
-        function view() {
+        if (!Array.isArray(value)) {
+            value = [];
         }
 
-        view.prototype = {
-            update: {
-                options: function (viewModel, firstRun) {
-                    var property = viewModel.options,
-                        value = property.value,                        
-                        element = $(viewModel.renderedElement),
-                        groupName = viewModel.groupName.value;
+        if (element) {
+            element.empty();
+            for (var i = 0; i < value.length; i++) {
+                var optionData = value[i];
+                if (optionData !== undefined) {
+                    var option = document.createElement('input'),
+                        label = document.createElement('label'),
+                        container = document.createElement('div'),
+                        currentValue = gaffa.utils.getProp(value, i + gaffa.pathSeparator + property.valuePath);
 
-                    if (!Array.isArray(value)) {
-                        value = [];
-                    }
+                    option.setAttribute('type', 'radio');
+                    option.setAttribute('name', groupName);
 
-                    if (element) {
-                        element.empty();
-                        for (var i = 0; i < value.length; i++) {
-                            var optionData = value[i];
-                            if (optionData !== undefined) {
-                                var option = document.createElement('input'),
-                                    label = document.createElement('label'),
-                                    container = document.createElement('div'),
-                                    currentValue = gaffa.utils.getProp(value, i + gaffa.pathSeparator + property.valuePath);
+                    option.setAttribute('value', currentValue);
+                    option.setAttribute('id', groupName + currentValue);
+                    label.innerHTML = gaffa.utils.getProp(value, i + gaffa.pathSeparator + property.textPath);
+                    label.setAttribute('for', groupName + currentValue);
 
-                                option.setAttribute('type', 'radio');
-                                option.setAttribute('name', groupName);
-
-                                option.setAttribute('value', currentValue);
-                                option.setAttribute('id', groupName + currentValue);
-                                label.innerHTML = gaffa.utils.getProp(value, i + gaffa.pathSeparator + property.textPath);
-                                label.setAttribute('for', groupName + currentValue);
-
-                                element.append($(container).append(option, label));
-                            }
-                        }
-                    }
-                },
-                value: function (viewModel, firstRun) {
-                    var value = viewModel.value.value,
-                        options = $(viewModel.renderedElement).find('input');
-                        
-                    options.each(function(){
-                        var option = $(this);
-                        if(value === option.attr('value')){
-                            option.attr("checked", "checked");
-                        }
-                    });
-                }
-            },
-            defaults: {
-                properties: {
-                    value: {},
-                    options: {},
-                    optionText: {},
-                    optionValue: {}
+                    element.append($(container).append(option, label));
                 }
             }
-        };
-
-        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-
-        return new view();
-    }
+        }
+    });
+    
+    Radio.prototype.value = new gaffa.Property(function () {
+        var value = this.value.value,
+            options = $(this.renderedElement).find('input');
+            
+        options.each(function(){
+            var option = $(this);
+            if(value === option.attr('value')){
+                option.attr("checked", "checked");
+            }
+        });
+    });
+            
+    gaffa.views[viewType] = Radio;
 
 })();

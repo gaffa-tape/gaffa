@@ -17,7 +17,7 @@
         renderedElement.attr('type', 'datetime-local');
 
         renderedElement.bind(viewModel.updateEventName || (isiPad ? "blur" : "change"), function () {
-            window.gaffa.model.set(viewModel.value.binding, this.value, viewModel);                
+            window.gaffa.model.set(viewModel.properties.value.binding, this.value, viewModel);                
         });
 
         return renderedElement[0];
@@ -32,7 +32,7 @@
             update: {
                 value: function (viewModel, firstRun) {
                     var element = $(viewModel.renderedElement),
-                        value = viewModel.value.value;
+                        value = viewModel.properties.value.value;
                     if (element) {
                         if (value !== undefined) {
                             element.attr('value', value);                            

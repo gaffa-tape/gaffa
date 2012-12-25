@@ -3,10 +3,10 @@
 		cachedElement;
     
     function Container(){
-        this.type = viewType;
         this.views.content = new gaffa.ViewContainer(this.views.content);
     }
     Container = gaffa.createSpec(Container, gaffa.ContainerView);
+    Container.prototype.type = viewType;
     
     Container.prototype.render = function(){
         var classes = viewType;

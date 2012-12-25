@@ -17,7 +17,7 @@
             brand = $(document.createElement('a')).addClass('brand').attr('href', '#'),
             renderedElement = mainBar.append(innerBar.append(container.append(brand)))[0];
         
-        //viewModel.views.content.element = renderedElement;
+        //viewModel.viewContainers.content.element = renderedElement;
                 
         return renderedElement;
     }
@@ -33,11 +33,11 @@
                     $(viewModel.renderedElement).find('a').html(value);
                 }),
                 fixed: function(viewModel, value, firstRun){
-                    if(viewModel.fixed.value !== value || firstRun){
-                        viewModel.fixed.value = value;
+                    if(viewModel.properties.fixed.value !== value || firstRun){
+                        viewModel.properties.fixed.value = value;
                         var element = $(viewModel.renderedElement);
                         if(element){
-                           if (viewModel.fixed.value)
+                           if (viewModel.properties.fixed.value)
                             {
                                 element.addClass("navbar-fixed-top");
                             }
@@ -45,12 +45,12 @@
                     } 
                 },
                 alignment: function(viewModel, value, firstRun){
-                    if(viewModel.alignment.value !== value || firstRun){
-                        viewModel.alignment.value = value;
+                    if(viewModel.properties.alignment.value !== value || firstRun){
+                        viewModel.properties.alignment.value = value;
                         var element = $(viewModel.renderedElement);
                         if(element){                            
                             element.removeClass("pull-right pull-left");
-                            switch (viewModel.alignment.value)
+                            switch (viewModel.properties.alignment.value)
                             {
                                 case "right":
                                     element.addClass("pull-right");

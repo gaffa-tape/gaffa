@@ -9,10 +9,9 @@
         shit = true;
     }
         
-    function Text(){
-        this.type = viewType;
-    }
+    function Text(){}
     Text = gaffa.createSpec(Text, gaffa.View);
+    Text.prototype.type = viewType;
     
     Text.prototype.render = function(){
         var classes = viewType,

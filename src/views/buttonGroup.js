@@ -9,7 +9,7 @@
         
         var renderedElement = $(document.createElement('div')).addClass(classes)[0];
         
-        viewModel.views.content.element = renderedElement;
+        viewModel.viewContainers.content.element = renderedElement;
         
         return renderedElement;
     }
@@ -23,7 +23,7 @@
             update: {                
             },
             defaults: {
-                views:{
+                viewContainers:{
                     content:[]
                 },
                 properties: {

@@ -1,10 +1,8 @@
 (function (undefined) {
 
-    var viewType = "fileInput",
+    var gaffa = window.gaffa,
+        viewType = "fileInput",
         cachedElement;
-
-    window.gaffa.views = window.gaffa.views || {};
-    window.gaffa.views[viewType] = window.gaffa.views[viewType] || newView();
 		
 	gaffa.addDefaultStyle('.fileInput{position:relative; min-height:200px;background-color:white;border:solid 1px gray;}.fileInput:before{content:"Click to upload a file";text-align:center;padding-top:100px;position:absolute;top:0;left:0;right:0;bottom:0;opacity:.4;font-weight:bold;font-size:1.5em;}.fileInput input[type="file"]{position:absolute;top:0;left:0;right:0;bottom:0;opacity:0;width:auto;height:auto}');
 	
@@ -26,7 +24,10 @@
 		});
     }  
     
-    function createElement(viewModel) {
+    function FileInput(){}
+    FileInput = gaffa.createSpec(FileInput, gaffa.View);
+    FileInput.prototype.type = viewType;
+    FileInput.prototype.render = function(){
         var classes = viewType;
 
         var renderedElement = cachedElement || (function(){
@@ -45,44 +46,22 @@
                 
         $(renderedElement).on("change", 'input[type="file"]', setValue);
 		
-        viewModel.views.content.element = renderedElement;
-
-        return renderedElement;
-    }
-
-    function newView() {
-
-        function view() {
+        this.views.content.element = renderedElement;
+        
+        this.renderedElement = renderedElement;
+        
+        this.__super__.render.apply(this, arguments);
+    };
+    FileInput.prototype.file = new gaffa.Property();
+    FileInput.prototype.bytes = new gaffa.Property();
+    FileInput.prototype.disabled = new gaffa.Property(window.gaffa.propertyUpdaters.bool("disabled", function(viewModel, value){
+        if (value){
+            viewModel.renderedElement.setAttribute('disabled', 'disabled');
+        }else{
+            viewModel.renderedElement.removeAttribute('disabled');
         }
-
-        view.prototype = {
-            update: {
-                file: window.gaffa.propertyUpdaters.object("file", function(viewModel, value){
-                    //Do Nothing.
-                }),
-				bytes: window.gaffa.propertyUpdaters.object("bytes", function(viewModel, value){
-                    //Do Nothing.
-                }),
-                disabled: window.gaffa.propertyUpdaters.bool("disabled", function(viewModel, value){
-                    if (value){
-                        viewModel.renderedElement.setAttribute('disabled', 'disabled');
-                    }else{
-                        viewModel.renderedElement.removeAttribute('disabled');
-                    }
-                })
-            },
-            defaults: {
-                views:{
-                    content:[]
-                },
-                properties: {
-                    value: {}
-                }
-            }
-        };
-
-        $.extend(true, view.prototype, window.gaffa.views.base(viewType, createElement), view.prototype);
-
-        return new view();
-    }
+    }));
+    
+    gaffa.views[viewType] = FileInput;
+    
 })();

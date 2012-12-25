@@ -3,11 +3,11 @@
 		cachedElement;
         
     function List(){
-        this.type = viewType;
         this.views.list = new gaffa.ViewContainer(this.views.list);
         this.views.empty = new gaffa.ViewContainer(this.views.empty);
     }
     List = gaffa.createSpec(List, gaffa.ContainerView);
+    List.prototype.type = viewType;
     
     List.prototype.render = function(){
         var classes = viewType;
@@ -29,9 +29,6 @@
             var listViews = viewModel.views.list,
                 property = viewModel.list;
             window.gaffa.views.add(gaffa.extend(addedItem, property.template), viewModel, listViews);
-            viewModel.views.list.fastEach(function(view){
-                view.render();
-            });
         },
         //decrement
         function(viewModel, list, removedItem){
@@ -49,9 +46,6 @@
             if(insert){
                 if(!emptyViews.length){
                     window.gaffa.views.add(gaffa.extend({}, property.emptyTemplate), viewModel, emptyViews);
-                    viewModel.views.list.fastEach(function(view){
-                        view.render();
-                    });
                 }
             }else{
                 while(emptyViews.length){

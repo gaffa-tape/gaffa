@@ -1,20 +1,27 @@
-(function(undefined) {
-    var actionType = "push",
-        gaffa = window.gaffa;
-        
-    gaffa.actions[actionType] = function(action){
-        var toObject = action.properties.target.value;
+(function (undefined) {
+    var gaffa = window.gaffa,
+        actionType = "push";
+    
+    function Push(){}
+    Push = gaffa.createSpec(Push, gaffa.Action);
+    Push.prototype.type = actionType;
+    Push.prototype.trigger = function(){
+        var toObject = this.target.value;
         if(toObject === undefined || toObject === null){
             toObject = [];
-            gaffa.model.set(action.properties.target.binding, toObject, action);
+            gaffa.model.set(this.target.binding, toObject, this);
         }
         if(Array.isArray(toObject)){
-            var fromObj = action.properties.source.value;
-            if(!(action.properties.clone && action.properties.clone.value === false)){
+            var fromObj = this.source.value;
+            if(!(this.clone && this.clone.value === false)){
                 fromObj = gaffa.clone(fromObj);
             }
-            pushToBinding = action.getPath().append(action.properties.target.binding, gaffa.relativePath + gaffa.pathSeparator + toObject.length);
-            gaffa.model.set(pushToBinding, fromObj, action);            
-        }
+            pushToBinding = this.getPath().append(this.target.binding, gaffa.relativePath + gaffa.pathSeparator + toObject.length);
+            gaffa.model.set(pushToBinding, fromObj, this);            
+        } 
     };
+    Push.prototype.target = new gaffa.Property();
+    Push.prototype.source = new gaffa.Property();
+    
+    window.gaffa.actions[actionType] = Push;
 })();

@@ -1,12 +1,13 @@
 (function(undefined) {
-    var viewType = "paragraph",
+    var gaffa = window.gaffa,
+        viewType = "paragraph",
 		cachedElement;
     
     function Paragraph(){
-        this.type = viewType;
         this.views.content = new gaffa.ViewContainer(this.views.content);
     }
     Paragraph = gaffa.createSpec(Paragraph, gaffa.ContainerView);
+    Paragraph.prototype.type = viewType;
     
     Paragraph.prototype.render = function(){
         var classes = viewType;

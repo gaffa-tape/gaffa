@@ -7,16 +7,16 @@
     
     function Fetch(actionDefinition){
         this.constructor.apply(this, arguments);
-        
-        this.properties.target = new gaffa.Property(this.properties.target);
-        this.properties.source = new gaffa.Property(this.properties.source);
-        this.properties.data = new gaffa.Property(this.properties.data);
-        this.properties.dirty = new gaffa.Property(this.properties.dirty);
     }
     Fetch.prototype = new gaffa.Action();
     Fetch.prototype.trigger = function(){
         trigger(this);
     };
+        
+    Fetch.prototype.target = new gaffa.Property();
+    Fetch.prototype.source = new gaffa.Property();
+    Fetch.prototype.data = new gaffa.Property();
+    Fetch.prototype.dirty = new gaffa.Property();
     
     window.gaffa.actions[actionType] = Fetch;
 
@@ -34,17 +34,17 @@
                 return;
             }
             
-            if (action.properties.target.binding) {
+            if (action.target.binding) {
 				if (data.returnValue) {
 					var value = data.returnValue;
 					if(action.merge){
-						var value = $.extend(true, window.gaffa.model.get(action.properties.target.binding), value);
+						var value = $.extend(true, window.gaffa.model.get(action.target.binding), value);
 					}
 					window.gaffa.model.set(
-                        action.properties.target.binding,
+                        action.target.binding,
                         value,
                         action,
-                        !!action.properties.dirty.value
+                        !!action.dirty.value
                     );
 				}
 				if (action.isModelRefresh && data.model) {
@@ -60,8 +60,8 @@
         }
         
         if (action.location === "local") {
-            if(window.gaffa.utils.propExists(action, "properties.target.binding")) {
-                var localData = localStorage.getItem(action.properties.source.value);
+            if(window.gaffa.utils.propExists(action, "target.binding")) {
+                var localData = localStorage.getItem(action.source.value);
                 if(localData === "undefined"){
                     handleData(action, {returnValue: undefined});
                 }else{
@@ -70,16 +70,16 @@
             }
         } else if (action.location === "server") {
 
-            if (action.useCache && action.properties.target.value) {
+            if (action.useCache && action.target.value) {
                 return;
             }else{
-                if (window.gaffa.utils.propExists(action, "properties.source.value")) {
+                if (window.gaffa.utils.propExists(action, "source.value")) {
                     gaffa.notifications.notify("fetch.begin." + action.kind);
                     $.ajax({
                         cache: false,
                         type: 'get',
-                        url: action.properties.source.value,
-                        data: action.properties.data.value,
+                        url: action.source.value,
+                        data: action.data.value,
                         dataType: 'json',
                         contentType: 'application/json',
                         success:function(data){
