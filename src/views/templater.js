@@ -26,7 +26,7 @@
                     //insert
                     function(viewModel, value, newView){
                         var children = viewModel.viewContainers.children;
-                        window.gaffa.views.add($.extend(true, newView, viewModel.properties.children.template), viewModel, children, "~" + newView.key);
+                        window.gaffa.views.add($.extend(true, newView, viewModel.properties.children.template), viewModel, children, newView.key);
                         window.gaffa.views.render(viewModel.viewContainers.children, viewModel.viewContainers.children.element);
                     },
                     //remove

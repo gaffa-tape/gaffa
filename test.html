@@ -235,7 +235,7 @@
         autoSaveOnChange.path = '[sections]';
         
             var autoSave = new actions.store();
-            autoSave.source.binding = '[sections]';
+            autoSave.source.binding = '[]';
             autoSave.target.value = 'sections';
             autoSave.location = 'local';
             
@@ -294,27 +294,27 @@
                 // add a template view for the list to create for each item in the collection this is bound to.
                 var menuItem = new views.anchor();
                 // Bind It's href to a property in the model
-                menuItem.href.binding = '[~/address]';
+                menuItem.href.binding = '[address]';
                 // Bind It's text to a property in the model
-                menuItem.text.binding = '[~/label]';
+                menuItem.text.binding = '[label]';
                 
             menu.list.template = menuItem;
             // set the path of the menu list to just maintain the current path.
-            menu.list.binding = '[~]';
+            menu.list.binding = '[]';
         
         page.views.content.add(menu);
         
             // Create a container to hold the page's content
             var pageContent = new views.container();
             pageContent.path = '[sections]';
-            pageContent.classes.binding = '(|| (&& [~/enableEditing] "sections editing") "sections")';
+            pageContent.classes.binding = '(|| (&& [enableEditing] "sections editing") "sections")';
             
                 var enableEditingButton = new views.button();
                 enableEditingButton.classes.value = 'edit';
-                enableEditingButton.text.binding = '(|| (&& [~/enableEditing] "disable editing") "enable editing")';
+                enableEditingButton.text.binding = '(|| (&& [enableEditing] "disable editing") "enable editing")';
                 
                     var enableEditing = new actions.toggle();
-                    enableEditing.target.binding = '[~/enableEditing]';
+                    enableEditing.target.binding = '[enableEditing]';
                     
                 enableEditingButton.actions.click = [enableEditing];
                 
@@ -322,7 +322,7 @@
             
                 // Create a page subtitle
                 var sectionList = new views.list();
-                sectionList.list.binding = '[~]';
+                sectionList.list.binding = '[]';
                 
                     // Create a template for each section to be displayed
                     var sectionTemplate = new views.container();
@@ -330,15 +330,15 @@
                     
                         // Create a section heading
                         var sectionHeading = new views.editableContent();
-                        sectionHeading.content.binding = '[~/title]';
+                        sectionHeading.content.binding = '[title]';
                         sectionHeading.elementType = 'h2';
-                        sectionHeading.editable.binding = '[~/../enableEditing]';
+                        sectionHeading.editable.binding = '[../enableEditing]';
                         
                     sectionTemplate.views.content.add(sectionHeading);
                         
                         var sectionContent = new views.editableContent();
-                        sectionContent.content.binding = '[~/content]';
-                        sectionContent.editable.binding = '[~/../enableEditing]';
+                        sectionContent.content.binding = '[content]';
+                        sectionContent.editable.binding = '[../enableEditing]';
                         
                     sectionTemplate.views.content.add(sectionContent);
                     
@@ -348,10 +348,10 @@
             
                 var addSectionButton = new views.button();
                 addSectionButton.text.value = 'add section';
-                addSectionButton.visible.binding = '[~/enableEditing]';
+                addSectionButton.visible.binding = '[enableEditing]';
                 
                     var addSection = new actions.push();
-                    addSection.target.binding = '[~]';
+                    addSection.target.binding = '[]';
                     // This is a gel expression that creates an object
                     // with title and content properties set to empty string.
                     // the format for the object constructor is: 

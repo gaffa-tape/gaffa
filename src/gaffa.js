@@ -10,7 +10,7 @@
     "use strict";
 
     //Create gaffa
-    var gedi = window.gedi,
+    var gedi = new window.Gedi(),
         gaffa = window.gaffa = {},
         history = window.History || window.history; //Allow custom history implementations if defined.
         
@@ -21,10 +21,6 @@
 
     //"constants"
     gaffa.pathSeparator = "/";
-    gaffa.upALevel =  "..";
-    gaffa.relativePath = "~";
-    gaffa.pathStart = "[";
-    gaffa.pathEnd = "]";
     gaffa.pathWildcard = "*";
     
     //internal varaibles
@@ -205,9 +201,9 @@
                 
             if(key){
                 if(value){
-                    gaffa.model.set(rawToPath(key), value);
+                    gaffa.model.set(new Path(key), value);
                 }else{
-                    gaffa.model.set(rawToPath(key), null);
+                    gaffa.model.set(new Path(key), null);
                 }
             }
         });
@@ -488,7 +484,7 @@
         
         while(parent){
             if(parent.key){
-                paths.push(new Path(gaffa.relativePath + gaffa.pathSeparator + parent.key));
+                paths.push(new Path(parent.key));
             }
             if(parent.context){
                 paths.push(new Path(parent.context));
@@ -504,69 +500,6 @@
         });
         
         return result;
-    }
-    
-    //***********************************************
-    //
-    //      Path to Raw
-    //
-    //***********************************************
-    
-    function pathToRaw(path){
-        return path && path.slice(1,-1);
-    }
-    
-    //***********************************************
-    //
-    //      Raw To Path
-    //
-    //***********************************************
-    
-    function rawToPath(rawPath){
-        return gaffa.pathStart + rawPath + gaffa.pathEnd;
-    }
-    
-    //***********************************************
-    //
-    //      Get Absolute Path
-    //
-    //***********************************************
-    
-    function getAbsolutePath(){
-        var args = Array.prototype.slice.call(arguments),
-            absoluteParts = [];            
-            
-        args.fastEach(function(path){
-            path = Path.parse(path);
-        
-            path.fastEach(function(pathPart, partIndex, parts){
-        
-                if(pathPart === gaffa.upALevel){
-                // Up a level? Remove the last item in absoluteParts
-                    absoluteParts.pop();
-                    
-                }else if(pathPart === gaffa.relativePath){
-                // Relative path? Do nothing
-                    return;
-                    
-                }else if(pathPart === '' && parts.length > 1){
-                // more than 1 part beginning with a pathSeparator? Reset absoluteParts to root.
-                    absoluteParts = [];
-                    
-                }else if(partIndex){
-                // any following valid part? Add it to the absoluteParts.
-                    absoluteParts.push(pathPart);
-                    
-                }else{
-                // Absolute path, clear the current absoluteParts
-                    absoluteParts = [pathPart];
-                    
-                }
-            });
-        });
-        
-        // Convert the absoluteParts to a Path.
-        return new Path(absoluteParts);
     }
     
     //***********************************************
@@ -892,7 +825,6 @@
     //***********************************************
     
     function ViewItem(){
-        //console.log('ViewItem constructor for ' + this.constructor.name);
         
         for(var key in this){
             if(this[key] instanceof Property){
@@ -902,7 +834,7 @@
         
         this.actions = {};
         
-        this.path = "[~]";
+        this.path = "[]";
     }
     ViewItem = createSpec(ViewItem);
     ViewItem.prototype.bind = function(){
@@ -1123,15 +1055,30 @@
         Property: Property,
         ViewContainer: ViewContainer,
         model: {
-            get:gedi.get,
-            set:function(path, value, viewItem, dirty) {
+            get:function(path, viewItem) {
+                var parentPath;
                 if(Path.mightParse(path) && viewItem){
-                    path = viewItem.getPath().append(path);
+                    parentPath = viewItem.getPath();
                 }
                 
-                gedi.set(path, value);
+                gedi.get(path, parentPath);
             },
-            bind: gedi.bind
+            set:function(path, value, viewItem, dirty) {
+                var parentPath;
+                if(Path.mightParse(path) && viewItem){
+                    parentPath = viewItem.getPath();
+                }
+                
+                gedi.set(path, value, parentPath, dirty);
+            },
+            bind: function(path, callback, viewItem) {
+                var parentPath;
+                if(Path.mightParse(path) && viewItem){
+                    parentPath = viewItem.getPath();
+                }
+                
+                gedi.bind(path, callback, parentPath);
+            }
         },
         views: {
             insertTarget: null,
@@ -1182,9 +1129,6 @@
         },
 
         utils: {
-            get: gedi.utils.get,
-            
-            set: gedi.utils.set,
             //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
             getProp: function (object, propertiesString) {
                 var properties = propertiesString.split(gaffa.pathSeparator).reverse();
