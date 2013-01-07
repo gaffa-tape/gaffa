@@ -10,14 +10,9 @@
     "use strict";
 
     //Create gaffa
-    var gedi = new window.Gedi(),
+    var gedi,
         gaffa = window.gaffa = {},
         history = window.History || window.history; //Allow custom history implementations if defined.
-        
-    // Gedi Specs.
-    var Path = gedi.Path,
-        Expression = gedi.Expression;
-    
 
     //"constants"
     gaffa.pathSeparator = "/";
@@ -26,7 +21,7 @@
     //internal varaibles
     
         // Storage for the applications model 
-    var internalModel = gedi.get(),
+    var internalModel = {},
     
         // Storage for the applications view.
         internalViewModels = [],
@@ -42,6 +37,14 @@
         
         // Storage for applications default styles
         defaultViewStyles;
+        
+        
+    // Gedi initialisation
+    gedi = new window.Gedi(internalModel);
+        
+    // Gedi Specs.
+    var Path = gedi.Path,
+        Expression = gedi.Expression;
 
     //internal functions    
     
@@ -1061,7 +1064,7 @@
                     parentPath = viewItem.getPath();
                 }
                 
-                gedi.get(path, parentPath);
+                return gedi.get(path, parentPath);
             },
             set:function(path, value, viewItem, dirty) {
                 var parentPath;
