@@ -3,8 +3,10 @@
         viewType = "checkbox",
 		cachedElement;
     
-    function Checkbox(){}
-    Checkbox = gaffa.createSpec(Checkbox, gaffa.View);
+    function Checkbox(){
+        this.views.content = new gaffa.ViewContainer(this.views.content);
+    }
+    Checkbox = gaffa.createSpec(Checkbox, gaffa.ContainerView);
     Checkbox.prototype.type = viewType;
     
     Checkbox.prototype.render = function(){
