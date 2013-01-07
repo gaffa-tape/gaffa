@@ -827,7 +827,7 @@
     //
     //***********************************************
     
-    function ViewItem(){
+    function ViewItem(viewItemDescription){
         
         for(var key in this){
             if(this[key] instanceof Property){
@@ -837,7 +837,9 @@
         
         this.actions = {};
         
-        this.path = "[]";
+        if(viewItemDescription && viewItemDescription.path != null){        
+            this.path = new Path("[]");
+        }
     }
     ViewItem = createSpec(ViewItem);
     ViewItem.prototype.bind = function(){
