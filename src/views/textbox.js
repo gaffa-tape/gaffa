@@ -105,7 +105,7 @@
     
     Textbox.prototype.value = new gaffa.Property(updateValue);
     
-    Textbox.prototype.subtype = new gaffa.Property(updateSubType);
+    Textbox.prototype.subType = new gaffa.Property(updateSubType);
     
     Textbox.prototype.placeholder = new gaffa.Property(updatePlaceholder);
     
