@@ -90,10 +90,6 @@
 
         var renderedElement = cachedElement || (cachedElement = document.createElement('input'));
 
-        if (this.name.value) {
-            renderedElement.setAttribute("name", this.name.value)
-        }
-
         renderedElement = $(renderedElement.cloneNode(true)).addClass(classes)[0];
                 
         $(renderedElement).on(this.updateEventName || "change", setValue);
