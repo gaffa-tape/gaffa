@@ -1,6 +1,14 @@
-(function(undefined) {
-    var actionType = "remove";
-    window.gaffa.actions[actionType] = function(action){
-        window.gaffa.model.remove(action.properties.target.binding, action);
+(function (undefined) {
+    var gaffa = window.gaffa,
+        actionType = "remove";
+    
+    function Remove(){}
+    Remove = gaffa.createSpec(Remove, gaffa.Action);
+    Remove.prototype.type = actionType;
+    Remove.prototype.trigger = function(){
+        gaffa.model.remove(this.target.binding);
     };
+    Remove.prototype.target = new gaffa.Property();
+    
+    window.gaffa.actions[actionType] = Remove;
 })();
