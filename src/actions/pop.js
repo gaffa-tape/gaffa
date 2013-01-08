@@ -6,12 +6,12 @@
     Pop = gaffa.createSpec(Pop, gaffa.Action);
     Pop.prototype.type = actionType;
     Pop.prototype.trigger = function(){
-        if(this.popFrom.value && this.popFrom.value.pop){
-            var popFromArray = this.popFrom.value,
-                poppedValue = popFromArray.pop();
+        if(this.source.value && this.source.value.pop){
+            var popFrom = this.source.value,
+                poppedValue = popFrom.pop();
                 
-            this.popTo.binding && gaffa.model.set(this.popTo.binding, poppedValue, this);
-            gaffa.model.set(this.popFrom.binding, popFromArray, this);
+            this.target.binding && gaffa.model.set(this.target.binding, poppedValue, this);
+            gaffa.model.set(this.source.binding, popFromArray, this);
         } 
     };
     Pop.prototype.target = new gaffa.Property();
