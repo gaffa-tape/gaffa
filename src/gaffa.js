@@ -1076,6 +1076,14 @@
                 
                 gedi.set(path, value, parentPath, dirty);
             },
+            remove: function(path, viewItem) {
+                var parentPath;
+                if(Path.mightParse(path) && viewItem){
+                    parentPath = viewItem.getPath();
+                }
+                
+                gedi.remove(path, parentPath);
+            },
             bind: function(path, callback, viewItem) {
                 var parentPath;
                 if(Path.mightParse(path) && viewItem){
