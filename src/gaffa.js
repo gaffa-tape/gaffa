@@ -20,22 +20,25 @@
     
     //internal varaibles
     
-        // Storage for the applications model 
+        // Storage for the applications model.
     var internalModel = {},
     
         // Storage for the applications view.
-        internalViewModels = [],
+        internalViewItems = [],
         
-        // Storage for application global events.
+        // Storage for application actions.
         internalActions = {},
         
-        // Storage for application notifications
+        // Storage for application behaviours.
+        internalBehaviours = [],
+        
+        // Storage for application notifications.
         internalNotifications = {},
         
-        // Storage for interval based behaviours
+        // Storage for interval based behaviours.
         internalIntervals = [],
         
-        // Storage for applications default styles
+        // Storage for applications default styles.
         defaultViewStyles;
         
         
@@ -293,12 +296,10 @@
         if (app.views) {
             gaffa.views.remove();
         }
-        if (app.model) {
-            gedi.set({});
-        }
         
         //set up state
         if (app.model) {
+            gedi.set({});
             gaffa.model.set(app.model, null, null, false);
         }
         if (app.views) {
@@ -314,6 +315,7 @@
         
         queryStringToModel();
     }
+    
        
     //***********************************************
     //
@@ -443,10 +445,9 @@
 
     function bindProperty(viewModel) {
         var property = this,
-            absoluteViewPath = viewModel.getPath(),
             updateProperty = function () {
                 if(property.binding.original){
-                    property.value = gedi.get(property.binding, absoluteViewPath);                    
+                    property.value = gaffa.model.get(property.binding, viewModel);                    
                 }                    
                 if(property.update){
                     property.update.call(viewModel);
@@ -455,7 +456,7 @@
         
         this.binding = new Expression(this.binding);
         this.binding.paths.fastEach(function(path){            
-            gaffa.model.bind(absoluteViewPath.append(path), updateProperty)
+            gaffa.model.bind(path, updateProperty, viewModel)
         });
         updateProperty();
     }
@@ -724,6 +725,8 @@
         }
         
         viewModel = initialiseView(viewModel, parentView);
+        
+        viewModel.parentContainer = parentViewChildArray;
             
         if (parentView && parentViewChildArray) {
             if(index != null){
@@ -736,7 +739,7 @@
                 parentViewChildArray.push(viewModel);
             }
         } else {
-            internalViewModels.push(viewModel);
+            internalViewItems.push(viewModel);
         }
         
         viewModel.render();
@@ -753,10 +756,11 @@
     //
     //***********************************************    
     
-    function removeViews(views){
+    function removeViews(views){    
         if(!views){
-            views = internalViewModels;
-        }
+            views = internalViewItems;
+        }        
+        !Array.isArray(views) && (views = [views]);
         
         views.fastEach(function(viewModel){
             viewModel.remove();
@@ -819,6 +823,13 @@
         }
         return this;
     };
+    ViewContainer.prototype.remove = function(viewModel){
+        this.fastEach(function(childViewModel, index){
+            if(childViewModel === viewModel){
+                this.splice(index, 1).remove();
+            }
+        });
+    };
     
     
     //***********************************************
@@ -836,6 +847,7 @@
         }
         
         this.actions = {};
+        this.eventHandlers = [];
         
         if(viewItemDescription && viewItemDescription.path != null){        
             this.path = new Path("[]");
@@ -860,13 +872,21 @@
         }
     };
     ViewItem.prototype.detach = function(){
-        $(this.renderedElement).detach()
+        $(this.renderedElement).detach();
     };
     ViewItem.prototype.remove = function(){
-        this.detach();
-        //remove handlers and such...
+        if(this.parentContainer){
+            this.parentContainer.remove(this);
+        }
+        
+        this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
+        
+        this.eventHandlers.fastEach(function(handler){
+            model.debind(handler);
+        });
     };
     ViewItem.prototype.getPath = getViewItemPath;
+    
     
     //***********************************************
     //
@@ -922,6 +942,7 @@
     });
     View.prototype.insertFunction = insertFunction;
     
+    
     //***********************************************
     //
     //      Container View Object
@@ -954,6 +975,7 @@
         }
     };
     
+    
     //***********************************************
     //
     //      Behaviour Object
@@ -967,6 +989,16 @@
         
         this.path = Path.parse(this.path);
     };
+    Behaviour.prototype.remove = function(){
+        var thisBehaviour = this;
+        internalBehaviours.fastEach(function(behaviour, index){
+            if(behaviour === thisBehaviour){
+                internalBehaviours.splice(index, 1);
+            }
+        });
+        ViewItem.prototype.remove.call(this);
+    };
+    
     
     //***********************************************
     //
@@ -982,6 +1014,13 @@
         gaffa.actions.trigger(this.actions.load, this);        
     };
     
+    
+    //***********************************************
+    //
+    //      Model Change Behaviour
+    //
+    //*********************************************** 
+    
     function ModelChangeBehaviour(){}
     ModelChangeBehaviour = createSpec(ModelChangeBehaviour, Behaviour);
     ModelChangeBehaviour.prototype.bind = function(){
@@ -996,8 +1035,8 @@
                     gaffa.actions.trigger(behaviour.actions.change, behaviour, context);
                 }
         }
-    
-        gaffa.model.bind(behaviour.path, function (modelChangeEvent) {
+        
+        gaffa.model.bind(behaviour.path, function (modelChangeEvent){
             var context;
             if(behaviour.context){
                 context = Path.parse(behaviour.context);
@@ -1028,9 +1067,15 @@
             }else{
                 executeBehaviour(behaviour, context);
             }
-        });
+        }, this);
     };
-                
+    
+    
+    //***********************************************
+    //
+    //      Interval Behaviour
+    //
+    //***********************************************                 
     
     function IntervalBehaviour(){}
     IntervalBehaviour = createSpec(IntervalBehaviour, Behaviour);
@@ -1041,6 +1086,51 @@
             gaffa.actions.trigger(this.actions, this.path);
         },this.time || 5000)); //If you forget to set the interval, we will be nice and give you 5 seconds of debug time by default, rather than 0ms looping you to death.
     };
+    
+    
+    //***********************************************
+    //
+    //      add Behaviour
+    //
+    //*********************************************** 
+    
+    function addBehaviour(behaviours) {
+        //if the views isnt an array, make it one.
+        if (behaviours && !behaviours.length) {
+            behaviours = [behaviours];
+        }
+
+        behaviours.fastEach(function (behaviour, index, behaviours) {
+            behaviour = initialiseViewItem(behaviour, null, Behaviour);  
+            
+            behaviour.bind();
+            
+            internalBehaviours.push(behaviour);
+        });
+    }
+    
+    
+    //***********************************************
+    //
+    //      Remove Behaviour
+    //
+    //***********************************************
+    
+    function removeBehaviour(behaviour){
+        if(!behaviour){
+            for(var key in internalBehaviours){
+                internalBehaviours[key].remove();
+            }
+            return;
+        }
+        
+        if(behaviour instanceof Behaviour){
+            behaviour.remove();
+        }else if(typeof behaviour === 'string'){
+            internalBehaviours[behaviour].remove();
+        }
+    }
+    
 
     //***********************************************
     //
@@ -1057,6 +1147,7 @@
         View: View,
         ContainerView: ContainerView,
         Action: Action,
+        Behaviour: Behaviour,
         Property: Property,
         ViewContainer: ViewContainer,
         model: {
@@ -1090,6 +1181,11 @@
                     parentPath = viewItem.getPath();
                 }
                 
+                // Add the callback to the list of handlers associated with the viewItem
+                if(viewItem instanceof ViewItem && !(callback in viewItem.eventHandlers)){
+                    viewItem.eventHandlers.push(callback);
+                }
+                
                 gedi.bind(path, callback, parentPath);
             }
         },
@@ -1120,25 +1216,15 @@
         },
 
         behaviours: {
-            add: function (behaviours) {
-                //if the views isnt an array, make it one.
-                if (behaviours && !behaviours.length) {
-                    behaviours = [behaviours];
-                }
-
-                behaviours.fastEach(function (behaviour, index, behaviours) {
-                
-                    behaviour = behaviours[index] = initialiseViewItem(behaviour, null, Behaviour);
-                    
-                    behaviour.bind();
-                });
-            },
+            add: addBehaviour,
             
             pageLoad: PageLoadBehaviour,
             
             modelChange: ModelChangeBehaviour,
                             
-            interval: IntervalBehaviour
+            interval: IntervalBehaviour,
+            
+            remove: removeBehaviour
         },
 
         utils: {

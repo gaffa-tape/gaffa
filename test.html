@@ -34,13 +34,45 @@
 <script src="src/gaffa.js"></script>
 
 <!-- views. -->
-<script src="src/views/container.js"></script>
-<script src="src/views/list.js"></script>
-<script src="src/views/anchor.js"></script>
-<script src="src/views/image.js"></script>
-<script src="src/views/heading.js"></script>
-<script src="src/views/html.js"></script>
-<script src="src/views/button.js"></script>
+<script>
+    var views = [
+        "accordion",
+        "anchor",
+        "button",
+        "buttonDropDown",
+        "buttonGroup",
+        "checkbox",
+        "code",
+        "container",
+        "datepicker",
+        "dropdown",
+        "fileInput",
+        "form",
+        "group",
+        "heading",
+        "html",
+        "image",
+        "imageInput",
+        "label",
+        "linebreak",
+        "list",
+        "nav",
+        "paragraph",
+        "quote",
+        "radio",
+        "select",
+        "templater",
+        "text",
+        "textarea",
+        "textbox"
+        ],
+        scripts = "";
+    
+    views.fastEach(function(viewName){
+        scripts += '<script src="src/views/' + viewName + '.js"></' + 'script>';
+    });
+    document.write(scripts);
+</script>
 
 <!-- actions. -->
 <script src="src/actions/set.js"></script>
@@ -60,16 +92,89 @@
     window.onload = function(){
         var tests = [
             {
-                name: "create container",
+                name: "create viewModel (container)",
                 test: function(){
                     var container = new gaffa.views.container();
                     container.classes.value = 'myContainer';
                     
                     gaffa.views.add(container);
                     
-                    this.result = $('.myContainer').length
+                    this.result = $('.myContainer').length;
+                    
+                    gaffa.views.remove();
                 },
                 expected: 1
+            },
+            {
+                name: "append to viewModel (containers)",
+                test: function(){
+                    var container = new gaffa.views.container(),
+                        container2 = new gaffa.views.container();
+                        
+                    container.classes.value = 'myContainer';
+                    container2.classes.value = 'myContainer2';
+                    
+                    container.views.content.add(container2);
+                    
+                    gaffa.views.add(container);
+                    
+                    this.result = $('.myContainer').length;
+                    this.result += $('.myContainer2').length;
+                    
+                    gaffa.views.remove();
+                },
+                expected: 2
+            },
+            {
+                name: "remove viewModel",
+                test: function(){
+                    var container = new gaffa.views.container();
+                    container.classes.value = 'myContainer';
+                    
+                    gaffa.views.add(container);
+                    
+                    gaffa.views.remove();
+                    
+                    this.result = $('.myContainer').length;
+                },
+                expected: 0
+            },
+            {
+                name: "add all views",
+                test: function(){
+                    var viewTypesAdded = [],
+                        allFound = true;
+                        
+                    function hasAncestor(ctor, ancestor){
+                        if(typeof ctor === 'function' && typeof ancestor === 'function' && ctor.prototype && ctor.prototype.__proto__){
+                            if(ctor.prototype.__proto__ === ancestor.prototype){
+                                return true;
+                            }
+                            return hasAncestor(ctor.prototype.__proto__.constructor, ancestor);
+                        }
+                        return false;
+                    }
+                    
+                    for(var key in gaffa.views){
+                        view = gaffa.views[key];
+                        if(hasAncestor(view, gaffa.ViewItem)){
+                            gaffa.views.add(new view());
+                            viewTypesAdded.push(view.prototype.type);
+                        }
+                    }
+                    
+                    viewTypesAdded.fastEach(function(type){
+                        if(!$('.' + type).length){
+                            allFound = false;
+                            return true;
+                        }
+                    });
+                    
+                    gaffa.views.remove();
+                    
+                    this.result = 'Count: ' + viewTypesAdded.length + ' Same: ' + allFound;
+                },
+                expected: 'Count : Same: true   '
             }
         ];
     
