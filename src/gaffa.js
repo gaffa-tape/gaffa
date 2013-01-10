@@ -376,58 +376,6 @@
 
     //***********************************************
     //
-    //      Insert View
-    //
-    //***********************************************
-
-    function insertView(viewModel, renderTarget, appendFunction, index) {
-        // if a renderTarget has been passed (for appending into)
-        // Only append if it hasnt been rendered already
-        // ToDo: make this bettera maybe.
-        if(!viewModel.isRendered){
-            viewModel.isRendered = true;
-            if (viewModel.insertSelector && typeof viewModel.insertFunction === "function"){
-                viewModel.insertFunction(viewModel.insertSelector, viewModel.renderedElement);
-            }else if (renderTarget) {
-                //A custom append function can also be passed to handle non-html elements like SVG etc.
-                if (appendFunction) {
-                    appendFunction(renderTarget, viewModel.renderedElement, index);
-                } else {
-                    var children = renderTarget.childNodes;
-                    if(index != null && children.length > index){
-                        renderTarget.insertBefore(viewModel.renderedElement, children[index]);
-                    }else{
-                        renderTarget.appendChild(viewModel.renderedElement);
-                    }
-                    typeof view.afterInsert === 'function' && view.afterInsert(viewModel);
-                }
-            }
-            
-            //Render child views
-            for (var key in viewModel.views) {
-                viewModel.views[key].fastEach(function (childViewModel) {
-                    insertView(childViewModel, viewModel.views[key].element);
-                });
-            }
-
-            //Bind the views actions
-            //ToDo: this probaly shouldn't be here. refactor.
-            if (viewModel.actions) {
-                for (var actionKey in viewModel.actions) {
-                    var action = viewModel.actions[actionKey];
-                    if (!action.bound) {
-                        $(viewModel.renderedElement).on(actionKey, function (event) {
-                            gaffa.actions.trigger(action, viewModel);
-                        });
-                        action.bound = true;
-                    }
-                }
-            }
-        }
-    }
-
-    //***********************************************
-    //
     //      Trigger Action
     //
     //***********************************************
@@ -910,7 +858,8 @@
     };    
     View.prototype.insert = function(viewContainer){        
         var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
-        this.insertFunction(this.insertSelector || renderTarget, this.renderedElement);
+        this.insertFunction(this.insertSelector || renderTarget, this.renderedElement);        
+        typeof this.afterInsert === 'function' && this.afterInsert();
         this.forEachChild(function(viewContainer){
             this.insert(viewContainer);
         });
