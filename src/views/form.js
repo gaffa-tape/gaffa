@@ -2,11 +2,9 @@
     var viewType = "form",
 		cachedElement;
     
-    function Form(){
-        this.type = viewType;
-        this.views.content = new gaffa.ViewContainer(this.views.content);
-    }
+    function Form(){}
     Form = gaffa.createSpec(Form, gaffa.ContainerView);
+    Form.prototype.type = viewType;
     
     Form.prototype.render = function(){
         var classes = viewType;

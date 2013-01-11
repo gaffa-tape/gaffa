@@ -2,10 +2,9 @@
     var viewType = "heading",
 		cachedElement;
         
-    function Heading(){
-        this.type = viewType;
-    }
+    function Heading(){    }
     Heading = gaffa.createSpec(Heading, gaffa.View);
+    Heading.prototype.type = viewType;
     
     Heading.prototype.render = function(){
         var classes = viewType;

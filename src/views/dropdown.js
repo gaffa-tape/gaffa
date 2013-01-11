@@ -4,12 +4,11 @@
 	
 	gaffa.addDefaultStyle(".dropdown .content.hidden{display:none;}");
 
-    function Dropdown(){        
-        this.type = viewType;        
-        this.views.content = new gaffa.ViewContainer(this.views.content);
+    function Dropdown(){
         this.views.activator = new gaffa.ViewContainer(this.views.activator);
     }
     Dropdown = gaffa.createSpec(Dropdown, gaffa.ContainerView);
+    Dropdown.prototype.type = viewType;
     
     Dropdown.prototype.render = function(){
         var classes = viewType;

@@ -830,7 +830,7 @@
         this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
         
         this.eventHandlers.fastEach(function(handler){
-            model.debind(handler);
+            gedi.debind(handler);
         });
     };
     ViewItem.prototype.getPath = getViewItemPath;

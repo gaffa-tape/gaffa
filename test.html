@@ -83,7 +83,8 @@
     */
 
     window.onload = function(){
-        var tests = [
+        var testArea = document.getElementsByClassName('testArea')[0],
+            tests = [
             {
                 name: "create viewModel (container)",
                 test: function(){
@@ -152,26 +153,80 @@
                         view = gaffa.views[key];
                         if(hasAncestor(view, gaffa.ViewItem)){
                             gaffa.views.add(new view());
-                            viewTypesAdded.push(view.prototype.type);
+                            if(!testArea.childNodes[0].viewModel){
+                                allFound = false;
+                            }
+                            gaffa.views.remove();
                         }
                     }
                     
-                    viewTypesAdded.fastEach(function(type){
-                        if(!$('.' + type).length){
-                            allFound = false;
-                            return true;
-                        }
-                    });
-                    
-                    gaffa.views.remove();
-                    
-                    this.result = 'Count: ' + viewTypesAdded.length + ' Same: ' + allFound;
+                    this.result = allFound;
                 },
-                expected: 'Count : Same: true   '
+                expected: true
+            },
+            {
+                name: "bound fields",
+                test: function(){
+                    var label = new gaffa.views.label();
+                    label.classes.value = 'myLabel';
+                    
+                    label.text.binding = '[label]';
+                    
+                    gaffa.views.add(label);
+                    
+                    gaffa.model.set('[label]', 'someText');
+                    
+                    this.result = $('.myLabel').text();
+                },
+                expected: 'someText'
+            },
+            {
+                name: "path cascading bound fields",
+                test: function(){
+                    var container = new gaffa.views.container();
+                        label = new gaffa.views.label();
+                        
+                    container.path = '[myObj]';
+                                                
+                    label.classes.value = 'myLabel';
+                    
+                    //relative to parent path
+                    label.text.binding = '[label]';
+                    
+                    container.views.content.add(label);
+                    
+                    gaffa.views.add(container);
+                    
+                    gaffa.model.set('[myObj/label]', 'someText');
+                    
+                    this.result = $('.myLabel').text();
+                },
+                expected: 'someText'
+            },
+            {
+                name: "list view",
+                test: function(){
+                    var list = new gaffa.views.list();
+                        template = new gaffa.views.label();
+                        
+                    //list.path = '[myArray]';
+                    
+                    template.text.binding = '[]';
+                    
+                    list.list.template = template;
+                    list.list.binding = '[myArray]';
+                    
+                    gaffa.views.add(list);
+                    
+                    gaffa.model.set('[myArray]', ['a','b','c','d']);
+                    
+                    this.result = '' + $('.label').length + ' ' + $('.list').text();
+                },
+                expected: '4 abcd'
             }
         ];
     
-
+        gaffa.views.renderTarget = testArea;  
         
         var resultsElement = document.getElementsByClassName('results')[0];
 
@@ -189,6 +244,9 @@
                 
                 try{
                     test.test.call(test);
+                    
+                    //clear gaffa.
+                    gaffa.load({model:{}, views:[]});
                 }catch(error){
                     errors.push(error.toString());
                     hasError = true;
@@ -227,6 +285,7 @@
 
 </head>
 <body>
+        <div class="testArea"></div>
         <div class="results">
             <div class="summary"></div>
         </div>

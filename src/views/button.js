@@ -2,11 +2,9 @@
     var viewType = "button",
 		cachedElement;
         
-    function Button(){
-        this.type = viewType;
-        this.views.content = new gaffa.ViewContainer(this.views.content);
-    }
+    function Button(){}
     Button = gaffa.createSpec(Button, gaffa.ContainerView);
+    Button.prototype.type = viewType;
     
     Button.prototype.render = function(){
         var classes = viewType;

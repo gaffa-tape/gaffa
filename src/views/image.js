@@ -10,10 +10,9 @@
         reader.readAsDataURL(image);
 	}
     
-    function Image(){
-        this.type = viewType;
-    }
+    function Image(){}
     Image = gaffa.createSpec(Image, gaffa.View);
+    Image.prototype.type = viewType;
     
     Image.prototype.render = function(){
         var classes = viewType;

@@ -2,10 +2,9 @@
     var viewType = "label",
 		cachedElement;
         
-    function Label(){
-        this.type = viewType;
-    }
+    function Label(){}
     Label = gaffa.createSpec(Label, gaffa.View);
+    Label.prototype.type = viewType;
     
     Label.prototype.render = function(){
         var classes = viewType;

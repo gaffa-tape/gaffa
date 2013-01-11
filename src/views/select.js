@@ -16,10 +16,10 @@
     }
         
     function Select(){
-        this.type = viewType;
         this.views.list = new gaffa.ViewContainer(this.views.list);
     }
     Select = gaffa.createSpec(Select, gaffa.ContainerView);
+    Select.prototype.type = viewType;
     
     Select.prototype.render = function(){
         var classes = viewType;

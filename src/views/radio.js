@@ -20,9 +20,8 @@
         
         this.__super__.render.apply(this, arguments);
     }
-
     
-    Radio.prototype.options = new gaffa.Property(function () {
+    function updateOptions() {
         var property = this.options,
             value = property.value,                        
             element = $(this.renderedElement),
@@ -54,7 +53,11 @@
                 }
             }
         }
-    });
+    }
+
+    Radio.prototype.groupName = new gaffa.Property(updateOptions);
+    
+    Radio.prototype.options = new gaffa.Property(updateOptions);
     
     Radio.prototype.value = new gaffa.Property(function () {
         var value = this.value.value,

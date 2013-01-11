@@ -2,10 +2,9 @@
     var viewType = "html",
 		cachedElement;
         
-    function Html(){
-        this.type = viewType;
-    }
+    function Html(){}
     Html = gaffa.createSpec(Html, gaffa.View);
+    Html.prototype.type = viewType;
     
     Html.prototype.render = function(){
         var classes = viewType;
