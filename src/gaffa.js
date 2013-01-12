@@ -898,7 +898,6 @@
     }
     ContainerView = createSpec(ContainerView, View);
     ContainerView.prototype.bind = function(){
-        View.prototype.bind.apply(this, arguments);
         for(var key in this.views){
             var viewContainer = this.views[key];
             
@@ -906,6 +905,7 @@
                 viewContainer.bind(this);
             }
         };
+        View.prototype.bind.apply(this, arguments);
     };
     
     //***********************************************

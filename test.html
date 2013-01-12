@@ -78,6 +78,7 @@
     /*
     
         Before you start, yes, I realise these are not very good tests.
+        Gaffa is primarily a UI helper, and as such, tests are pretty flimsy.
         I just want something.
     
     */
@@ -261,15 +262,15 @@
                     
                     list.list.template = template;
                     
-                    template.text.binding = '[]';
+                    template.text.binding = '[name]';
                     
                     gaffa.views.add(group);
                     
                     gaffa.model.set('[myArray]', [{thing:2, name:'thing'},{thing:1, name:'stuff'},{thing:2, name:'majigger'},{thing:1, name:'whatsits'}]);
                     
-                    this.result = '' + $('.label').length + ' ' + $('.list').text();
+                    this.result = '' + $('.list').length + ' ' + $('.list').text();
                 },
-                expected: '1 b'
+                expected: '2 thingmajiggerstuffwhatsits'
             }
         ];
     
