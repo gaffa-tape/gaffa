@@ -395,16 +395,17 @@
         var property = this,
             updateProperty = function () {
                 if(property.binding.original){
-                    property.value = gaffa.model.get(property.binding, viewModel);                    
+                    property.value = gaffa.model.get(property.binding, property);                    
                 }                    
                 if(property.update){
                     property.update.call(viewModel);
                 }
             };
         
+        this.parent = viewModel;
         this.binding = new Expression(this.binding);
         this.binding.paths.fastEach(function(path){            
-            gaffa.model.bind(path, updateProperty, viewModel)
+            gaffa.model.bind(path, updateProperty, property)
         });
         updateProperty();
     }
@@ -426,32 +427,18 @@
     //
     //***********************************************
 
-    function getViewItemPath(){
-        var args = Array.prototype.slice.call(arguments),
-            paths = [],
-            parent = this;
+    function getItemPath(item){
+        var path = new Path();
         
-        // Push + Reverse is the fasterestest at the moment...
-        // http://jsperf.com/array-push-vs-unshift/11
-        
-        while(parent){
-            if(parent.key){
-                paths.push(new Path(parent.key));
-            }
-            if(parent.context){
-                paths.push(new Path(parent.context));
-            }
-            paths.push(parent.path);
-            parent = parent.parent;
+        if(item instanceof ViewItem && item.parentContainer && item.parentContainer.getPath){
+            path = item.parentContainer.getPath();
+        }else if(item instanceof ViewContainer && item.property && item.property.getPath){
+            path = item.property.getPath().append(item.property.binding);
+        }else if(item.parent && item.parent.getPath){
+            path = item.parent.getPath();
         }
         
-        var result = new Path();
-        
-        paths.reverse().fastEach(function(path){
-            result = result.append(path);
-        });
-        
-        return result;
+        return path.append(item.key).append(item.path);
     }
     
     //***********************************************
@@ -600,7 +587,7 @@
     //
     //***********************************************
     
-    function initialiseViewItem(viewItem, parentViewItem, spec) {
+    function initialiseViewItem(viewItem, parentViewItem, viewContainer, spec) {
         //if the viewModel is an array, recurse.
         var newViewItem = viewItem,
             specCollection;
@@ -630,16 +617,17 @@
                 newViewItem.views[key] = new ViewContainer(newViewItem.views[key]);
             }
             newViewItem.views[key].fastEach(function(view, index, views){
-                views[index] = initialiseViewItem(view, newViewItem, View);
+                views[index] = initialiseViewItem(view, newViewItem, newViewItem.views[key], View);
             });
         }
         
         for(var key in newViewItem.actions){
             newViewItem.actions[key].fastEach(function(action, index, actions){
-                actions[index] = initialiseViewItem(action, newViewItem, Action);
+                actions[index] = initialiseViewItem(action, newViewItem, newViewItem.actions[key], Action);
             });
         }
         
+        newViewItem.viewContainer = viewContainer;
         
         newViewItem.parent = parentViewItem;
         
@@ -652,8 +640,8 @@
     //
     //***********************************************
     
-    function initialiseView(viewModel, parentView) {        
-        return initialiseViewItem(viewModel, parentView, View);
+    function initialiseView(viewModel, parentView, viewContainer) {        
+        return initialiseViewItem(viewModel, parentView, viewContainer, View);
     }
     
     
@@ -672,7 +660,7 @@
             return;
         }
         
-        viewModel = initialiseView(viewModel, parentView);
+        viewModel = initialiseView(viewModel, parentView, parentViewChildArray);
         
         viewModel.parentContainer = parentViewChildArray;
             
@@ -729,7 +717,9 @@
     }
     Property = createSpec(Property); 
     Property.prototype.bind = bindProperty;
-    Property.prototype.getPath = getViewItemPath;
+    Property.prototype.getPath = function(){
+        return getItemPath(this);
+    };
     
     
     //***********************************************
@@ -754,7 +744,9 @@
         this.parent = parent;
         return this;
     };
-    ViewContainer.prototype.getPath = getViewItemPath;
+    ViewContainer.prototype.getPath = function(){
+        return getItemPath(this);
+    };
     ViewContainer.prototype.add = function(viewModel){
     
         // If this has a parent (it has been bound)
@@ -833,7 +825,9 @@
             gedi.debind(handler);
         });
     };
-    ViewItem.prototype.getPath = getViewItemPath;
+    ViewItem.prototype.getPath = function(){
+        return getItemPath(this);
+    };
     
     
     //***********************************************
@@ -903,6 +897,16 @@
         this.views.content = new ViewContainer(this.views.content);
     }
     ContainerView = createSpec(ContainerView, View);
+    ContainerView.prototype.bind = function(){
+        View.prototype.bind.apply(this, arguments);
+        for(var key in this.views){
+            var viewContainer = this.views[key];
+            
+            if(viewContainer instanceof ViewContainer){
+                viewContainer.bind(this);
+            }
+        };
+    };
     
     //***********************************************
     //
@@ -1050,7 +1054,7 @@
         }
 
         behaviours.fastEach(function (behaviour, index, behaviours) {
-            behaviour = initialiseViewItem(behaviour, null, Behaviour);  
+            behaviour = initialiseViewItem(behaviour, null, null, Behaviour);  
             
             behaviour.bind();
             
@@ -1100,39 +1104,39 @@
         Property: Property,
         ViewContainer: ViewContainer,
         model: {
-            get:function(path, viewItem) {
+            get:function(path, parent) {
                 var parentPath;
-                if(Path.mightParse(path) && viewItem){
-                    parentPath = viewItem.getPath();
+                if(Path.mightParse(path) && parent && parent.getPath){
+                    parentPath = parent.getPath();
                 }
                 
                 return gedi.get(path, parentPath);
             },
-            set:function(path, value, viewItem, dirty) {
+            set:function(path, value, parent, dirty) {
                 var parentPath;
-                if(Path.mightParse(path) && viewItem){
-                    parentPath = viewItem.getPath();
+                if(Path.mightParse(path) && parent && parent.getPath){
+                    parentPath = parent.getPath();
                 }
                 
                 gedi.set(path, value, parentPath, dirty);
             },
-            remove: function(path, viewItem) {
+            remove: function(path, parent) {
                 var parentPath;
-                if(Path.mightParse(path) && viewItem){
-                    parentPath = viewItem.getPath();
+                if(Path.mightParse(path) && parent && parent.getPath){
+                    parentPath = parent.getPath();
                 }
                 
                 gedi.remove(path, parentPath);
             },
-            bind: function(path, callback, viewItem) {
+            bind: function(path, callback, parent) {
                 var parentPath;
-                if(Path.mightParse(path) && viewItem){
-                    parentPath = viewItem.getPath();
+                if(Path.mightParse(path) && parent && parent.getPath){
+                    parentPath = parent.getPath();
                 }
                 
                 // Add the callback to the list of handlers associated with the viewItem
-                if(viewItem instanceof ViewItem && !(callback in viewItem.eventHandlers)){
-                    viewItem.eventHandlers.push(callback);
+                if(parent instanceof ViewItem && !(callback in parent.eventHandlers)){
+                    parent.eventHandlers.push(callback);
                 }
                 
                 gedi.bind(path, callback, parentPath);

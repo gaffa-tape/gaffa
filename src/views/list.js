@@ -15,7 +15,9 @@
         var renderedElement = $(document.createElement('div')).addClass(classes)[0];
         
         this.views.list.element = renderedElement;
+        this.views.list.property = this.list;
 		this.views.empty.element = renderedElement;
+        this.views.empty.property = this.list;
         
         this.renderedElement = renderedElement;
         
@@ -28,7 +30,8 @@
         function(viewModel, list, addedItem){
             var listViews = viewModel.views.list,
                 property = viewModel.list;
-            window.gaffa.views.add(gaffa.extend({}, property.template, addedItem), viewModel, listViews);
+                
+            listViews.add(gaffa.extend({}, property.template, addedItem));
         },
         //decrement
         function(viewModel, list, removedItem){

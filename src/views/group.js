@@ -14,6 +14,7 @@
         var renderedElement = $(document.createElement('div')).addClass(classes)[0];
         
         this.views.groups.element = renderedElement;
+        this.views.groups.property = this.groups;
 		this.views.empty.element = renderedElement;
         
         this.renderedElement = renderedElement;
@@ -30,11 +31,12 @@
                 property = viewModel.groups,
                 expression = "(filterKeys [] {item (= item." + property.group + " " + addedItem.group + ")})";
                 
-            $.extend(true, addedItem, property.template);
+            addedItem = gaffa.extend({}, property.template, addedItem);
             
+            addedItem.list = addedItem.list || {};
             addedItem.list.binding = expression;
                 
-            window.gaffa.views.add(addedItem, viewModel, listViews);
+            listViews.add(addedItem);
         },
         //decrement
         function(viewModel, groups, removedItem){

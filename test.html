@@ -137,14 +137,15 @@
                 name: "add all views",
                 test: function(){
                     var viewTypesAdded = [],
-                        allFound = true;
+                        allFound = true,
+                        count=0;
                         
-                    function hasAncestor(ctor, ancestor){
-                        if(typeof ctor === 'function' && typeof ancestor === 'function' && ctor.prototype && ctor.prototype.__proto__){
-                            if(ctor.prototype.__proto__ === ancestor.prototype){
+                    function hasAncestor(constructor, ancestor){
+                        if(typeof constructor === 'function' && typeof ancestor === 'function' && constructor.prototype && constructor.prototype.__proto__){
+                            if(constructor.prototype.__proto__ === ancestor.prototype){
                                 return true;
                             }
-                            return hasAncestor(ctor.prototype.__proto__.constructor, ancestor);
+                            return hasAncestor(constructor.prototype.__proto__.construconstructor, ancestor);
                         }
                         return false;
                     }
@@ -152,6 +153,7 @@
                     for(var key in gaffa.views){
                         view = gaffa.views[key];
                         if(hasAncestor(view, gaffa.ViewItem)){
+                            count++;
                             gaffa.views.add(new view());
                             if(!testArea.childNodes[0].viewModel){
                                 allFound = false;
@@ -159,6 +161,8 @@
                             gaffa.views.remove();
                         }
                     }
+                    
+                    this.name+= ' (' + count + ' total)';
                     
                     this.result = allFound;
                 },
@@ -208,8 +212,6 @@
                 test: function(){
                     var list = new gaffa.views.list();
                         template = new gaffa.views.label();
-                        
-                    //list.path = '[myArray]';
                     
                     template.text.binding = '[]';
                     
@@ -223,6 +225,51 @@
                     this.result = '' + $('.label').length + ' ' + $('.list').text();
                 },
                 expected: '4 abcd'
+            },
+            {
+                name: "list view with expression",
+                test: function(){
+                    var list = new gaffa.views.list();
+                        template = new gaffa.views.label();
+                        
+                    list.path = '[myArray]';
+                    
+                    template.text.binding = '[]';
+                    
+                    list.list.template = template;
+                    list.list.binding = '(filterKeys [] {item (== item "b")})';
+                    
+                    gaffa.views.add(list);
+                    
+                    gaffa.model.set('[myArray]', ['a','b','c','d']);
+                    
+                    this.result = '' + $('.label').length + ' ' + $('.list').text();
+                },
+                expected: '1 b'
+            },
+            {
+                name: "group view",
+                test: function(){
+                    var group = new gaffa.views.group(),
+                        list = new gaffa.views.list(),
+                        template = new gaffa.views.label();
+                        
+                    group.path = '[myArray]';
+                    group.groups.binding = '[]';
+                    group.groups.group = 'thing';
+                    group.groups.template = list;
+                    
+                    list.list.template = template;
+                    
+                    template.text.binding = '[]';
+                    
+                    gaffa.views.add(group);
+                    
+                    gaffa.model.set('[myArray]', [{thing:2, name:'thing'},{thing:1, name:'stuff'},{thing:2, name:'majigger'},{thing:1, name:'whatsits'}]);
+                    
+                    this.result = '' + $('.label').length + ' ' + $('.list').text();
+                },
+                expected: '1 b'
             }
         ];
     
