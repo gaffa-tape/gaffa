@@ -1,16 +1,16 @@
 /******************************************accordion******************************************/
 (function(undefined) {
-    var viewType = "accordian",
+    var viewType = "accordion",
 		cachedElement;
         
-    function Accordian(){
+    function Accordion(){
         this.views.list = new gaffa.ViewContainer(this.views.list);
         this.views.empty = new gaffa.ViewContainer(this.views.empty);
     }
-    Accordian = gaffa.createSpec(Accordian, gaffa.ContainerView);
-    Accordian.prototype.type = viewType;
+    Accordion = gaffa.createSpec(Accordion, gaffa.ContainerView);
+    Accordion.prototype.type = viewType;
     
-    Accordian.prototype.render = function(){
+    Accordion.prototype.render = function(){
         var classes = viewType;
         
         var renderedElement = cachedElement || (cachedElement = document.createElement('ul'));
@@ -24,42 +24,60 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Accordian.prototype.list = new gaffa.Property(window.gaffa.propertyUpdaters.collection(
+    Accordion.prototype.list = new gaffa.Property(window.gaffa.propertyUpdaters.collection(
         "list",                     
-        //increment
+        // increment
         function(viewModel, list, addedItem){
             var listViews = viewModel.views.list,
                 property = viewModel.list;
-            if(property.template.type === "accordionNode"){
-                window.gaffa.views.add($.extend(true, {}, property.template), viewModel, listViews, property.binding + gaffa.pathSeparator + addedItem.key);
-                window.gaffa.views.render(viewModel.views.list, viewModel.views.list.element);
+                
+            if(property.template.type === "accordionNode"){                
+                listViews.add(gaffa.extend({}, property.template, addedItem));
             }else{
                 throw "incorrect template type given, expected type of 'accordionNode'";
             }
         },
-        //decrement
+        // decrement
         function(viewModel, list, removedItem){
             $(removedItem.renderedElement).remove();
+        },
+        //empty
+        function(viewModel, insert){
+            var emptyViews = viewModel.views.empty,
+                property = viewModel.list;
+                
+            if(!property.emptyTemplate){
+                return;
+            }
+            
+            if(insert){
+                if(!emptyViews.length){
+                    window.gaffa.views.add(gaffa.extend({}, property.emptyTemplate), viewModel, emptyViews);
+                }
+            }else{
+                while(emptyViews.length){
+                    viewModel.renderedElement.removeChild(emptyViews.pop().renderedElement);
+                }
+            }
         }
     ));
     
-    gaffa.views[viewType] = Accordian;
+    gaffa.views[viewType] = Accordion;
     
 })();
     
 /******************************************accordionNode******************************************/
 (function(undefined) {
-    var viewType = "accordianNode",
+    var viewType = "accordionNode",
 		cachedElement;
     
-    function AccordianNode(){
-        this.type = viewType;
-        this.views.content = new gaffa.ViewAccordianNode(this.views.content);
+    function AccordionNode(){
+        this.views.header = new gaffa.ViewContainer(this.views.header);
     }
-    AccordianNode = gaffa.createSpec(AccordianNode, gaffa.AccordianNodeView);
-    AccordianNode.prototype.type = viewType;
+    AccordionNode = gaffa.createSpec(AccordionNode, gaffa.ContainerView);
+    AccordionNode.prototype.type = viewType;
     
-    AccordianNode.prototype.render = function(){
+    AccordionNode.prototype.render = function(){
         var classes = viewType;
         
         cachedElement = cachedElement || (cachedElement = (function(){
@@ -80,18 +98,15 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    AccordianNode.prototype.expanded = new gaffa.Property(function(viewModel, value, firstRun) {
-        if(viewModel.expanded.value !== value || firstRun){
-            viewModel.expanded.value = value;
-            var element = $(viewModel.renderedElement);
-            if(element){
-                if(value !== false){
-                    element.children(".content").slideDown(200);
-                }else{
-                    element.children(".content").slideUp(200);
-                }
+    AccordionNode.prototype.expanded = new gaffa.Property(function() {
+        var element = $(this.renderedElement);
+        if(element){
+            if(this.expanded.value !== false){
+                element.children(".content").slideDown(200);
+            }else{
+                element.children(".content").slideUp(200);
             }
-        }                    
+        }                 
     });
     
     $(document).on('activate', '.accordionNode .header', function(event){
@@ -112,6 +127,6 @@
         }
     });
     
-    gaffa.views[viewType] = AccordianNode;
+    gaffa.views[viewType] = AccordionNode;
     
 })();

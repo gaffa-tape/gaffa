@@ -146,7 +146,7 @@
                             if(constructor.prototype.__proto__ === ancestor.prototype){
                                 return true;
                             }
-                            return hasAncestor(constructor.prototype.__proto__.construconstructor, ancestor);
+                            return hasAncestor(constructor.prototype.__proto__.constructor, ancestor);
                         }
                         return false;
                     }
@@ -166,6 +166,86 @@
                     this.name+= ' (' + count + ' total)';
                     
                     this.result = allFound;
+                },
+                expected: true
+            },
+            {
+                name: "all properties on all views",
+                test: function(){
+                    var viewTypesAdded = [],
+                        passed = true,
+                        count=0;
+                        
+                    function hasAncestor(constructor, ancestor){
+                        if(typeof constructor === 'function' && typeof ancestor === 'function' && constructor.prototype && constructor.prototype.__proto__){
+                            if(constructor.prototype.__proto__ === ancestor.prototype){
+                                return true;
+                            }
+                            return hasAncestor(constructor.prototype.__proto__.constructor, ancestor);
+                        }
+                        return false;
+                    }
+                    
+                    for(var key in gaffa.views){
+                        view = gaffa.views[key];
+                        if(hasAncestor(view, gaffa.ViewItem)){
+                            var newView = new view();
+                            
+                            for(var propertyName in newView){
+                                var property = newView[propertyName];
+                                
+                                if(property instanceof gaffa.Property){
+                                    count++;
+                                    switch (propertyName) {
+                                        case 'list':
+                                            property.binding = '[array]';
+                                            if(newView instanceof gaffa.views.accordion){
+                                                property.template = new gaffa.views.accordionNode();
+                                            }else{
+                                                property.template = new gaffa.views.label();
+                                            }
+                                            break;
+                                        default:
+                                            property.binding = '[thing]';
+                                    }
+                                }
+                            }
+                            
+                            gaffa.views.add(newView);
+                            var array = [1,2,3];
+                            gaffa.model.set({thing:'hello', array:array});
+                            
+                            for(var propertyName in newView){
+                                var property = newView[propertyName];
+                                
+                                if(property instanceof gaffa.Property){
+                                    switch (propertyName) {
+                                        case 'list':
+                                            if(property.value !== array){
+                                                passed = false; 
+                                                console.log(propertyName, property);
+                                            }                    
+                                            break;            
+                                        default:
+                                            if(property.value !== 'hello'){
+                                                passed = false; 
+                                                console.log(propertyName, property);
+                                            }
+                                    }
+                                }
+                            }
+                            
+                            if(!testArea.childNodes[0].viewModel){
+                                passed = false;
+                            }
+                            
+                            gaffa.views.remove();
+                        }
+                    }
+                    
+                    this.name+= ' (' + count + ' total)';
+                    
+                    this.result = passed;
                 },
                 expected: true
             },
