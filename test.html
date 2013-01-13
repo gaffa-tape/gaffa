@@ -35,6 +35,18 @@
 
 <!-- views. -->
 <script>
+    function hasAncestor(constructor, ancestor){
+        if(typeof constructor === 'function' && typeof ancestor === 'function' && constructor.prototype && constructor.prototype.__proto__){
+            if(constructor.prototype.__proto__ === ancestor.prototype){
+                return true;
+            }
+            return hasAncestor(constructor.prototype.__proto__.constructor, ancestor);
+        }
+        return false;
+    }
+    
+    var scripts = "";
+    
     var views = [
         "accordion",
         "anchor",
@@ -58,11 +70,29 @@
         "text",
         "textarea",
         "textbox"
-        ],
-        scripts = "";
+        ];
     
     views.fastEach(function(viewName){
         scripts += '<script src="src/views/' + viewName + '.js"></' + 'script>';
+    });
+    
+    var actions = [
+        "concat",
+        "conditional",
+        "fetch",
+        "fromJson",
+        "navigate",
+        "pop",
+        "push",
+        "remove",
+        "set",
+        "store",
+        "toggle",
+        "toJson"
+        ];
+    
+    actions.fastEach(function(actionName){
+        scripts += '<script src="src/actions/' + actionName + '.js"></' + 'script>';
     });
     document.write(scripts);
 </script>
@@ -140,16 +170,6 @@
                     var viewTypesAdded = [],
                         allFound = true,
                         count=0;
-                        
-                    function hasAncestor(constructor, ancestor){
-                        if(typeof constructor === 'function' && typeof ancestor === 'function' && constructor.prototype && constructor.prototype.__proto__){
-                            if(constructor.prototype.__proto__ === ancestor.prototype){
-                                return true;
-                            }
-                            return hasAncestor(constructor.prototype.__proto__.constructor, ancestor);
-                        }
-                        return false;
-                    }
                     
                     for(var key in gaffa.views){
                         view = gaffa.views[key];
@@ -175,16 +195,6 @@
                     var viewTypesAdded = [],
                         passed = true,
                         count=0;
-                        
-                    function hasAncestor(constructor, ancestor){
-                        if(typeof constructor === 'function' && typeof ancestor === 'function' && constructor.prototype && constructor.prototype.__proto__){
-                            if(constructor.prototype.__proto__ === ancestor.prototype){
-                                return true;
-                            }
-                            return hasAncestor(constructor.prototype.__proto__.constructor, ancestor);
-                        }
-                        return false;
-                    }
                     
                     for(var key in gaffa.views){
                         view = gaffa.views[key];
@@ -351,7 +361,33 @@
                     this.result = '' + $('.list').length + ' ' + $('.list').text();
                 },
                 expected: '2 thingmajiggerstuffwhatsits'
-            }
+            },
+            {
+                name: "add all actions",
+                test: function(){
+                    var actionTypesAdded = [],
+                        allFound = true,
+                        count=0,
+                        button;
+                    
+                    for(var key in gaffa.actions){
+                        action = gaffa.actions[key];
+                        if(hasAncestor(action, gaffa.ViewItem)){
+                            count++; 
+                            
+                            button = new gaffa.views.button();                        
+                            button.actions.click = [new action()];
+                            gaffa.views.add(button);
+                            gaffa.views.remove();
+                        }
+                    }
+                    
+                    this.name+= ' (' + count + ' total)';
+                    
+                    this.result = true;
+                },
+                expected: true
+            },
         ];
     
         gaffa.views.renderTarget = testArea;  

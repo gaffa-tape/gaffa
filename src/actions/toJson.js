@@ -1,10 +1,15 @@
-(function(undefined) {
-    var actionType = "toJson";
-    window.gaffa.actions[actionType] = function(action){
-        if(gaffa.utils.propExists(action, "bindings.setFrom.binding")){
-            gaffa.model.set(action.properties.setTo.binding, JSON.stringify(gaffa.model.get(action.properties.setFrom.binding)));            
-        }else{
-            gaffa.model.set(action.properties.setTo.binding, JSON.stringify(action.properties.setFrom.value), action);            
-        }
+(function (undefined) {
+    var gaffa = window.gaffa,
+        actionType = "toJson";
+    
+    function ToJson(){}
+    ToJson = gaffa.createSpec(ToJson, gaffa.Action);
+    ToJson.prototype.type = actionType;
+    ToJson.prototype.trigger = function(){
+        gaffa.model.set(this.target.binding, JSON.stringify(this.source.value), this);
     };
+    ToJson.prototype.target = new gaffa.Property();
+    ToJson.prototype.source = new gaffa.Property();
+    
+    window.gaffa.actions[actionType] = ToJson;
 })();

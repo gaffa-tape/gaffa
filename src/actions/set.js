@@ -6,18 +6,14 @@
     Set = gaffa.createSpec(Set, gaffa.Action);
     Set.prototype.type = actionType;
     Set.prototype.trigger = function(){
-        trigger(this);
+        var fromObj = this.source.value;
+        if(!(this.clone && this.clone.value === false)){
+            fromObj = gaffa.clone(fromObj);
+        }
+        window.gaffa.model.set(this.target.binding, fromObj, this); 
     };
     Set.prototype.target = new gaffa.Property();
     Set.prototype.source = new gaffa.Property();
     
     window.gaffa.actions[actionType] = Set;
-    
-    function trigger(action) {
-        var fromObj = action.source.value;
-        if(!(action.clone && action.clone.value === false)){
-            fromObj = gaffa.clone(fromObj);
-        }
-        window.gaffa.model.set(action.target.binding, fromObj, action);            
-    };
 })();
