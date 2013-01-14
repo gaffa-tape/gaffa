@@ -1034,9 +1034,10 @@
     IntervalBehaviour = createSpec(IntervalBehaviour, Behaviour);
     IntervalBehaviour.prototype.bind = function(){  
         Behaviour.prototype.bind.apply(this, arguments);
+        var behaviour = this;
 
         internalIntervals.push(setInterval(function(){
-            gaffa.actions.trigger(this.actions, this.path);
+            behaviour.actions.tick && gaffa.actions.trigger(behaviour.actions.tick, behaviour);
         },this.time || 5000)); //If you forget to set the interval, we will be nice and give you 5 seconds of debug time by default, rather than 0ms looping you to death.
     };
     
