@@ -49,10 +49,22 @@
                         return;
                     }
                     
-                    if (action.returnValue.binding && data.returnValue) {
+                    if (action.returnValue.binding) {
+                        var returnValue;
+                        if(!data){
+                            return
+                        }
+                        if(action.returnProperty === ''){
+                            returnValue = data;
+                        }else if(action.returnProperty){
+                            returnValue = data[action.returnProperty];
+                        }else{
+                            return;
+                        }
+                        
                         window.gaffa.model.set(
                             action.returnValue.binding,
-                            data.returnValue, 
+                            returnValue, 
                             action,
                             !!action.dirty.value
                         );
