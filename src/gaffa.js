@@ -800,7 +800,6 @@
             this.actions[eventKey].fastEach(function(action, index, actions){
                 var action = actions[index];
                 
-                action.eventKey = eventKey;
                 action.bind();
             });
         }
@@ -843,6 +842,13 @@
         this.forEachChild(function(){
             this.bind();
         });
+        for(var key in this.actions){
+            var actions = this.actions[key];
+            
+            $(this.renderedElement).on(key, function (event) {
+                gaffa.actions.trigger(actions);
+            });
+        }
     };
     View.prototype.render = function(){
         this.renderedElement.viewModel = this;
@@ -919,13 +925,6 @@
     Action = createSpec(Action, ViewItem);
     Action.prototype.bind = function(){
         ViewItem.prototype.bind.apply(this, arguments);
-        var action = this;
-        if (!action.bound) {
-            $(action.parent.renderedElement).on(action.eventKey, function (event) {
-                action.trigger();
-            });
-            action.bound = true;
-        }
     };
     
     
