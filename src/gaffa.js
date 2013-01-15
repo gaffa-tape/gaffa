@@ -1308,6 +1308,8 @@
                             }
                         };
                         
+                    property.addedViews = property.addedViews || [];
+                        
                     if (value && typeof value === "object"){
 
                         var element = viewModel.renderedElement;
@@ -1318,7 +1320,8 @@
                             //Remove any child nodes who no longer exist in the data
                             for(var i = 0; i < childViews.length; i++){
                                 var childView = childViews[i];
-                                if(!value[childView.key]){
+                                if(!value[childView.key] && property.addedViews.indexOf(childView) >=0){
+                                    property.addedViews.splice(property.addedViews.indexOf(childView), 1);
                                     childViews.splice(i, 1);
                                     i--;
                                     remove(viewModel, value, childView);
@@ -1343,6 +1346,7 @@
                                 
                                 if (!existingChildView) {
                                     newView = {key: key};
+                                    property.addedViews.push(newView);
                                     insert(viewModel, value, newView);
                                 }
                             }
@@ -1365,10 +1369,14 @@
                             }
                         }
                     }else{
-                        childViews.fastEach(function(childView, index){
-                            childViews.splice(index, 1);
-                            remove(viewModel, value, childView);
-                        });
+                        for(var i = 0; i < childViews.length; i++){
+                            if(property.addedViews.indexOf(childView) >=0){
+                                childViews.splice(index, 1);
+                                property.addedViews.splice(property.addedViews.indexOf(childView), 1);
+                                index--;
+                                remove(viewModel, value, childView);                            
+                            }
+                        }
                     }
                 };
             },
