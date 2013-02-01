@@ -39,7 +39,7 @@
 			var ajaxSettings = {
                 cache: false,
                 type: 'post',
-                url: action.target.value,
+                url: action.target.value || window.location.pathname,
                 data: data,
                 dataType: 'json',
                 contentType: action.contentType || 'application/json; charset=utf-8',
