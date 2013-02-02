@@ -29,7 +29,7 @@
         function(viewModel, groups, addedItem){
             var listViews = viewModel.views.groups,
                 property = viewModel.groups,
-                expression = "(filterKeys [] {item (= item." + property.group + " " + addedItem.group + ")})";
+                expression = "(filter [] {item (= item." + property.group + " " + addedItem.group + ")})";
                 
             addedItem = gaffa.extend({}, property.template, addedItem);
             

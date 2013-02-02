@@ -44,6 +44,50 @@
         
     // Gedi initialisation
     gedi = new window.Gedi(internalModel);
+    
+    // Gel extensions
+    
+    gedi.gel.functions.filter = function(scope, args) {
+        var args = args.all(),
+            filteredList = [];
+                    
+        var array = args[0],
+            sourceArrayKeys;
+            
+        if(!array){
+            return undefined;
+        }
+            
+        sourceArrayKeys = array.__gaffaKeys__ || (function(){
+                var arr = [];
+                while(arr.length < array.length && arr.push(arr.length));
+                return arr;
+            })();
+            
+        var functionToCompare = args[1];
+        
+        filteredList.__gaffaKeys__ = [];
+        
+        if (Array.isArray(array)) {
+            
+            array.fastEach(function(item, index){
+                if(typeof functionToCompare === "function"){
+                    if(gedi.gel.callWith(functionToCompare, scope, [item])){ 
+                        filteredList.push(item);
+                        filteredList.__gaffaKeys__.push(sourceArrayKeys[index]);
+                    }
+                }else{
+                    if(item === functionToCompare){ 
+                        filteredList.push(item);
+                    }
+                }
+            });
+            return filteredList;
+        
+        }else {
+            return;
+        }
+    }
         
     // Gedi Specs.
     var Path = gedi.Path,
@@ -433,7 +477,7 @@
         if(item instanceof ViewItem && item.parentContainer && item.parentContainer.getPath){
             path = item.parentContainer.getPath();
         }else if(item instanceof ViewContainer && item.property && item.property.getPath){
-            path = item.property.getPath().append(item.property.binding);
+            path = item.property.getPath().append(!(item.property.binding instanceof gedi.Expression) ? item.property.binding : new Path());
         }else if(item.parent && item.parent.getPath){
             path = item.parent.getPath();
         }
@@ -1338,14 +1382,24 @@
                                 
                                 var existingChildView = false;
                                 for(var i = 0; i < childViews.length; i++){
-                                    var child = childViews[i];
-                                    if(child.key === key){
+                                    var child = childViews[i],
+                                        valueKey = key;
+                                        
+                                    if(value.__gaffaKeys__){
+                                        valueKey = value.__gaffaKeys__[key];
+                                    }
+                                        
+                                    if(child.key === valueKey){
                                         existingChildView = child;
                                     }
                                 }
                                 
                                 if (!existingChildView) {
-                                    newView = {key: key};
+                                    var newViewKey = key;
+                                    if(value.__gaffaKeys__){
+                                        newViewKey = value.__gaffaKeys__[key];
+                                    }
+                                    newView = {key: newViewKey};
                                     property.addedViews.push(newView);
                                     insert(viewModel, value, newView);
                                 }

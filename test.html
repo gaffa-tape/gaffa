@@ -328,7 +328,7 @@
                     template.text.binding = '[]';
                     
                     list.list.template = template;
-                    list.list.binding = '(filterKeys [] {item (== item "b")})';
+                    list.list.binding = '(filter [] {item (== item "b")})';
                     
                     gaffa.views.add(list);
                     
