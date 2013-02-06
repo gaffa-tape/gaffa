@@ -425,6 +425,12 @@
                     (description = crel('pre', {'class':'description'}, test.test.toString()))
                 );
                 
+                (function(test){
+                    title.addEventListener("click", function(){
+                        test.test.call(test);
+                    });
+                })(test);
+                
                 resultsElement.appendChild(resultElement);
             }
             

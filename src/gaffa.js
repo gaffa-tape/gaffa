@@ -436,9 +436,18 @@
     //***********************************************
 
     function bindProperty(viewModel) {
+    
+        // Shortcut for properties that have no binding.
+        if(this.binding == null){               
+            if(this.update){
+                this.update.call(viewModel);
+            }
+            return;
+        }
+        
         var property = this,
             updateProperty = function () {
-                if(property.binding.original){
+                if(property.binding){
                     property.value = gaffa.model.get(property.binding, property);                    
                 }                    
                 if(property.update){
@@ -470,19 +479,27 @@
     //      Get ViewItem Path
     //
     //***********************************************
-
+    
     function getItemPath(item){
-        var path = new Path();
+        var path;
+        
+        if(item.__pathCache__){
+            return item.__pathCache__;
+        }
         
         if(item instanceof ViewItem && item.parentContainer && item.parentContainer.getPath){
             path = item.parentContainer.getPath();
         }else if(item instanceof ViewContainer && item.property && item.property.getPath){
-            path = item.property.getPath().append(!(item.property.binding instanceof gedi.Expression) ? item.property.binding : new Path());
+            path = item.property.getPath();//.append(!(item.property.binding instanceof gedi.Expression) ? item.property.binding : new Path());
         }else if(item.parent && item.parent.getPath){
             path = item.parent.getPath();
+        }else{
+            path = new Path();
         }
         
-        return path.append(item.key).append(item.path);
+        item.__pathCache__ = path.append(item.key, item.path);
+        
+        return item.__pathCache__;
     }
     
     //***********************************************
@@ -807,12 +824,13 @@
         }
         return this;
     };
-    ViewContainer.prototype.remove = function(viewModel){
+    ViewContainer.prototype.remove = function(viewModel){     
         this.fastEach(function(childViewModel, index){
             if(childViewModel === viewModel){
                 this.splice(index, 1).remove();
             }
-        });
+        });   
+        this.getPath.__pathCache__ = null;
     };
     
     
@@ -861,6 +879,8 @@
         if(this.parentContainer){
             this.parentContainer.remove(this);
         }
+        
+        this.getPath.__pathCache__ = null;
         
         this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
         
