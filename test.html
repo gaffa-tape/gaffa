@@ -318,7 +318,7 @@
                 expected: '4 abcd'
             },
             {
-                name: "list view with expression",
+                name: "list view with expression (filter)",
                 test: function(){
                     var list = new gaffa.views.list();
                         template = new gaffa.views.label();
@@ -337,6 +337,27 @@
                     this.result = '' + $('.label').length + ' ' + $('.list').text();
                 },
                 expected: '1 b'
+            },
+            {
+                name: "list view with expression (slice, filter)",
+                test: function(){
+                    var list = new gaffa.views.list();
+                        template = new gaffa.views.label();
+                        
+                    list.path = '[myArray]';
+                    
+                    template.text.binding = '[]';
+                    
+                    list.list.template = template;
+                    list.list.binding = '(slice 0 -1 (filter [] {item (>= item "b")}))';
+                    
+                    gaffa.views.add(list);
+                    
+                    gaffa.model.set('[myArray]', ['a','b','c','d']);
+                    
+                    this.result = '' + $('.label').length + ' ' + $('.list').text();
+                },
+                expected: '2 bc'
             },
             {
                 name: "group view",
@@ -404,9 +425,11 @@
                     title,
                     result,
                     description,
-                    hasError;
+                    hasError,
+                    startTime;
                 
                 try{
+                    startTime = new Date();
                     test.test.call(test);
                     
                     //clear gaffa.
@@ -415,12 +438,14 @@
                     errors.push(error.toString());
                     hasError = true;
                 }
+                test.time = new Date() - startTime;
                 test.passed = test.result === test.expected && !hasError;
                 
                 test.passed && passed++;
                 
                 resultElement = crel('div', {'class':(test.passed && 'passed' || 'failed') + ' test'},
                     (title = crel('h1', test.name + ' ' + (test.passed && 'passed' || 'failed'))),
+                    crel('div', 'Time: ' + test.time),
                     (result = crel('span', {'class':'result'}), 'output: ' + test.result + ', expected: ' + test.expected),
                     (description = crel('pre', {'class':'description'}, test.test.toString()))
                 );

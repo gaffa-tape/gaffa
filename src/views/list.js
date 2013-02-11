@@ -35,7 +35,7 @@
         },
         //decrement
         function(viewModel, list, removedItem){
-            viewModel.renderedElement.removeChild(removedItem.renderedElement);
+            removedItem.remove();
         },
         //empty
         function(viewModel, insert){

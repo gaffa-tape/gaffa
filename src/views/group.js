@@ -40,7 +40,7 @@
         },
         //decrement
         function(viewModel, groups, removedItem){
-            $(removedItem.renderedElement).remove();
+            removedItem.remove();
         },
         //empty
         function(viewModel, insert){

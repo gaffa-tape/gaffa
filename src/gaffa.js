@@ -48,25 +48,26 @@
     // Gel extensions
     
     gedi.gel.functions.filter = function(scope, args) {
-        var args = args.all(),
+        var argumentTokens = args.raw(true),
+            filterToken = args.callee,
             filteredList = [];
                     
-        var array = args[0],
+        var array = argumentTokens[0].result,
             sourceArrayKeys;
             
         if(!array){
             return undefined;
         }
             
-        sourceArrayKeys = array.__gaffaKeys__ || (function(){
+        sourceArrayKeys = argumentTokens[0].__gaffaKeys__ || (function(){
                 var arr = [];
-                while(arr.length < array.length && arr.push(arr.length));
+                while(arr.length < array.length && arr.push(arr.length.toString()));
                 return arr;
             })();
             
-        var functionToCompare = args[1];
+        var functionToCompare = argumentTokens[1].result;
         
-        filteredList.__gaffaKeys__ = [];
+        filterToken.__gaffaKeys__ = [];
         
         if (Array.isArray(array)) {
             
@@ -74,7 +75,7 @@
                 if(typeof functionToCompare === "function"){
                     if(gedi.gel.callWith(functionToCompare, scope, [item])){ 
                         filteredList.push(item);
-                        filteredList.__gaffaKeys__.push(sourceArrayKeys[index]);
+                        filterToken.__gaffaKeys__.push(sourceArrayKeys[index]);
                     }
                 }else{
                     if(item === functionToCompare){ 
@@ -87,7 +88,42 @@
         }else {
             return;
         }
-    }
+    };
+    
+    gedi.gel.functions.slice = function(scope, args) {
+        var argumentTokens = args.raw(true),
+            filterToken = args.callee,
+            target = argumentTokens.shift(),
+            start,
+            end,
+            result,
+            sourceArrayKeys;  
+            
+
+        if(argumentTokens.length){
+            start = target;
+            target = argumentTokens.shift();
+        }
+        if(argumentTokens.length){
+            end = target;
+            target = argumentTokens.shift();
+        }
+        
+        if(!target.result){
+            return undefined;
+        }
+
+        sourceArrayKeys = target.__gaffaKeys__ || (function(){
+            var arr = [];
+            while(arr.length < target.result.length && arr.push(arr.length.toString()));
+            return arr;
+        })();
+        
+        result = target.result.slice(start.result, end.result);
+        filterToken.__gaffaKeys__ = sourceArrayKeys.slice(start.result, end.result);
+        
+        return result;
+    };
         
     // Gedi Specs.
     var Path = gedi.Path,
@@ -448,7 +484,9 @@
         var property = this,
             updateProperty = function () {
                 if(property.binding){
-                    property.value = gaffa.model.get(property.binding, property);                    
+                    var token = gaffa.model.get(property.binding, property, true).pop();
+                    property.keys = token ? token.__gaffaKeys__ : undefined;
+                    property.value = token ? token.result : undefined;
                 }                    
                 if(property.update){
                     property.update.call(viewModel);
@@ -490,7 +528,12 @@
         if(item instanceof ViewItem && item.parentContainer && item.parentContainer.getPath){
             path = item.parentContainer.getPath();
         }else if(item instanceof ViewContainer && item.property && item.property.getPath){
-            path = item.property.getPath();//.append(!(item.property.binding instanceof gedi.Expression) ? item.property.binding : new Path());
+            
+            if(item.property.binding instanceof Expression && item.property.binding.length === 1 && item.property.binding.paths.length === 1){
+                path = item.property.getPath().append(item.property.binding.paths[0]);
+            }else{
+                path = item.property.getPath();
+            }
         }else if(item.parent && item.parent.getPath){
             path = item.parent.getPath();
         }else{
@@ -1194,7 +1237,7 @@
                     parentPath = parent.getPath();
                 }
                 
-                return gedi.get(path, parentPath);
+                return gedi.get(path, parentPath, true);
             },
             set:function(path, value, parent, dirty) {
                 var parentPath;
@@ -1364,6 +1407,7 @@
                         valueLength = 0,
                         childViews = viewModel.views[propertyName],
                         value = property.value,
+                        valueKeys = property.keys,
                         calculateValueLength = function(){
                             if(Array.isArray(value)){
                                 return value.length;
@@ -1383,8 +1427,16 @@
                             
                             //Remove any child nodes who no longer exist in the data
                             for(var i = 0; i < childViews.length; i++){
-                                var childView = childViews[i];
-                                if(!value[childView.key] && property.addedViews.indexOf(childView) >=0){
+                                var childView = childViews[i],
+                                    existingKey = childView.key;
+                                    
+                                if(
+                                    (
+                                        valueKeys && !valueKeys.indexOf(existingKey)>=0 ||
+                                        !value[childView.key]
+                                    ) &&
+                                    property.addedViews.indexOf(childView) >=0
+                                ){
                                     property.addedViews.splice(property.addedViews.indexOf(childView), 1);
                                     childViews.splice(i, 1);
                                     i--;
@@ -1405,8 +1457,8 @@
                                     var child = childViews[i],
                                         valueKey = key;
                                         
-                                    if(value.__gaffaKeys__){
-                                        valueKey = value.__gaffaKeys__[key];
+                                    if(valueKeys){
+                                        valueKey = valueKeys[key];
                                     }
                                         
                                     if(child.key === valueKey){
@@ -1416,8 +1468,8 @@
                                 
                                 if (!existingChildView) {
                                     var newViewKey = key;
-                                    if(value.__gaffaKeys__){
-                                        newViewKey = value.__gaffaKeys__[key];
+                                    if(valueKeys){
+                                        newViewKey = valueKeys[key];
                                     }
                                     newView = {key: newViewKey};
                                     property.addedViews.push(newView);
