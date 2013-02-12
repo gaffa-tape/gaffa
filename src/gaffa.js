@@ -807,6 +807,42 @@
         });
     }
 
+    //***********************************************
+    //
+    //      JSON Converter
+    //
+    //***********************************************
+
+    function jsonConverter(object, exclude, include){
+        var tempObject = Array.isArray(object) || object instanceof Array && [] || {},
+        excludeProps = ["parent", "viewContainer", "renderedElement"],
+        includeProps = ["type"];
+                    
+        if(exclude){
+            excludeProps = excludeProps.concat(exclude);
+        }
+
+        if(include){
+            includeProps = includeProps.concat(include);
+        }
+
+        for(var key in object){
+            if(
+                object[key] == null ||
+                excludeProps.indexOf(key)>=0
+            ){
+                continue;
+            }
+            if(
+                object.hasOwnProperty(key) ||
+                includeProps.indexOf(key)>=0
+            ){
+                tempObject[key] = object[key];
+            }
+        }
+        
+        return tempObject;
+    }
     
     //Public Objects ******************************************************************************
     
@@ -824,7 +860,24 @@
     Property.prototype.getPath = function(){
         return getItemPath(this);
     };
-    
+    Property.prototype.toJSON = function(){
+        var tempObject = jsonConverter(this),
+            noValue = !tempObject.value,
+            noBinding = !tempObject.binding || tempObject.binding instanceof gaffa.Expression && !(tempObject.binding.paths && tempObject.binding.paths.length);
+
+        if(noBinding){
+            if(noValue){
+                return;
+            }
+            delete tempObject.binding;
+        }else{
+            delete tempObject.value;
+        }
+        
+        delete tempObject.previousValue;
+        
+        return tempObject;
+    };
     
     //***********************************************
     //
@@ -875,7 +928,9 @@
         });   
         this.getPath.__pathCache__ = null;
     };
-    
+    ViewContainer.prototype.toJSON = function(){
+        return jsonConverter(this, ['element']);
+    };
     
     //***********************************************
     //
@@ -934,7 +989,43 @@
     ViewItem.prototype.getPath = function(){
         return getItemPath(this);
     };
-    
+    ViewItem.prototype.toJSON = function(){
+        var tempObject = jsonConverter(this),
+            noViews = true,
+            noActions = true;
+            
+        if(tempObject.views){
+            for(var key in tempObject.views){
+                if(tempObject[key] && tempObject[key].template){
+                    delete tempObject.views[key];
+                }
+                
+                if(tempObject.views[key].length){
+                    noViews = false;
+                }
+            }
+        }
+        
+        for(var key in tempObject.actions){
+            if(tempObject.actions[key].length){
+                noActions = false;
+            }
+        }
+        
+        if(noViews){
+            delete tempObject.views;
+        }
+
+        if(noActions){
+            delete tempObject.actions;
+        }
+
+        if(tempObject.eventHandlers && !tempObject.eventHandlers.length){
+            delete tempObject.eventHandlers;
+        }
+        
+        return tempObject;
+    };
     
     //***********************************************
     //
@@ -1221,6 +1312,7 @@
     extend(gaffa, {
         addDefaultStyle: addDefaultStyle,
         createSpec: createSpec,
+        jsonConverter: jsonConverter,
         Path: gedi.Path,
         Expression: gedi.Expression,
         ViewItem: ViewItem,
