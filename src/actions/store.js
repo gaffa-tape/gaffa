@@ -52,7 +52,7 @@
                     if (action.returnValue.binding) {
                         var returnValue;
                         if(!data){
-                            return
+                            return;
                         }
                         if(action.returnProperty === ''){
                             returnValue = data;
@@ -64,7 +64,7 @@
                         
                         window.gaffa.model.set(
                             action.returnValue.binding,
-                            returnValue, 
+                            returnValue,
                             action,
                             !!action.dirty.value
                         );
@@ -82,10 +82,10 @@
                     gaffa.notifications.notify("store.success." + action.kind);
                 },
                 error: errorHandler,
-                complete:function(){                    
+                complete:function(){
                     gaffa.notifications.notify("store.complete." + action.kind);
                 }
-            }
+            };
 			
 			if(action.dataType === 'binary'){
 
@@ -100,5 +100,5 @@
 			
 			$.ajax(ajaxSettings);
         }
-    };
+    }
 })();

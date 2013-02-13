@@ -73,12 +73,12 @@
             
             array.fastEach(function(item, index){
                 if(typeof functionToCompare === "function"){
-                    if(gedi.gel.callWith(functionToCompare, scope, [item])){ 
+                    if(gedi.gel.callWith(functionToCompare, scope, [item])){
                         filteredList.push(item);
                         filterToken.__gaffaKeys__.push(sourceArrayKeys[index]);
                     }
                 }else{
-                    if(item === functionToCompare){ 
+                    if(item === functionToCompare){
                         filteredList.push(item);
                     }
                 }
@@ -97,7 +97,7 @@
             start,
             end,
             result,
-            sourceArrayKeys;  
+            sourceArrayKeys;
             
 
         if(argumentTokens.length){
@@ -129,7 +129,7 @@
     var Path = gedi.Path,
         Expression = gedi.Expression;
 
-    //internal functions    
+    //internal functions
     
     //***********************************************
     //
@@ -150,7 +150,7 @@
     
     //***********************************************
     //
-    //      Create Spec 
+    //      Create Spec
     //      https://github.com/KoryNunn/JavascriptInheritance/blob/master/spec.js
     //
     //***********************************************
@@ -158,9 +158,13 @@
     function createSpec(child, parent){
         var parentPrototype;
         
-        !parent && (parent = Object);
+        if(!parent) {
+            parent = Object;
+        }
         
-        !parent.prototype && (parent.prototype = {});
+        if(!parent.prototype) {
+            parent.prototype = {};
+        }
         
         parentPrototype = parent.prototype;
         
@@ -309,10 +313,9 @@
             // Internet explorer is an ABSOLUTE PIECE OF SHIT.
             // If you don't set this to false, it JUST RESPONDS WITH WHATEVER IT LAST GOT FROM THAT URL.
             // Changed the contentType to application/json? WHO CARES! JUST FUCKING RESPOND WITH HTML :D!
-            
             // I fucking hate internet explorer.
-        
-            cache: !$.browser.msie,
+            // Also dodgey browser detection cause cant feature detect shitness.
+            cache: navigator.appName !== 'Microsoft Internet Explorer',
             url: url,
             type: (post && "post") || "get",
             contentType: "application/json; charset=utf-8",
@@ -326,7 +329,9 @@
                 }
                 
                 // Always use pushstate unless triggered by onpopstate
-                !(pushState === false) && history.pushState(data, title, url);
+                if(pushState !== false) {
+                    history.pushState(data, title, url);
+                }
                 
                 load(data, model);
                 
@@ -460,7 +465,7 @@
     //
     //***********************************************
 
-    function triggerAction(action) {        
+    function triggerAction(action) {
         action.trigger();
     }
     
@@ -474,7 +479,7 @@
     function bindProperty(viewModel) {
     
         // Shortcut for properties that have no binding.
-        if(this.binding == null){               
+        if(this.binding == null){
             if(this.update){
                 this.update.call(viewModel);
             }
@@ -487,7 +492,7 @@
                     var token = gaffa.model.get(property.binding, property, true).pop();
                     property.keys = token ? token.__gaffaKeys__ : undefined;
                     property.value = token ? token.result : undefined;
-                }                    
+                }
                 if(property.update){
                     property.update.call(viewModel);
                 }
@@ -495,8 +500,8 @@
         
         this.parent = viewModel;
         this.binding = new Expression(this.binding);
-        this.binding.paths.fastEach(function(path){            
-            gaffa.model.bind(path, updateProperty, property)
+        this.binding.paths.fastEach(function(path){
+            gaffa.model.bind(path, updateProperty, property);
         });
         updateProperty();
     }
@@ -623,7 +628,7 @@
             
             internalNotifications[notificationKind] && internalNotifications[notificationKind].fastEach(function(callback){
                 callback(data);
-            });            
+            });
         });
     }
     
@@ -631,7 +636,7 @@
     //
     //      Same As
     //
-    //***********************************************    
+    //***********************************************
     
     function sameAs(a,b){
         var typeofA = typeof a,
@@ -643,17 +648,14 @@
             
         switch (typeof a){
             case 'string': return a === b;
-            break;
             
-            case 'number': 
+            case 'number':
                 if(isNaN(a) && isNaN(b)){
                     return true;
                 }
                 return a === b;
-            break;
             
             case 'date': return +a === +b;
-            break;
                         
             default: return false;
         }
@@ -675,7 +677,7 @@
             $("head").prepend(defaultViewStyles);
             
             return defaultViewStyles;
-        })();    
+        })();
 
         if (defaultViewStyles.styleSheet) {   // for IE
             defaultViewStyles.styleSheet.cssText = style;
@@ -699,12 +701,12 @@
         if (spec === Action){
            specCollection = gaffa.actions;
         }else if(spec === View){
-           specCollection = gaffa.views;        
+           specCollection = gaffa.views;
         }else if(spec === Behaviour){
-           specCollection = gaffa.behaviours;        
+           specCollection = gaffa.behaviours;
         }
         
-        if(!(viewItem instanceof spec)){        
+        if(!(viewItem instanceof spec)){
             if (!specCollection[viewItem.type]) {
                 console.error("No action is loaded to handle view of type " + viewItem.type);
             }
@@ -744,7 +746,7 @@
     //
     //***********************************************
     
-    function initialiseView(viewModel, parentView, viewContainer) {        
+    function initialiseView(viewModel, parentView, viewContainer) {
         return initialiseViewItem(viewModel, parentView, viewContainer, View);
     }
     
@@ -794,12 +796,12 @@
     //
     //      Remove Views
     //
-    //***********************************************    
+    //***********************************************
     
-    function removeViews(views){    
+    function removeViews(views){
         if(!views){
             views = internalViewItems;
-        }        
+        }
         !Array.isArray(views) && (views = [views]);
         
         views.fastEach(function(viewModel){
@@ -855,7 +857,7 @@
     function Property(updateFunction){
         this.update = updateFunction;
     }
-    Property = createSpec(Property); 
+    Property = createSpec(Property);
     Property.prototype.bind = bindProperty;
     Property.prototype.getPath = function(){
         return getItemPath(this);
@@ -896,7 +898,7 @@
             
         };
     }
-    ViewContainer = createSpec(ViewContainer, Array); 
+    ViewContainer = createSpec(ViewContainer, Array);
     ViewContainer.prototype.bind = function(parent){
         this.parent = parent;
         return this;
@@ -920,12 +922,12 @@
         }
         return this;
     };
-    ViewContainer.prototype.remove = function(viewModel){     
+    ViewContainer.prototype.remove = function(viewModel){
         this.fastEach(function(childViewModel, index){
             if(childViewModel === viewModel){
                 this.splice(index, 1).remove();
             }
-        });   
+        });
         this.getPath.__pathCache__ = null;
     };
     ViewContainer.prototype.toJSON = function(){
@@ -949,7 +951,7 @@
         this.actions = {};
         this.eventHandlers = [];
         
-        if(viewItemDescription && viewItemDescription.path != null){        
+        if(viewItemDescription && viewItemDescription.path != null){
             this.path = new Path("[]");
         }
     }
@@ -1034,7 +1036,7 @@
     //***********************************************
     
     function View(viewDescription){}
-    View = createSpec(View, ViewItem);          
+    View = createSpec(View, ViewItem);
     View.prototype.bind = function(){
         ViewItem.prototype.bind.apply(this, arguments);
         this.forEachChild(function(){
@@ -1054,9 +1056,9 @@
             this.render();
         });
     };    
-    View.prototype.insert = function(viewContainer){        
+    View.prototype.insert = function(viewContainer){
         var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
-        this.insertFunction(this.insertSelector || renderTarget, this.renderedElement);        
+        this.insertFunction(this.insertSelector || renderTarget, this.renderedElement);
         typeof this.afterInsert === 'function' && this.afterInsert();
         this.forEachChild(function(viewContainer){
             this.insert(viewContainer);
@@ -1067,7 +1069,7 @@
             property = viewModel.classes,
             internalClassNames = viewModel.renderedElement.internalClassNames = viewModel.renderedElement.internalClassNames || $(viewModel.renderedElement).attr("class") || "";
             
-        $(viewModel.renderedElement).attr("class", internalClassNames + " " + (property.value || ""));            
+        $(viewModel.renderedElement).attr("class", internalClassNames + " " + (property.value || ""));
     });
     View.prototype.forEachChild = function(callback){
         for(var key in this.views){
@@ -1084,7 +1086,7 @@
         if (value === false) {
             $(viewModel.renderedElement).css("display", "none");
         } else {
-            $(viewModel.renderedElement).css("display", "");            
+            $(viewModel.renderedElement).css("display", "");
         }
     });
     View.prototype.insertFunction = insertFunction;
@@ -1097,7 +1099,7 @@
     //***********************************************
     
     function ContainerView(viewDescription){
-        this.views = this.views || {};        
+        this.views = this.views || {};
         this.views.content = new ViewContainer(this.views.content);
     }
     ContainerView = createSpec(ContainerView, View);
