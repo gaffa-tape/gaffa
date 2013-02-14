@@ -1000,6 +1000,7 @@
             for(var key in tempObject.views){
                 if(tempObject[key] && tempObject[key].template){
                     delete tempObject.views[key];
+                    continue;
                 }
                 
                 if(tempObject.views[key].length){
