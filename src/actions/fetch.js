@@ -22,8 +22,8 @@
 
     function trigger(action){
         var errorHandler = function (error) {
-            if (action.errorActions && action.errorActions.length) {
-                window.gaffa.actions.trigger(action.errorActions, action.binding);
+            if (action.error && action.error.length) {
+                window.gaffa.actions.trigger(action.error, action.binding);
             }
             gaffa.notifications.notify("fetch.error." + action.kind, error);
         };
@@ -52,8 +52,8 @@
 				}
             }
             
-            if (action.successActions && action.successActions.length) {
-                window.gaffa.actions.trigger(action.successActions, action);
+            if (action.success && action.success.length) {
+                window.gaffa.actions.trigger(action.success, action);
             }
             
             gaffa.notifications.notify("fetch.success." + action.kind);
@@ -86,12 +86,15 @@
                             handleData(action, data);
                         },
                         error: errorHandler,
-                        complete:function(){                    
+                        complete:function(){
                             gaffa.notifications.notify("fetch.complete." + action.kind);
+                            if (action.complete && action.complete.length) {
+                                window.gaffa.actions.trigger(action.complete, action);
+                            }
                         }
                     });
                 }
             }
         }
-    };
+    }
 })();
