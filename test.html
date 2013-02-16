@@ -31,7 +31,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script src="../gel/gel.js"></script>
 <script src="../gedi/gedi.js"></script>
-<script src="src/gaffa.js"></script>
+<script src="gaffa.js"></script>
 
 <!-- views. -->
 <script>
@@ -73,7 +73,7 @@
         ];
     
     views.fastEach(function(viewName){
-        scripts += '<script src="src/views/' + viewName + '.js"></' + 'script>';
+        scripts += '<script src="views/' + viewName + '.js"></' + 'script>';
     });
     
     var actions = [
@@ -92,17 +92,17 @@
         ];
     
     actions.fastEach(function(actionName){
-        scripts += '<script src="src/actions/' + actionName + '.js"></' + 'script>';
+        scripts += '<script src="actions/' + actionName + '.js"></' + 'script>';
     });
     document.write(scripts);
 </script>
 
 <!-- actions. -->
-<script src="src/actions/set.js"></script>
-<script src="src/actions/push.js"></script>
-<script src="src/actions/toggle.js"></script>
-<script src="src/actions/store.js"></script>
-<script src="src/actions/fetch.js"></script>
+<script src="actions/set.js"></script>
+<script src="actions/push.js"></script>
+<script src="actions/toggle.js"></script>
+<script src="actions/store.js"></script>
+<script src="actions/fetch.js"></script>
 <script>
 
     /*
