@@ -77,27 +77,27 @@
 <!-- Unfortunatly gaffa currently requires jQuery. -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <!-- REQUIRED: gel (gaffa expression language) is a simple language parser that allows for complicated bindings in gaffa and gedi. -->
-<script src="gel/gel.js"></script>
+<script src="../gel/gel.js"></script>
 <!-- REQUIRED: gedi (gaffa evented data interface) is a simple callback based model accessor, used by gaffa to access it's model -->
-<script src="gedi/gedi.js"></script>
+<script src="../gedi/gedi.js"></script>
 <!-- REQUIRED: gaffa (like the tape...) is the bit that ties everything together -->
-<script src="src/gaffa.js"></script>
+<script src="gaffa.js"></script>
 
 <!-- OPTIONAL: views. -->
-<script src="src/views/container.js"></script>
-<script src="src/views/list.js"></script>
-<script src="src/views/anchor.js"></script>
-<script src="src/views/image.js"></script>
-<script src="src/views/heading.js"></script>
-<script src="src/views/html.js"></script>
-<script src="src/views/button.js"></script>
+<script src="views/container.js"></script>
+<script src="views/list.js"></script>
+<script src="views/anchor.js"></script>
+<script src="views/image.js"></script>
+<script src="views/heading.js"></script>
+<script src="views/html.js"></script>
+<script src="views/button.js"></script>
 
 <!-- OPTIONAL: actions. -->
-<script src="src/actions/set.js"></script>
-<script src="src/actions/push.js"></script>
-<script src="src/actions/toggle.js"></script>
-<script src="src/actions/store.js"></script>
-<script src="src/actions/fetch.js"></script>
+<script src="actions/set.js"></script>
+<script src="actions/push.js"></script>
+<script src="actions/toggle.js"></script>
+<script src="actions/store.js"></script>
+<script src="actions/fetch.js"></script>
 
 <!-- OPTIONAL: implement any custom views that might be needed for your specific project. -->
 <!-- this custom view needs another library -->
@@ -192,8 +192,8 @@
             this.__super__.render.apply(this, arguments);
         };
         
-        JsonViewer.prototype.value = new gaffa.Property(function(){
-            this.renderedElement.value = JSON.stringify(this.value.value, null, '    ');
+        JsonViewer.prototype.value = new gaffa.Property(function(viewModel, value){
+            viewModel.renderedElement.value = JSON.stringify(value, null, '    ');
         });
         
         gaffa.views[viewType] = JsonViewer;
@@ -291,10 +291,9 @@
         
             var viewPane = new views.container();
             
-                var modelViewer = new views.jsonViewer();
-                modelViewer.value.binding = '[]';
+                var viewsViewer = new views.jsonViewer();
                 
-            viewPane.views.content.add(modelViewer);
+            viewPane.views.content.add(viewsViewer);
         
         designer.views.content.add(viewPane);
         
