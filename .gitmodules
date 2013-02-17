@@ -1,6 +1,0 @@
-[submodule "gedi"]
-	path = gedi
-	url = https://github.com/gaffa-tape/gedi.git
-[submodule "gel"]
-	path = gel
-	url = https://github.com/gaffa-tape/gel.git
