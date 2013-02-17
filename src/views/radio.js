@@ -21,11 +21,10 @@
         this.__super__.render.apply(this, arguments);
     }
     
-    function updateOptions() {
-        var property = this.options,
-            value = property.value,                        
-            element = $(this.renderedElement),
-            groupName = this.groupName.value;
+    function updateOptions(viewModel, value) {
+        var property = this
+            element = $(viewModel.renderedElement),
+            groupName = viewModel.groupName.value;
 
         if (!Array.isArray(value)) {
             value = [];
@@ -59,9 +58,8 @@
     
     Radio.prototype.options = new gaffa.Property(updateOptions);
     
-    Radio.prototype.value = new gaffa.Property(function () {
-        var value = this.value.value,
-            options = $(this.renderedElement).find('input');
+    Radio.prototype.value = new gaffa.Property(function (viewModel, value) {
+        var options = $(this.renderedElement).find('input');
             
         options.each(function(){
             var option = $(this);

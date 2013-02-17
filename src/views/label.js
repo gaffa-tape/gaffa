@@ -16,11 +16,11 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Label.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
+    Label.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
         viewModel.renderedElement.innerHTML = value || "";
     }));
     
-    Label.prototype.labelFor = new gaffa.Property(window.gaffa.propertyUpdaters.string("labelFor", function (viewModel, value) {
+    Label.prototype.labelFor = new gaffa.Property(window.gaffa.propertyUpdaters.string(function (viewModel, value) {
         if (value === null || value === undefined) {
             viewModel.renderedElement.setAttribute("labelFor", value);
         } else {

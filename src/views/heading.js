@@ -16,7 +16,7 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Heading.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
+    Heading.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
         if(typeof value === "string"){
             viewModel.renderedElement.innerHTML = value;
         }else{

@@ -47,9 +47,8 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Select.prototype.options = new gaffa.Property(function() {
-        var viewModel = this,
-            property = this.options,
+    Select.prototype.options = new gaffa.Property(function(viewModel, value) {
+        var property = this,
             value = property.value,
             element = $(viewModel.renderedElement);
             
@@ -89,10 +88,8 @@
         }
     });
     
-    Select.prototype.value = new gaffa.Property(function() {
-        var value = this.value.value;
-
-        this.renderedElement.value = value;
+    Select.prototype.value = new gaffa.Property(function(viewModel, value) {
+        viewModel.renderedElement.value = value;
     });
     
     Select.prototype.optionText = new gaffa.Property();

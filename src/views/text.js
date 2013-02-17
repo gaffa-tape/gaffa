@@ -30,7 +30,7 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Text.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
+    Text.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
         if(!shit){
             viewModel.renderedElement.data = value;
             if(value !== null && value !== undefined){

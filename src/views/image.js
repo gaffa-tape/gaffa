@@ -24,11 +24,11 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Image.prototype.source = new gaffa.Property(window.gaffa.propertyUpdaters.string("source", function (viewModel, value) {
+    Image.prototype.source = new gaffa.Property(window.gaffa.propertyUpdaters.string(function (viewModel, value) {
         viewModel.renderedElement.setAttribute("src", value);
     }));
     
-    Image.prototype.image = new gaffa.Property(window.gaffa.propertyUpdaters.object("image", function (viewModel, value) {
+    Image.prototype.image = new gaffa.Property(window.gaffa.propertyUpdaters.object(function (viewModel, value) {
         if(!value){
             return;
         }

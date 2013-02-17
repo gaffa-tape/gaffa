@@ -18,7 +18,7 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Button.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
+    Button.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
         if(value !== null && value !== undefined){
             viewModel.renderedElement.innerHTML = value;
         }else{
@@ -26,11 +26,11 @@
         }
     }));
     
-    Button.prototype.subType = new gaffa.Property(window.gaffa.propertyUpdaters.string("subType", function(viewModel, value){
+    Button.prototype.subType = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
         viewModel.renderedElement.setAttribute("type", value || 'button');
     }));
     
-    Button.prototype.disabled = new gaffa.Property(window.gaffa.propertyUpdaters.bool("disabled", function(viewModel, value){
+    Button.prototype.disabled = new gaffa.Property(window.gaffa.propertyUpdaters.bool(function(viewModel, value){
         if(value){
             viewModel.renderedElement.setAttribute("disabled", "disabled");
         }else{

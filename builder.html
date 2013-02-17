@@ -137,7 +137,7 @@
             this.__super__.render.apply(this, arguments);
         };
         
-        EditableContent.prototype.content = new gaffa.Property(window.gaffa.propertyUpdaters.string("content", function(viewModel, value){
+        EditableContent.prototype.content = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
             if(value !== null && value !== undefined){
                 if(value !== viewModel.renderedElement.freditor.getValue()){ // So that the editor doesn't re-fill the content when it itself changes
                     viewModel.renderedElement.freditor.setValue(value);
@@ -147,7 +147,7 @@
             }
         }));
         
-        EditableContent.prototype.editable = new gaffa.Property(window.gaffa.propertyUpdaters.bool("editable", function(viewModel, value){
+        EditableContent.prototype.editable = new gaffa.Property(window.gaffa.propertyUpdaters.bool(function(viewModel, value){
             if(value === false){
                 viewModel.renderedElement.freditor.disable();
             }else{

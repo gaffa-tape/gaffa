@@ -18,7 +18,7 @@
         } 
     }  
     
-    var updateValue = window.gaffa.propertyUpdaters.string("value", function(viewModel, value){
+    var updateValue = window.gaffa.propertyUpdaters.string(function(viewModel, value){
                 
         var element = viewModel.renderedElement,
             caretPosition = 0,
@@ -65,15 +65,15 @@
         
     });
     
-    var updateSubType = window.gaffa.propertyUpdaters.string("subType", function(viewModel, value){
+    var updateSubType = window.gaffa.propertyUpdaters.string(function(viewModel, value){
         $(viewModel.renderedElement).attr('type', value);
     });
     
-    var updatePlaceholder = window.gaffa.propertyUpdaters.string("placeholder", function(viewModel, value){
+    var updatePlaceholder = window.gaffa.propertyUpdaters.string(function(viewModel, value){
         $(viewModel.renderedElement).attr('placeholder', value);
     });
     
-    var updateDisabled = window.gaffa.propertyUpdaters.bool("disabled", function(viewModel, value){
+    var updateDisabled = window.gaffa.propertyUpdaters.bool(function(viewModel, value){
         if (value){
             viewModel.renderedElement.setAttribute('disabled', 'disabled');
         }else{

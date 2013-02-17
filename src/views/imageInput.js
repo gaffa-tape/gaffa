@@ -115,22 +115,12 @@
     }
 
 
-    ImageInput.prototype.file = new gaffa.Property(window.gaffa.propertyUpdaters.object("file", function(viewModel, value){
-        //Do Nothing.
-    }));
-    ImageInput.prototype.bytes = new gaffa.Property(window.gaffa.propertyUpdaters.object("bytes", function(viewModel, value){
-        //Do Nothing.
-    }));
-    ImageInput.prototype.dataURL = new gaffa.Property(window.gaffa.propertyUpdaters.string("dataURL", function(viewModel, value){
-        //Do Nothing.
-    }));
-    ImageInput.prototype.maxWidth = new gaffa.Property(window.gaffa.propertyUpdaters.number("maxWidth", function(viewModel, value){
-        //Do Nothing.
-    }));
-    ImageInput.prototype.maxHeight = new gaffa.Property(window.gaffa.propertyUpdaters.number("maxHeight", function(viewModel, value){
-        //Do Nothing.
-    }));
-    ImageInput.prototype.disabled = new gaffa.Property(window.gaffa.propertyUpdaters.bool("disabled", function(viewModel, value){
+    ImageInput.prototype.file = new gaffa.Property();
+    ImageInput.prototype.bytes = new gaffa.Property();
+    ImageInput.prototype.dataURL = new gaffa.Property();
+    ImageInput.prototype.maxWidth = new gaffa.Property();
+    ImageInput.prototype.maxHeight = new gaffa.Property();
+    ImageInput.prototype.disabled = new gaffa.Property(window.gaffa.propertyUpdaters.bool(function(viewModel, value){
         if (value){
             viewModel.renderedElement.setAttribute('disabled', 'disabled');
         }else{

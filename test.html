@@ -318,6 +318,28 @@
                 expected: '4 abcd'
             },
             {
+                name: "list view decrement",
+                test: function(){
+                    var list = new gaffa.views.list();
+                        template = new gaffa.views.label();
+                        
+                        
+                    gaffa.model.set('[myArray]', ['a','b','c','d']);
+                    
+                    template.text.binding = '[]';
+                    
+                    list.list.template = template;
+                    list.list.binding = '[myArray]';
+                    
+                    gaffa.views.add(list);                    
+                    
+                    gaffa.model.remove('[myArray/3]');                    
+                    
+                    this.result = '' + $('.label').length + ' ' + $('.list').text();
+                },
+                expected: '3 abc'
+            },
+            {
                 name: "list view with expression (filter)",
                 test: function(){
                     var list = new gaffa.views.list();

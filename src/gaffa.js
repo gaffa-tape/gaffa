@@ -481,32 +481,11 @@
         // Shortcut for properties that have no binding.
         if(this.binding == null){
             if(this.update){
-                this.update.call(viewModel);
+                this.update(viewModel, this.value);
             }
             return;
         }
-        
-        // var property = this,
-            // updateProperty = function (event) {
-                // if(event === true){
-                    // var token = gaffa.model.get(property.binding, property, true).pop();
-                    // property.keys = token.__gaffaKeys__;
-                    // property.value = token.result;                    
-                // }else if(event && property.binding){
-                    // property.keys = event.token.__gaffaKeys__;
-                    // property.value = event.value;
-                // }
-                // if(property.update){
-                    // property.update.call(viewModel);
-                // }
-            // };
-        
-        // this.parent = viewModel;
-        // this.binding = new Expression(this.binding);
-        // this.binding.paths.fastEach(function(path){
-            // gaffa.model.bind(path, updateProperty, property);
-        // });
-        
+                
         var property = this,
             updateProperty = function (event) {
                 if(event === true){
@@ -518,7 +497,7 @@
                     property.value = event.value;
                 }
                 if(property.update){
-                    property.update.call(viewModel);
+                    property.update(viewModel, property.value);
                 }
             };
             
@@ -1062,8 +1041,8 @@
     View = createSpec(View, ViewItem);
     View.prototype.bind = function(){
         ViewItem.prototype.bind.apply(this, arguments);
-        this.forEachChild(function(){
-            this.bind();
+        this.forEachChild(function(child){
+            child.bind();
         });
         for(var key in this.actions){
             var actions = this.actions[key];
@@ -1075,37 +1054,32 @@
     };
     View.prototype.render = function(){
         this.renderedElement.viewModel = this;
-        this.forEachChild(function(){
-            this.render();
+        this.forEachChild(function(child){
+            child.render();
         });
     };    
     View.prototype.insert = function(viewContainer){
         var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
         this.insertFunction(this.insertSelector || renderTarget, this.renderedElement);
         typeof this.afterInsert === 'function' && this.afterInsert();
-        this.forEachChild(function(viewContainer){
-            this.insert(viewContainer);
+        this.forEachChild(function(child, viewContainer){
+            child.insert(viewContainer);
         });
     };    
-    View.prototype.classes = new Property(function(){
-        var viewModel = this,
-            property = viewModel.classes,
-            internalClassNames = viewModel.renderedElement.internalClassNames = viewModel.renderedElement.internalClassNames || $(viewModel.renderedElement).attr("class") || "";
+    View.prototype.classes = new Property(function(viewModel, value){
+        var internalClassNames = viewModel.renderedElement.internalClassNames = viewModel.renderedElement.internalClassNames || $(viewModel.renderedElement).attr("class") || "";
             
-        $(viewModel.renderedElement).attr("class", internalClassNames + " " + (property.value || ""));
+        $(viewModel.renderedElement).attr("class", internalClassNames + " " + (value || ""));
     });
     View.prototype.forEachChild = function(callback){
         for(var key in this.views){
             var parentView = this;
             this.views[key].fastEach(function(view){
-                callback.call(view, parentView.views[key]);
+                callback(view, parentView.views[key]);
             });
         }
     };
-    View.prototype.visible = new Property(function() {
-        var viewModel = this,
-            value = viewModel.visible.value;
-            
+    View.prototype.visible = new Property(function(viewModel, value) {
         if (value === false) {
             $(viewModel.renderedElement).css("display", "none");
         } else {
@@ -1457,18 +1431,17 @@
 
         propertyUpdaters: {
 
-            string: function (propertyName, callback, setValue) {
-                if (typeof propertyName === "object") {
+            string: function (callback) {
+                if (typeof callback !== "function") {
                     //passed a property object, doing a set.
-                    var viewModel = propertyName,
-                    propertyObject = callback,
-                    string = setValue;
+                    var property = arguments[1],
+                        viewModel = callback,
+                        value = arguments[2];
                     
-                    gaffa.model.set(propertyObject.binding, string, viewModel);
+                    gaffa.model.set(property.binding, value, viewModel);
                 } else {
-                    return function () {
-                        var viewModel = this,
-                            property = viewModel[propertyName],
+                    return function (viewModel, value) {
+                        var property = this,
                             element = viewModel.renderedElement,
                             convertDateToString = function (date){
                                 if(date && date instanceof Date && typeof gaffa.dateFormatter === "function"){
@@ -1478,8 +1451,8 @@
                                 }
                             };
                             
-                        if (property.value !==  property.previousValue) {
-                            if(property.value == null){
+                        if (value !==  property.previousValue) {
+                            if(value == null){
                                 property.value = "";
                             }
                             property.value = convertDateToString(property.value).toString();
@@ -1492,20 +1465,18 @@
                 }
             },
             
-            number: function (propertyName, callback, setValue) {
-                if (typeof propertyName === "object") {
+            number: function (callback) {
+                if (typeof callback !== "function") {
                     //passed a property object, doing a set.
-                    var viewModel = propertyName,
-                    propertyObject = callback,
-                    number = setValue;
+                    var property = this,
+                        viewModel = property.parent,
+                        number = callback;
 
-                    gaffa.model.set(propertyObject.binding, number, viewModel);
+                    gaffa.model.set(property.binding, number, viewModel);
                     
                 } else {
-                    return function () {
-                        var viewModel = this,
-                            property = viewModel[propertyName],
-                            value = property.value,
+                    return function (viewModel, value) {
+                        var property = this,
                             element = viewModel.renderedElement;
                         
                         if (property.previousValue !== value) {
@@ -1518,14 +1489,13 @@
                 }
             },
             
-            collection: function (propertyName, insert, remove, empty) {
-                return function () {
-                    var viewModel = this,
-                        property = viewModel[propertyName],
+            collection: function (viewsName, insert, remove, empty) {
+                var propertyName;
+                return function (viewModel, value) {
+                    var property = this,
                         sort = property.sort,
                         valueLength = 0,
-                        childViews = viewModel.views[propertyName],
-                        value = property.value,
+                        childViews = viewModel.views[viewsName],
                         valueKeys = property.keys,
                         calculateValueLength = function(){
                             if(Array.isArray(value)){
@@ -1534,6 +1504,16 @@
                                 return Object.keys(value).length;
                             }
                         };
+                        
+                    // This feels bad..
+                    if(!propertyName){
+                        for(var key in viewModel){
+                            if(viewModel[key] === property){
+                                propertyName = key;
+                                return;
+                            }
+                        }
+                    }
                         
                     property.addedViews = property.addedViews || [];
                         
@@ -1551,12 +1531,11 @@
                                     
                                 if(
                                     (
-                                        valueKeys && !valueKeys.indexOf(existingKey)>=0 ||
+                                        (valueKeys && !valueKeys.indexOf(existingKey)>=0) ||
                                         !value[childView.key]
                                     ) &&
-                                    property.addedViews.indexOf(childView) >=0
+                                    childView.parentProperty === propertyName
                                 ){
-                                    property.addedViews.splice(property.addedViews.indexOf(childView), 1);
                                     childViews.splice(i, 1);
                                     i--;
                                     remove(viewModel, value, childView);
@@ -1590,8 +1569,7 @@
                                     if(valueKeys){
                                         newViewKey = valueKeys[key];
                                     }
-                                    newView = {key: newViewKey};
-                                    property.addedViews.push(newView);
+                                    newView = {key: newViewKey, parentProperty: propertyName};
                                     insert(viewModel, value, newView);
                                 }
                             }
@@ -1626,12 +1604,10 @@
                 };
             },
             
-            group: function (propertyName, insert, remove, empty) {
-                return function () {
-                    var viewModel = this,
-                        property = viewModel[propertyName],
-                        value = property.value,
-                        childViews = viewModel.views[propertyName],
+            group: function (viewsName, insert, remove, empty) {
+                return function (viewModel, value) {
+                    var property = this,
+                        childViews = viewModel.views[viewsName],
                         newView,
                         isEmpty;
                     
@@ -1674,19 +1650,19 @@
                 };
             },
 
-            bool: function (propertyName, callback, value) {
-                if (typeof propertyName === "object") {
+            bool: function (callback) {
+                if (typeof callback !== "function") {
                     //passed a property object, doing a set.
-                    var viewModel = propertyName,
-                    propertyObject = callback;
+                    var property = arguments[1],
+                        viewModel = callback,
+                        value = arguments[2];
 
-                    gaffa.model.set(propertyObject.binding, value, viewModel);
+                    gaffa.model.set(property.binding, value, viewModel);
                     
                 } else {
-                    return function () {
-                        var viewModel = this,
-                            property = viewModel[propertyName],
-                            value = property.value;
+                    return function (viewModel, value) {
+                        var property = this;
+                            
                         if (property.previousValue !== value) {
                             property.previousValue = value;
                             callback(viewModel, property.value);
@@ -1696,12 +1672,9 @@
             },
             
             // ToDo: I dont like this...
-            object: function (propertyName, callback) {
-                return function () {
-                    var viewModel = this,
-                        property = viewModel[propertyName],
-                        value = property.value;
-
+            object: function (callback) {
+                return function (viewModel, value) {
+                    var property = this;
                     callback(viewModel, property.value);
                 };
             }

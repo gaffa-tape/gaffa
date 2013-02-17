@@ -33,14 +33,14 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Checkbox.prototype.checked = new gaffa.Property(function() {   
-        if(this.checked.value){
-            $(this.renderedElement).children('input').attr("checked", "checked");      
+    Checkbox.prototype.checked = new gaffa.Property(function(viewModel, value) {   
+        if(value){
+            $(viewModel.renderedElement).children('input').attr("checked", "checked");      
         }else{
-            $(this.renderedElement).children('input').removeAttr("checked");      
+            $(viewModel.renderedElement).children('input').removeAttr("checked");      
         }
     });
-    Checkbox.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string("text", function(viewModel, value){
+    Checkbox.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
         if(value !== null && value !== undefined){
             $(viewModel.renderedElement).find('label').text(value);
         }else{

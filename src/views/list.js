@@ -30,7 +30,7 @@
         function(viewModel, list, addedItem){
             var listViews = viewModel.views.list,
                 property = viewModel.list;
-                
+                                
             listViews.add(gaffa.extend({}, property.template, addedItem));
         },
         //decrement

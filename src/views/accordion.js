@@ -98,10 +98,10 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    AccordionNode.prototype.expanded = new gaffa.Property(function() {
-        var element = $(this.renderedElement);
+    AccordionNode.prototype.expanded = new gaffa.Property(function(viewModel, value) {
+        var element = $(viewModel.renderedElement);
         if(element){
-            if(this.expanded.value !== false){
+            if(value !== false){
                 element.children(".content").slideDown(200);
             }else{
                 element.children(".content").slideUp(200);

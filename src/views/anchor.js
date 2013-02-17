@@ -20,14 +20,14 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Anchor.prototype.text = new gaffa.Property(gaffa.propertyUpdaters.string("text", function(viewModel, value){
+    Anchor.prototype.text = new gaffa.Property(gaffa.propertyUpdaters.string(function(viewModel, value){
         if(value !== null && value !== undefined){
             viewModel.renderedElement.innerHTML = value;
         }else{
             viewModel.renderedElement.innerHTML = "";
         }
     }));
-    Anchor.prototype.href = new gaffa.Property(window.gaffa.propertyUpdaters.string("href", function(viewModel, value){
+    Anchor.prototype.href = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
         if(value !== null && value !== undefined){
             viewModel.renderedElement.setAttribute("href",value);
         }else{

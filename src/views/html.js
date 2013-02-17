@@ -16,7 +16,7 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Html.prototype.html = new gaffa.Property(window.gaffa.propertyUpdaters.string("html", function(viewModel, value){
+    Html.prototype.html = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
         if(value !== null && value !== undefined){
             viewModel.renderedElement.innerHTML = value;
         }else{

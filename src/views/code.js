@@ -22,7 +22,7 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Code.prototype.code = new gaffa.Property(window.gaffa.propertyUpdaters.string("code", function(viewModel, value){
+    Code.prototype.code = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
         viewModel.renderedElement.innerText = value;
     }));
     

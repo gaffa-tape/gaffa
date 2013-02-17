@@ -29,15 +29,15 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Textarea.prototype.value = new gaffa.Property(window.gaffa.propertyUpdaters.string("value", function(viewModel, value){
+    Textarea.prototype.value = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
         $(viewModel.renderedElement).val(value);
     }));
     
-    Textarea.prototype.placeholder = new gaffa.Property(window.gaffa.propertyUpdaters.string("placeholder", function(viewModel, value){
+    Textarea.prototype.placeholder = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
         $(viewModel.renderedElement).attr('placeholder', value);
     }));
     
-    Textarea.prototype.disabled = new gaffa.Property(window.gaffa.propertyUpdaters.bool("disabled", function(viewModel, value){
+    Textarea.prototype.disabled = new gaffa.Property(window.gaffa.propertyUpdaters.bool(function(viewModel, value){
         if (value){
             viewModel.renderedElement.setAttribute('disabled', 'disabled');
         }else{

@@ -54,7 +54,7 @@
     };
     FileInput.prototype.file = new gaffa.Property();
     FileInput.prototype.bytes = new gaffa.Property();
-    FileInput.prototype.disabled = new gaffa.Property(window.gaffa.propertyUpdaters.bool("disabled", function(viewModel, value){
+    FileInput.prototype.disabled = new gaffa.Property(window.gaffa.propertyUpdaters.bool(function(viewModel, value){
         if (value){
             viewModel.renderedElement.setAttribute('disabled', 'disabled');
         }else{
