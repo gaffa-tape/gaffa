@@ -486,24 +486,46 @@
             return;
         }
         
+        // var property = this,
+            // updateProperty = function (event) {
+                // if(event === true){
+                    // var token = gaffa.model.get(property.binding, property, true).pop();
+                    // property.keys = token.__gaffaKeys__;
+                    // property.value = token.result;                    
+                // }else if(event && property.binding){
+                    // property.keys = event.token.__gaffaKeys__;
+                    // property.value = event.value;
+                // }
+                // if(property.update){
+                    // property.update.call(viewModel);
+                // }
+            // };
+        
+        // this.parent = viewModel;
+        // this.binding = new Expression(this.binding);
+        // this.binding.paths.fastEach(function(path){
+            // gaffa.model.bind(path, updateProperty, property);
+        // });
+        
         var property = this,
-            updateProperty = function () {
-                if(property.binding){
+            updateProperty = function (event) {
+                if(event === true){
                     var token = gaffa.model.get(property.binding, property, true).pop();
-                    property.keys = token ? token.__gaffaKeys__ : undefined;
-                    property.value = token ? token.result : undefined;
+                    property.keys = token.__gaffaKeys__;
+                    property.value = token.result;                    
+                }else if(event && property.binding){
+                    property.keys = event.token.__gaffaKeys__;
+                    property.value = event.value;
                 }
                 if(property.update){
                     property.update.call(viewModel);
                 }
             };
-        
+            
         this.parent = viewModel;
         this.binding = new Expression(this.binding);
-        this.binding.paths.fastEach(function(path){
-            gaffa.model.bind(path, updateProperty, property);
-        });
-        updateProperty();
+        gaffa.model.bind(property.binding, updateProperty, property);
+        updateProperty(true);
     }
 
     
@@ -1326,13 +1348,13 @@
         Property: Property,
         ViewContainer: ViewContainer,
         model: {
-            get:function(path, parent) {
+            get:function(path, parent, tokens) {
                 var parentPath;
                 if(Path.mightParse(path) && parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
                 
-                return gedi.get(path, parentPath, true);
+                return gedi.get(path, parentPath, tokens);
             },
             set:function(path, value, parent, dirty) {
                 var parentPath;
@@ -1361,7 +1383,9 @@
                     parent.eventHandlers.push(callback);
                 }
                 
-                gedi.bind(path, callback, parentPath);
+                gedi.bind(path, function(event){
+                    return callback(event);
+                }, parentPath);
             }
         },
         views: {
