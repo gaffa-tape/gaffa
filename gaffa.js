@@ -762,7 +762,11 @@
         //if the viewModel is an array, recurse.
         if (viewModel instanceof Array) {
             viewModel.fastEach(function (viewModel, index, viewModels) {
-                addView(viewModel, parentView, viewModels, index, true);
+                if(viewModels instanceof ViewContainer){
+                    addView(viewModel, parentView, viewModels, index, true);
+                }else{
+                    addView(viewModel);
+                }
             });
             return;
         }
@@ -1124,7 +1128,6 @@
         ViewItem.prototype.bind.apply(this, arguments);
     };
     
-    
     //***********************************************
     //
     //      Behaviour Object
@@ -1147,7 +1150,9 @@
         });
         ViewItem.prototype.remove.call(this);
     };
-    
+    Behaviour.prototype.toJSON = function(){
+        return jsonConverter(this);
+    };
     
     //***********************************************
     //
