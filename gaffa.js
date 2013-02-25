@@ -44,6 +44,9 @@
         
     // Gedi initialisation
     gedi = new window.Gedi(internalModel);
+
+    // Add gedi instance to gaffa.
+    gaffa.gedi = gedi;
     
     // Gel extensions
     
