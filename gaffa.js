@@ -319,7 +319,7 @@
             url: url,
             type: (post && "post") || "get",
             contentType: "application/json; charset=utf-8",
-            data: "",
+            data: "gaffaNavigate=1", // This is to avoid the cached HTML version of a page if you are bootstrapping.
             dataType: "json",
             success: function (data) {
                 var title;
