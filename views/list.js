@@ -29,9 +29,14 @@
         //increment
         function(viewModel, list, addedItem){
             var listViews = viewModel.views.list,
-                property = viewModel.list;
-                                
-            listViews.add(gaffa.extend({}, property.template, addedItem));
+                property = viewModel.list,
+                newView = JSON.parse(JSON.stringify(property.template));
+
+            for(var key in addedItem){
+                newView[key] = addedItem[key];
+            }
+                   
+            listViews.add(newView);
         },
         //decrement
         function(viewModel, list, removedItem){

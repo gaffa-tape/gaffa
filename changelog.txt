@@ -1,0 +1,14 @@
+*Breaking*
+
+- Changed modelChange behaviour binding method from behaviour.path only to behaviour.watch + .path. This allows the behaviour to watch multiple paths, and fixes a bug where all modelChange paths needed to be absolute.
+- Change modelChange behaviour to fire only if the model change event returns a truthy value. This allows greater control over when the change actions should be run.
+
+*Blackbox*
+
+- Changed how _gaffaKeys_ are passed when evaluating an expression that uses filter or slice. the _gaffaKeys_ property is now on the resultant array. This fixes a bug where if you passed the result of a filter or slice through another function, the keys would be lost.
+
+- Changed how lists clone templates to JSON.stringify(JSON.parse()) for speed.
+
+*New*
+
+- Exposed deDom. Changed how it counts decendants to use querySelectorAll so now the function actually works.

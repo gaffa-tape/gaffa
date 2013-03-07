@@ -50,39 +50,46 @@
     
     // Gel extensions
     
+    function getSourceKeys(array){            
+        return array.__gaffaKeys__ || (function(){
+            var arr = [];
+            while(arr.length < array.length && arr.push(arr.length.toString()));
+            return arr;
+        })();
+    }
+
     gedi.gel.functions.filter = function(scope, args) {
-        var argumentTokens = args.raw(true),
-            filterToken = args.callee,
+        var args = args.all(),
+            sourceArrayKeys,
             filteredList = [];
-                    
-        var array = argumentTokens[0].result,
-            sourceArrayKeys;
-            
+        
+        var array = args[0];
+        var functionToCompare = args[1];
+
         if(!array){
             return undefined;
         }
             
-        sourceArrayKeys = argumentTokens[0].__gaffaKeys__ || (function(){
-                var arr = [];
-                while(arr.length < array.length && arr.push(arr.length.toString()));
-                return arr;
-            })();
+        sourceArrayKeys = getSourceKeys(array);
+
+        filteredList.__gaffaKeys__ = [];
             
-        var functionToCompare = argumentTokens[1].result;
-        
-        filterToken.__gaffaKeys__ = [];
+        if (args.length < 2) {
+            return args;
+        }
         
         if (Array.isArray(array)) {
             
             array.fastEach(function(item, index){
                 if(typeof functionToCompare === "function"){
-                    if(gedi.gel.callWith(functionToCompare, scope, [item])){
+                    if(gedi.gel.callWith(functionToCompare, scope, [item])){ 
                         filteredList.push(item);
-                        filterToken.__gaffaKeys__.push(sourceArrayKeys[index]);
+                        filteredList.__gaffaKeys__.push(sourceArrayKeys[index]);
                     }
                 }else{
-                    if(item === functionToCompare){
+                    if(item === functionToCompare){ 
                         filteredList.push(item);
+                        filteredList.__gaffaKeys__.push(sourceArrayKeys[index]);
                     }
                 }
             });
@@ -94,36 +101,30 @@
     };
     
     gedi.gel.functions.slice = function(scope, args) {
-        var argumentTokens = args.raw(true),
-            filterToken = args.callee,
-            target = argumentTokens.shift(),
+        var target = args.next(),
             start,
             end,
             result,
             sourceArrayKeys;
-            
 
-        if(argumentTokens.length){
+        if(args.hasNext()){
             start = target;
-            target = argumentTokens.shift();
+            target = args.next();
         }
-        if(argumentTokens.length){
+        if(args.hasNext()){
             end = target;
-            target = argumentTokens.shift();
-        }
-        
-        if(!target.result){
-            return undefined;
+            target = args.next();
         }
 
-        sourceArrayKeys = target.__gaffaKeys__ || (function(){
-            var arr = [];
-            while(arr.length < target.result.length && arr.push(arr.length.toString()));
-            return arr;
-        })();
-        
-        result = target.result.slice(start.result, end.result);
-        filterToken.__gaffaKeys__ = sourceArrayKeys.slice(start.result, end.result);
+        if(!Array.isArray(target)){
+            return;
+        }
+
+        sourceArrayKeys = getSourceKeys(target);
+
+        result = target.slice(start, end);
+
+        result.__gaffaKeys__ = sourceArrayKeys.slice(start, end);
         
         return result;
     };
@@ -445,7 +446,9 @@
         var parent = node.parentNode,
             nextSibling;
             
-        if(!parent || parent.childNodes.length<16){
+
+        // Polyfill QSA for IE<8
+        if(!parent || parent.querySelectorAll('*').length<16){
             return false;
         }
         
@@ -492,11 +495,11 @@
         var property = this,
             updateProperty = function (event) {
                 if(event === true){
-                    var token = gaffa.model.get(property.binding, property, true).pop();
-                    property.keys = token.__gaffaKeys__;
-                    property.value = token.result;                    
+                    var value = gaffa.model.get(property.binding, property);
+                    property.keys = value && value.__gaffaKeys__;
+                    property.value = value;                    
                 }else if(event && property.binding){
-                    property.keys = event.token.__gaffaKeys__;
+                    property.keys = event.value && event.value.__gaffaKeys__;
                     property.value = event.value;
                 }
                 if(property.update){
@@ -1193,8 +1196,13 @@
                 }
         }
         
-        gaffa.model.bind(behaviour.path, function (modelChangeEvent){
+        gaffa.model.bind(behaviour.watch || '[]', function (modelChangeEvent){
             var context;
+            
+            if(!modelChangeEvent.value){
+                return;
+            }
+
             if(behaviour.context){
                 context = Path.parse(behaviour.context);
                 if(context.last() === gaffa.pathWildcard){
@@ -1434,7 +1442,8 @@
                     }
                 }
                 return true;
-            }
+            },
+            deDom: deDom
         },
 
         propertyUpdaters: {

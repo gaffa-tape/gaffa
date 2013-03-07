@@ -27,7 +27,7 @@
                 height:200px;            
             }
         </style>
-<script src="https://raw.github.com/KoryNunn/crel/master/crel.js"></script>
+<script src="https://rawgithub.com/KoryNunn/crel/master/crel.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script src="../gel/gel.js"></script>
 <script src="../gedi/gedi.js"></script>
@@ -380,6 +380,27 @@
                     this.result = '' + $('.label').length + ' ' + $('.list').text();
                 },
                 expected: '2 bc'
+            },
+            {
+                name: "list view with expression (filter) with pass through function",
+                test: function(){
+                    var list = new gaffa.views.list();
+                        template = new gaffa.views.label();
+                        
+                    list.path = '[myArray]';
+                    
+                    template.text.binding = '[]';
+                    
+                    list.list.template = template;
+                    list.list.binding = '(? true (filter [] {item (== item "b")}) null)';
+                    
+                    gaffa.views.add(list);
+                    
+                    gaffa.model.set('[myArray]', ['a','b','c','d']);
+                    
+                    this.result = '' + $('.label').length + ' ' + $('.list').text();
+                },
+                expected: '1 b'
             },
             {
                 name: "group view",
