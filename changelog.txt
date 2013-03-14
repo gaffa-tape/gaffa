@@ -11,4 +11,4 @@
 
 *New*
 
-- Exposed deDom. Changed how it counts decendants to use querySelectorAll so now the function actually works.
+- Exposed deDom.

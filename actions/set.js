@@ -14,6 +14,7 @@
     };
     Set.prototype.target = new gaffa.Property();
     Set.prototype.source = new gaffa.Property();
+    Set.prototype.clone = new gaffa.Property();
     
     window.gaffa.actions[actionType] = Set;
 })();

@@ -446,9 +446,7 @@
         var parent = node.parentNode,
             nextSibling;
             
-
-        // Polyfill QSA for IE<8
-        if(!parent || parent.querySelectorAll('*').length<16){
+        if(!parent){
             return false;
         }
         
@@ -458,7 +456,7 @@
         
         return function(){
             if(nextSibling){
-                parent.insertBefore(node, nextSibling);
+                parent.insertBefore(node, nextSibling && nextSibling.parent && nextSibling);
             }else {
                 parent.appendChild(node);
             }
@@ -473,44 +471,6 @@
 
     function triggerAction(action) {
         action.trigger();
-    }
-    
-
-    //***********************************************
-    //
-    //      Bind Property
-    //
-    //***********************************************
-
-    function bindProperty(viewModel) {
-    
-        // Shortcut for properties that have no binding.
-        if(this.binding == null){
-            if(this.update){
-                this.update(viewModel, this.value);
-            }
-            return;
-        }
-                
-        var property = this,
-            updateProperty = function (event) {
-                if(event === true){
-                    var value = gaffa.model.get(property.binding, property);
-                    property.keys = value && value.__gaffaKeys__;
-                    property.value = value;                    
-                }else if(event && property.binding){
-                    property.keys = event.value && event.value.__gaffaKeys__;
-                    property.value = event.value;
-                }
-                if(property.update){
-                    property.update(viewModel, property.value);
-                }
-            };
-            
-        this.parent = viewModel;
-        this.binding = new Expression(this.binding);
-        gaffa.model.bind(property.binding, updateProperty, property);
-        updateProperty(true);
     }
 
     
@@ -702,8 +662,7 @@
     
     function initialiseViewItem(viewItem, parentViewItem, viewContainer, spec) {
         //if the viewModel is an array, recurse.
-        var newViewItem = viewItem,
-            specCollection;
+        var specCollection;
         
         if (spec === Action){
            specCollection = gaffa.actions;
@@ -718,33 +677,29 @@
                 console.error("No action is loaded to handle view of type " + viewItem.type);
             }
             
-            newViewItem = new specCollection[viewItem.type]();
-            
-            newViewItem.path = Path.parse(viewItem.path);
-        
-            extend(newViewItem, viewItem);
+            viewItem = new specCollection[viewItem.type](viewItem);
         }
-        
-        for(var key in newViewItem.views){
-            if(!(newViewItem.views[key] instanceof ViewContainer)){
-                newViewItem.views[key] = new ViewContainer(newViewItem.views[key]);
+
+        for(var key in viewItem.views){
+            if(!(viewItem.views[key] instanceof ViewContainer)){
+                viewItem.views[key] = new ViewContainer(viewItem.views[key]);
             }
-            newViewItem.views[key].fastEach(function(view, index, views){
-                views[index] = initialiseViewItem(view, newViewItem, newViewItem.views[key], View);
+            viewItem.views[key].fastEach(function(view, index, views){
+                views[index] = initialiseViewItem(view, viewItem, viewItem.views[key], View);
             });
         }
         
-        for(var key in newViewItem.actions){
-            newViewItem.actions[key].fastEach(function(action, index, actions){
-                actions[index] = initialiseViewItem(action, newViewItem, newViewItem.actions[key], Action);
+        for(var key in viewItem.actions){
+            viewItem.actions[key].fastEach(function(action, index, actions){
+                actions[index] = initialiseViewItem(action, viewItem, viewItem.actions[key], Action);
             });
         }
         
-        newViewItem.viewContainer = viewContainer;
+        viewItem.viewContainer = viewContainer;
         
-        newViewItem.parent = parentViewItem;
+        viewItem.parent = parentViewItem;
         
-        return newViewItem;
+        return viewItem;
     }
     
     //***********************************************
@@ -857,6 +812,44 @@
         return tempObject;
     }
     
+
+    //***********************************************
+    //
+    //      Bind Property
+    //
+    //***********************************************
+
+    function bindProperty(viewModel) {
+    
+        // Shortcut for properties that have no binding.
+        if(this.binding == null){
+            if(this.update){
+                this.update(viewModel, this.value);
+            }
+            return;
+        }
+                
+        var property = this,
+            updateProperty = function (event) {
+                if(event === true){
+                    var value = gaffa.model.get(property.binding, property);
+                    property.keys = value && value.__gaffaKeys__;
+                    property.value = value;                    
+                }else if(event && property.binding){
+                    property.keys = event.value && event.value.__gaffaKeys__;
+                    property.value = event.value;
+                }
+                if(property.update){
+                    property.update(viewModel, property.value);
+                }
+            };
+            
+        this.parent = viewModel;
+        this.binding = new Expression(this.binding);
+        gaffa.model.bind(property.binding, updateProperty, property);
+        updateProperty(true);
+    }
+    
     //Public Objects ******************************************************************************
     
     //***********************************************
@@ -875,10 +868,11 @@
     };
     Property.prototype.toJSON = function(){
         var tempObject = jsonConverter(this),
-            noValue = !tempObject.value,
+            noTemplate = !tempObject.template,
+            noValue = tempObject.value === undefined,
             noBinding = !tempObject.binding || tempObject.binding instanceof gaffa.Expression && !(tempObject.binding.paths && tempObject.binding.paths.length);
 
-        if(noBinding){
+        if(noBinding && noTemplate){
             if(noValue){
                 return;
             }
@@ -918,6 +912,15 @@
         return getItemPath(this);
     };
     ViewContainer.prototype.add = function(viewModel){
+
+        // If passed an array
+        if(Array.isArray(viewModel)){
+            var viewContainer = this;
+            viewModel.fastEach(function(viewModel){
+                viewContainer.add(viewModel);
+            });
+            return this;
+        }
     
         // If this has a parent (it has been bound)
         // call addView, which binds and renderes the
@@ -944,6 +947,21 @@
     ViewContainer.prototype.toJSON = function(){
         return jsonConverter(this, ['element']);
     };
+
+    function copyProperties(source, target){
+        if(
+            !source || typeof source !== 'object' ||
+            !target || typeof target !== 'object'
+        ){
+            return;
+        }
+
+        for(var key in source){
+            if(source.hasOwnProperty(key)){
+                target[key] = source[key];
+            }
+        }
+    }
     
     //***********************************************
     //
@@ -961,10 +979,19 @@
         
         this.actions = {};
         this.eventHandlers = [];
-        
-        if(viewItemDescription && viewItemDescription.path != null){
-            this.path = new Path("[]");
+
+        for(var key in viewItemDescription){
+            if(viewItemDescription.hasOwnProperty(key)){
+                var prop = this[key];
+                if(prop instanceof Property || prop instanceof ViewContainer){
+                    copyProperties(viewItemDescription[key], prop);
+                }else{
+                    this[key] = viewItemDescription[key];
+                }
+            }
         }
+
+        this.path = this.path ? new Path(this.path) : new Path('[]');
     }
     ViewItem = createSpec(ViewItem);
     ViewItem.prototype.bind = function(){
@@ -1198,10 +1225,6 @@
         
         gaffa.model.bind(behaviour.watch || '[]', function (modelChangeEvent){
             var context;
-            
-            if(!modelChangeEvent.value){
-                return;
-            }
 
             if(behaviour.context){
                 context = Path.parse(behaviour.context);
@@ -1338,13 +1361,18 @@
         Property: Property,
         ViewContainer: ViewContainer,
         model: {
-            get:function(path, parent, tokens) {
+            get:function(path, parent, scope) {
+                if(!(parent instanceof ViewItem || parent instanceof Property)){
+                    scope = parent;
+                    parent = undefined;
+                }
+
                 var parentPath;
                 if(Path.mightParse(path) && parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
                 
-                return gedi.get(path, parentPath, tokens);
+                return gedi.get(path, parentPath, scope);
             },
             set:function(path, value, parent, dirty) {
                 var parentPath;
@@ -1396,7 +1424,7 @@
                 
                 internalActions[key] = actions;
             },
-            trigger: function (actions, parent, context) {
+            trigger: function (actions, parent) {
                 if(typeof actions === "string"){
                     actions = internalActions[actions];
                 }

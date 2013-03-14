@@ -29,14 +29,17 @@
         function(viewModel, groups, addedItem){
             var listViews = viewModel.views.groups,
                 property = viewModel.groups,
-                expression = "(filter [] {item (= item." + property.group + " " + addedItem.group + ")})";
-                
-            addedItem = gaffa.extend({}, property.template, addedItem);
+                expression = "(filter [] {item (= item." + property.group + " " + addedItem.group + ")})",
+                newView = JSON.parse(JSON.stringify(property.template));
+
+            for(var key in addedItem){
+                newView[key] = addedItem[key];
+            }
             
-            addedItem.list = addedItem.list || {};
-            addedItem.list.binding = expression;
-                
-            listViews.add(addedItem);
+            newView.list = newView.list || {};
+            newView.list.binding = expression;
+                   
+            listViews.add(newView);
         },
         //decrement
         function(viewModel, groups, removedItem){

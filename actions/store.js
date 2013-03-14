@@ -1,9 +1,6 @@
 (function (undefined) {
-    var actionType = "store";
-    
-    
-    
-    
+    var gaffa = window.gaffa,
+        actionType = "store";
     
     function Store(actionDefinition){
     }
@@ -17,17 +14,12 @@
     Store.prototype.returnValue = new gaffa.Property();
     Store.prototype.dirty = new gaffa.Property();
     
-    window.gaffa.actions[actionType] = Store;
-    
-    
-    
+    gaffa.actions[actionType] = Store;
     
     function trigger(action) {
         var data = JSON.stringify(action.source.value),
             errorHandler = function (error) {
-                if (action.actions.error && action.actions.error.length) {
-                    window.gaffa.actions.trigger(action.actions.error, action.binding);
-                }
+                gaffa.actions.trigger(action.actions.error, action.binding);
                 gaffa.notifications.notify("store.error." + action.kind, error);
             };
 
@@ -50,21 +42,17 @@
                     }
                     
                     if (action.returnValue.binding) {
-                        var returnValue;
+                        var value;
                         if(!data){
                             return;
                         }
-                        if(action.returnProperty === ''){
-                            returnValue = data;
-                        }else if(action.returnProperty){
-                            returnValue = data[action.returnProperty];
-                        }else{
-                            return;
+                        if(action.transform){
+                            value = gaffa.model.get(action.transform, {data: value});
                         }
                         
-                        window.gaffa.model.set(
+                        gaffa.model.set(
                             action.returnValue.binding,
-                            returnValue,
+                            value,
                             action,
                             !!action.dirty.value
                         );
@@ -75,14 +63,13 @@
                         gaffa.model.setDirtyState(action.cleans, false, action);
                     }
                     
-                    if (action.actions.success && action.actions.success.length) {
-                        window.gaffa.actions.trigger(action.actions.success, action);
-                    }
+                    gaffa.actions.trigger(action.actions.success, action);
                     
                     gaffa.notifications.notify("store.success." + action.kind);
                 },
                 error: errorHandler,
                 complete:function(){
+                    gaffa.actions.trigger(action.actions.complete, action);
                     gaffa.notifications.notify("store.complete." + action.kind);
                 }
             };
