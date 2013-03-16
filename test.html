@@ -403,6 +403,27 @@
                 expected: '1 b'
             },
             {
+                name: "list view with expression (sort) with pass through function",
+                test: function(){
+                    var list = new gaffa.views.list();
+                        template = new gaffa.views.label();
+                        
+                    list.path = '[myArray]';
+                    
+                    template.text.binding = '[]';
+                    
+                    list.list.template = template;
+                    list.list.binding = '(? true (sort [] {item1 item2 (- item1 item2)}) null)';
+                    
+                    gaffa.views.add(list);
+                    
+                    gaffa.model.set('[myArray]', [3,1,4,2,6,7,5]);
+                    
+                    this.result = '' + $('.label').length + ' ' + $('.list').text();
+                },
+                expected: '7 1234567'
+            },
+            {
                 name: "group view",
                 test: function(){
                     var group = new gaffa.views.group(),

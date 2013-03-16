@@ -128,6 +128,69 @@
         
         return result;
     };
+
+    // This is pretty dirty..
+    function ksort(array, scope, sortFunction){
+
+        if(array.length < 2){
+            return array;
+        }
+
+        var sourceArrayKeys = getSourceKeys(array),
+            source = array.slice(),
+            sourceKeys = sourceArrayKeys.slice(),
+            left = [],
+            pivot = source.splice(source.length/2,1).pop(),
+            pivotKey = sourceKeys.splice(sourceKeys.length/2,1).pop(),
+            right = [],
+            result,
+            resultKeys;
+
+        left.__gaffaKeys__ = [];
+        right.__gaffaKeys__ = [];
+
+        for(var i = 0; i < source.length; i++){
+            var item = source[i];
+            if(gedi.gel.callWith(sortFunction, scope, [item, pivot]) > 0){           
+                right.push(item);
+                right.__gaffaKeys__.push(sourceKeys[i]);
+            }else{
+                left.push(item);
+                left.__gaffaKeys__.push(sourceKeys[i]);
+            }
+        }
+
+        left = ksort(left, scope, sortFunction);
+
+        left.push(pivot);
+        left.__gaffaKeys__.push(pivotKey);
+
+        right = ksort(right, scope, sortFunction);
+
+        resultKeys = left.__gaffaKeys__.concat(right.__gaffaKeys__);
+
+        result = left.concat(right);
+        result.__gaffaKeys__ = resultKeys;
+
+        return result;
+    }
+    
+    gedi.gel.functions.sort = function(scope, args) {
+
+        var target = args.next(),
+            sortFunction = args.next(),
+            result,
+            sourceArrayKeys,
+            sortValues = [];
+
+        if(!Array.isArray(target)){
+            return;
+        }
+
+        result = ksort(target, scope, sortFunction);
+        
+        return result;
+    };
         
     // Gedi Specs.
     var Path = gedi.Path,
