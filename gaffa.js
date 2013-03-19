@@ -58,7 +58,11 @@
         })();
     }
 
+    var originalFilter = gedi.gel.functions.filter;
     gedi.gel.functions.filter = function(scope, args) {
+        if(!scope.get('__trackKeys__')){
+            return originalFilter(scope, args);
+        }
         var args = args.all(),
             sourceArrayKeys,
             filteredList = [];
@@ -100,7 +104,11 @@
         }
     };
     
+    var originalSlice = gedi.gel.functions.slice;
     gedi.gel.functions.slice = function(scope, args) {
+        if(!scope.get('__trackKeys__')){
+            return originalSlice(scope, args);
+        }
         var target = args.next(),
             start,
             end,
@@ -175,7 +183,11 @@
         return result;
     }
     
+    var originalSort = gedi.gel.functions.sort;
     gedi.gel.functions.sort = function(scope, args) {
+        if(!scope.get('__trackKeys__')){
+            return originalSort(scope, args);
+        }
 
         var target = args.next(),
             sortFunction = args.next(),
@@ -475,28 +487,21 @@
     //
     //***********************************************
     
-    function getDistinctGroups(collection, property){
-        var distinctValues = [];
+    function getDistinctGroups(collection, expression){
+        var distinctValues = {},
+            values = gaffa.model.get('(map items ' + expression + ')', {items: collection});
         
         if(collection && typeof collection === "object"){
             if(Array.isArray(collection)){
-                collection.fastEach(function(value){
-                    var candidate = gaffa.utils.getProp(value, property);
-                    if(distinctValues.indexOf(candidate)<0){
-                        distinctValues.push(candidate);
-                    }
+                values.fastEach(function(value){
+                    distinctValues[value] = null;
                 });
             }else{
-                for(var key in collection){
-                    var candidate = gaffa.utils.getProp(collection[key], property);
-                    if(distinctValues.indexOf(candidate)<0){
-                        distinctValues.push(candidate);
-                    }
-                }
+                throw "Object collections are not currently supported";
             }
         }
         
-        return distinctValues;
+        return Object.keys(distinctValues);
     }
 
     //***********************************************
@@ -542,9 +547,9 @@
     //      Insert Function
     //
     //***********************************************
-    
+
     function insertFunction(selector, renderedElement){
-        $(selector).append(renderedElement);
+        document.querySelectorAll(selector)[0].appendChild(renderedElement);
     }
     
     //***********************************************
@@ -882,32 +887,46 @@
     //
     //***********************************************
 
-    function bindProperty(viewModel) {
+    function bindProperty(viewItem) {
     
         // Shortcut for properties that have no binding.
+        // This has a significant impact on performance.
         if(this.binding == null){
             if(this.update){
-                this.update(viewModel, this.value);
+                this.update(viewItem, this.value);
             }
             return;
         }
                 
         var property = this,
             updateProperty = function (event) {
-                if(event === true){
-                    var value = gaffa.model.get(property.binding, property);
+                if(event){                    
+                    var value,                        
+                        scope = { // Scope passed to the property when evaluated.
+                            __trackKeys__: property.trackKeys,
+                            viewItem: viewItem
+                        };
+
+                    
+                    if(event === true){ // Initial update.
+                        value = gaffa.model.get(property.binding, property, scope);
+
+                    } else if(property.binding){ // Model change update.
+                        value = event.getValue(scope);
+
+                    }
+
                     property.keys = value && value.__gaffaKeys__;
-                    property.value = value;                    
-                }else if(event && property.binding){
-                    property.keys = event.value && event.value.__gaffaKeys__;
-                    property.value = event.value;
+                    property.value = value;
                 }
+                
+                // Call the properties update function, if it has one.
                 if(property.update){
-                    property.update(viewModel, property.value);
+                    property.update(viewItem, property.value);
                 }
             };
             
-        this.parent = viewModel;
+        this.parent = viewItem;
         this.binding = new Expression(this.binding);
         gaffa.model.bind(property.binding, updateProperty, property);
         updateProperty(true);
@@ -921,8 +940,16 @@
     //
     //***********************************************
     
-    function Property(updateFunction){
-        this.update = updateFunction;
+    function Property(propertyDescription){
+        if(typeof propertyDescription === 'function'){
+            this.update = propertyDescription;
+        }else{
+            for(var key in propertyDescription){
+                if(propertyDescription.hasOwnProperty(key)){
+                    this[key] = propertyDescription[key];
+                }
+            }            
+        }
     }
     Property = createSpec(Property);
     Property.prototype.bind = bindProperty;
@@ -1036,7 +1063,7 @@
         
         for(var key in this){
             if(this[key] instanceof Property){
-                this[key] = new Property(this[key].update);
+                this[key] = new Property(this[key]);
             }
         }
         
@@ -1716,12 +1743,31 @@
                 return function (viewModel, value) {
                     var property = this,
                         childViews = viewModel.views[viewsName],
+                        previousGroups = property.previousGroups,
                         newView,
                         isEmpty;
                     
                     if (value && typeof value === "object"){
                         
-                        viewModel.distinctGroups = getDistinctGroups(property.value, property.group);
+                        viewModel.distinctGroups = getDistinctGroups(property.value, property.expression);
+
+                        if(previousGroups){
+                            if(previousGroups.length === viewModel.distinctGroups.length){
+                                return;
+                            }
+                            var same = true;
+                            previousGroups.fastEach(function(group, index){
+                                if(group !== viewModel.distinctGroups[group]){
+                                    same = false;
+                                }
+                            });
+                            if(same){
+                                return;
+                            }
+                        }
+
+                        property.previousGroups = viewModel.distinctGroups;
+
                         
                         for(var i = 0; i < childViews.length; i++){
                             var childView = childViews[i];

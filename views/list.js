@@ -23,45 +23,58 @@
         
         this.__super__.render.apply(this, arguments);
     };
-    
-    List.prototype.list = new gaffa.Property(window.gaffa.propertyUpdaters.collection(
-        "list",                     
-        //increment
-        function(viewModel, list, addedItem){
-            var listViews = viewModel.views.list,
-                property = viewModel.list,
-                newView = JSON.parse(JSON.stringify(property.template));
 
-            for(var key in addedItem){
-                newView[key] = addedItem[key];
-            }
-                   
-            listViews.add(newView);
-        },
-        //decrement
-        function(viewModel, list, removedItem){
-            removedItem.remove();
-        },
-        //empty
-        function(viewModel, insert){
-            var emptyViews = viewModel.views.empty,
-                property = viewModel.list;
-                
-            if(!property.emptyTemplate){
-                return;
-            }
-            
-            if(insert){
-                if(!emptyViews.length){
-                    window.gaffa.views.add(gaffa.extend({}, property.emptyTemplate), viewModel, emptyViews);
-                }
-            }else{
-                while(emptyViews.length){
-                    viewModel.renderedElement.removeChild(emptyViews.pop().renderedElement);
-                }
-            }
+    function createNewView(property, templateKey){
+        if(!property.templateCache){
+            property.templateCache= {};
         }
-    ));
+        return JSON.parse(
+            property.templateCache[templateKey] || 
+            (property.templateCache[templateKey] = JSON.stringify(property[templateKey]))
+        );
+    }
+    
+    List.prototype.list = new gaffa.Property({
+        update: window.gaffa.propertyUpdaters.collection(
+            "list",                     
+            //increment
+            function(viewModel, list, addedItem){
+                var listViews = viewModel.views.list,
+                    property = viewModel.list,
+                    newView = createNewView(property, 'template');
+
+                for(var key in addedItem){
+                    newView[key] = addedItem[key];
+                }
+
+                listViews.add(newView);
+            },
+            //decrement
+            function(viewModel, list, removedItem){
+                removedItem.remove();
+            },
+            //empty
+            function(viewModel, insert){
+                var emptyViews = viewModel.views.empty,
+                    property = viewModel.list;
+                    
+                if(!property.emptyTemplate){
+                    return;
+                }
+                
+                if(insert){
+                    if(!emptyViews.length){
+                        window.gaffa.views.add(createNewView(property, 'emptyTemplate'), viewModel, emptyViews);
+                    }
+                }else{
+                    while(emptyViews.length){
+                        viewModel.renderedElement.removeChild(emptyViews.pop().renderedElement);
+                    }
+                }
+            }
+        ),
+        trackKeys: true
+    });
     
     gaffa.views[viewType] = List;
     

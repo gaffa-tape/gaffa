@@ -15,7 +15,7 @@
         
         this.views.groups.element = renderedElement;
         this.views.groups.property = this.groups;
-		this.views.empty.element = renderedElement;
+        this.views.empty.element = renderedElement;
         
         this.renderedElement = renderedElement;
         
@@ -29,17 +29,33 @@
         function(viewModel, groups, addedItem){
             var listViews = viewModel.views.groups,
                 property = viewModel.groups,
-                expression = "(filter [] {item (= item." + property.group + " " + addedItem.group + ")})",
-                newView = JSON.parse(JSON.stringify(property.template));
+                groupContainer = new gaffa.views.container(),
+                expression,
+                newHeader,
+                newList;
 
             for(var key in addedItem){
-                newView[key] = addedItem[key];
+                groupContainer[key] = addedItem[key];
             }
-            
-            newView.list = newView.list || {};
-            newView.list.binding = expression;
-                   
-            listViews.add(newView);
+
+            if(property.headerTemplate){
+                newHeader = JSON.parse(JSON.stringify(property.headerTemplate));
+
+                groupContainer.views.content.push(newHeader);
+            }
+
+            if(property.listTemplate){
+                newList = JSON.parse(JSON.stringify(property.listTemplate));
+
+                expression = '(filter [] {item (= (' + property.expression + ' item) "' + addedItem.group + '")})';
+                
+                newList.list = newList.list || {};
+                newList.list.binding = expression;
+
+                groupContainer.views.content.add(newList);
+            }
+
+            listViews.add(groupContainer);
         },
         //decrement
         function(viewModel, groups, removedItem){

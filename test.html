@@ -432,7 +432,7 @@
                         
                     group.path = '[myArray]';
                     group.groups.binding = '[]';
-                    group.groups.group = 'thing';
+                    group.groups.expression = '{item (getValue item "thing")}';
                     group.groups.template = list;
                     
                     list.list.template = template;
@@ -445,7 +445,7 @@
                     
                     this.result = '' + $('.list').length + ' ' + $('.list').text();
                 },
-                expected: '2 thingmajiggerstuffwhatsits'
+                expected: '2 stuffwhatsitsthingmajigger'
             },
             {
                 name: "add all actions",
