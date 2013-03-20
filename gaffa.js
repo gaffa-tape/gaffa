@@ -549,7 +549,7 @@
     //***********************************************
 
     function insertFunction(selector, renderedElement){
-        document.querySelectorAll(selector)[0].appendChild(renderedElement);
+        ((typeof selector === "string") ? document.querySelectorAll(selector)[0] : selector).appendChild(renderedElement);
     }
     
     //***********************************************
