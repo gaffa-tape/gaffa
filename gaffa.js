@@ -1650,8 +1650,6 @@
                         }
                     }
                         
-                    property.addedViews = property.addedViews || [];
-                        
                     if (value && typeof value === "object"){
 
                         var element = viewModel.renderedElement;
@@ -1728,13 +1726,14 @@
                         }
                     }else{
                         for(var i = 0; i < childViews.length; i++){
-                            if(property.addedViews.indexOf(childView) >=0){
+                            var childView = childViews[i];
+                            if(childView.parentProperty === propertyName){
                                 childViews.splice(index, 1);
-                                property.addedViews.splice(property.addedViews.indexOf(childView), 1);
                                 index--;
                                 remove(viewModel, value, childView);                            
                             }
                         }
+                        empty(viewModel, true);
                     }
                 };
             },
