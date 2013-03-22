@@ -9,16 +9,19 @@
 (function (undefined) {
     "use strict";
 
-    //Create gaffa
     var gedi,
+        // Create gaffa global.
         gaffa = window.gaffa = {},
-        history = window.History || window.history; //Allow custom history implementations if defined.
+        // Allow custom history implementations if defined.
+        history = window.History || window.history, 
+        // crel
+        crel = window.crel = function(k){function g(){var a=window.document,e=arguments,b=a.createElement(e[0]),c=e[1],d=2,h=e.length,l=g.attrMap;if(1===h)return b;if("object"!==typeof c||j(c))--d,c=null;if(1===h-d&&"string"===typeof e[d]&&b.textContent!==k)b.textContent=e[d];else for(;d<h;++d)child=e[d],null!=child&&(j(child)||(child=a.createTextNode(child)),b.appendChild(child));for(var f in c)l[f]?(a=g.attrMap[f],"function"===typeof a?a(b,c[f]):b.setAttribute(a,c[f])):b.setAttribute(f,c[f]);return b}var j="object"===typeof Node?function(a){return a instanceof Node}:function(a){return a&&"object"===typeof a&&"number"===typeof a.nodeType&&"string"===typeof a.nodeName};g.attrMap={};g.isNode=j;return g}();
 
-    //"constants"
+    // "constants"
     gaffa.pathSeparator = "/";
     gaffa.pathWildcard = "*";
     
-    //internal varaibles
+    // internal varaibles
     
         // Storage for the applications model.
     var internalModel = {},
@@ -704,12 +707,10 @@
     
     function addDefaultStyle(style){
         defaultViewStyles = defaultViewStyles || (function(){
-            defaultViewStyles = document.createElement('style');
-            defaultViewStyles.setAttribute("type", "text/css");
-            defaultViewStyles.className = "dropdownDefaultStyle";
+            defaultViewStyles = crel('style', {type: 'text/css', 'class':'dropdownDefaultStyle'});
         
             //Prepend so it can be overriden easily.
-            $("head").prepend(defaultViewStyles);
+            defaultViewStyles.insertBefore(document.head);
             
             return defaultViewStyles;
         })();
@@ -1728,8 +1729,8 @@
                         for(var i = 0; i < childViews.length; i++){
                             var childView = childViews[i];
                             if(childView.parentProperty === propertyName){
-                                childViews.splice(index, 1);
-                                index--;
+                                childViews.splice(i, 1);
+                                i--;
                                 remove(viewModel, value, childView);                            
                             }
                         }
