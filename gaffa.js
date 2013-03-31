@@ -15,7 +15,7 @@
         // Allow custom history implementations if defined.
         history = window.History || window.history, 
         // crel
-        crel = window.crel = function(k){function g(){var a=window.document,e=arguments,b=a.createElement(e[0]),c=e[1],d=2,h=e.length,l=g.attrMap;if(1===h)return b;if("object"!==typeof c||j(c))--d,c=null;if(1===h-d&&"string"===typeof e[d]&&b.textContent!==k)b.textContent=e[d];else for(;d<h;++d)child=e[d],null!=child&&(j(child)||(child=a.createTextNode(child)),b.appendChild(child));for(var f in c)l[f]?(a=g.attrMap[f],"function"===typeof a?a(b,c[f]):b.setAttribute(a,c[f])):b.setAttribute(f,c[f]);return b}var j="object"===typeof Node?function(a){return a instanceof Node}:function(a){return a&&"object"===typeof a&&"number"===typeof a.nodeType&&"string"===typeof a.nodeName};g.attrMap={};g.isNode=j;return g}();
+        crel = window.crel = function(k){function g(){var a=window.document,e=arguments,b=a.createElement(e[0]),c=e[1],d=2,h=e.length,l=g.attrMap,z;if(1===h)return b;if("object"!==typeof c||j(c))--d,c=null;if(1===h-d&&"string"===typeof e[d]&&b.textContent!==k)b.textContent=e[d];else for(;d<h;++d)z=e[d],null!=z&&(j(z)||(z=a.createTextNode(z)),b.appendChild(z));for(var f in c)l[f]?(a=g.attrMap[f],"function"===typeof a?a(b,c[f]):b.setAttribute(a,c[f])):b.setAttribute(f,c[f]);return b}var j="object"===typeof Node?function(a){return a instanceof Node}:function(a){return a&&"object"===typeof a&&"number"===typeof a.nodeType&&"string"===typeof a.nodeName};g.attrMap={};g.isNode=j;return g}();
 
     // "constants"
     gaffa.pathSeparator = "/";
@@ -357,6 +357,39 @@
         return values;
     };
 
+
+    //***********************************************
+    //
+    //      Ajax
+    //
+    //***********************************************
+
+    function ajax(settings){    
+        if(typeof settings !== 'object'){
+            settings = {};
+        }
+
+        if(settings.cache === false){
+            if(typeof settings.url === 'string'){
+                var cacheAppend = (settings.url.indexOf('?')>=0 ? '&_=' : '?_=') + new Date();
+            }
+            settings.url = settings.url + cacheAppend;
+        }
+
+        var request = new XMLHttpRequest();
+
+        request.setRequestHeader('contentType', 'application/json; charset=utf-8');
+        request.addEventListener("progress", settings.progress, false);
+        request.addEventListener("load", function(data){
+            settings.load && settings.load(JSON.parse(data))
+        }, false);
+        request.addEventListener("error", settings.error, false);
+        request.addEventListener("abort", settings.abort, false);
+        request.open(settings.type || "get", settings.url, true);
+        request.send(settings.data && JSON.stringify(settings.data));
+    }
+
+
     //***********************************************
     //
     //      QueryString To Model
@@ -390,7 +423,7 @@
     function navigate(url, model, post, pushState) {
         
         gaffa.notifications.notify("navigation.begin");
-        $.ajax({
+        ajax({
         
             // Internet explorer is an ABSOLUTE PIECE OF SHIT.
             // If you don't set this to false, it JUST RESPONDS WITH WHATEVER IT LAST GOT FROM THAT URL.
@@ -400,10 +433,9 @@
             cache: navigator.appName !== 'Microsoft Internet Explorer',
             url: url,
             type: (post && "post") || "get",
-            contentType: "application/json; charset=utf-8",
             data: "gaffaNavigate=1", // This is to avoid the cached HTML version of a page if you are bootstrapping.
             dataType: "json",
-            success: function (data) {
+            load: function (data) {
                 var title;
                         
                 if(data !== undefined && data !== null && data.title){
@@ -551,8 +583,15 @@
     //
     //***********************************************
 
-    function insertFunction(selector, renderedElement){
-        ((typeof selector === "string") ? document.querySelectorAll(selector)[0] : selector).appendChild(renderedElement);
+    function insertFunction(selector, renderedElement, insertIndex){
+        var target = ((typeof selector === "string") ? document.querySelectorAll(selector)[0] : selector),
+            referenceSibling;
+
+        if(target && target.childNodes){
+            referenceSibling = target.childNodes[insertIndex];
+        }
+
+        target.insertBefore(renderedElement, referenceSibling);
     }
     
     //***********************************************
@@ -562,30 +601,32 @@
     //***********************************************
     
     function getItemPath(item){
-        var path;
+        var path,
+            pathParts = [],
+            referencePath,
+            referenceItem = item.parent;
         
-        if(item.__pathCache__){
-            return item.__pathCache__;
-        }
-        
-        if(item instanceof ViewItem && item.parentContainer && item.parentContainer.getPath){
-            path = item.parentContainer.getPath();
-        }else if(item instanceof ViewContainer && item.property && item.property.getPath){
-            
-            if(item.property.binding instanceof Expression && item.property.binding.length === 1 && item.property.binding.paths.length === 1){
-                path = item.property.getPath().append(item.property.binding.paths[0]);
-            }else{
-                path = item.property.getPath();
+
+        while(referenceItem){
+            if(referenceItem.path != null){
+                referencePath = new Path(referenceItem.path);
+                for(var i = referencePath.length - 1; i >= 0; i--){
+                    pathParts.push(referencePath[i]);
+                }
             }
-        }else if(item.parent && item.parent.getPath){
-            path = item.parent.getPath();
-        }else{
-            path = new Path();
+            if(referenceItem.key != null){
+                pathParts.push(referenceItem.key);
+            }
+
+            if(referenceItem.parent){
+                referenceItem = referenceItem.parent;
+                continue;
+            }
+
+            referenceItem = null;
         }
         
-        item.__pathCache__ = path.append(item.key, item.path);
-        
-        return item.__pathCache__;
+        return new Path(pathParts.reverse());
     }
     
     //***********************************************
@@ -788,12 +829,12 @@
     //
     //***********************************************
     
-    function addView(viewModel, parentView, parentViewChildArray, index, addInPlace) {
+    function addView(viewModel, parentView, parentViewChildArray, insertIndex, addInPlace) {
         //if the viewModel is an array, recurse.
         if (viewModel instanceof Array) {
-            viewModel.fastEach(function (viewModel, index, viewModels) {
+            viewModel.fastEach(function (viewModel, insertIndex, viewModels) {
                 if(viewModels instanceof ViewContainer){
-                    addView(viewModel, parentView, viewModels, index, true);
+                    addView(viewModel, parentView, viewModels, insertIndex, true);
                 }else{
                     addView(viewModel);
                 }
@@ -806,11 +847,11 @@
         viewModel.parentContainer = parentViewChildArray;
             
         if (parentView && parentViewChildArray) {
-            if(index != null){
+            if(insertIndex != null){
                 if(addInPlace){
-                    parentViewChildArray[index] = viewModel;
+                    parentViewChildArray[insertIndex] = viewModel;
                 }else{
-                    parentViewChildArray.splice(index, 0, viewModel);
+                    parentViewChildArray.splice(insertIndex, 0, viewModel);
                 }
             }else{
                 parentViewChildArray.push(viewModel);
@@ -821,7 +862,7 @@
         
         viewModel.render();
         viewModel.bind();
-        viewModel.insert(parentViewChildArray);
+        viewModel.insert(parentViewChildArray, insertIndex);
                 
         return viewModel;
     }
@@ -922,8 +963,12 @@
                 }
                 
                 // Call the properties update function, if it has one.
+                // Only call if the changed value is an object, or if it actually changed.
                 if(property.update){
-                    property.update(viewItem, property.value);
+                    if(! 'previousValue' in property || (value && typeof value === 'object') || value !== property.previousValue){
+                        property.update(viewItem, value);
+                        property.previousValue = value;
+                    }
                 }
             };
             
@@ -942,6 +987,14 @@
     //***********************************************
     
     function Property(propertyDescription){
+        this.set = function(value){
+            gaffa.model.set(
+                this.set.binding || this.binding,
+                this.set.binding ? gaffa.model.get(this.set.binding, this, {value: value}) : value,
+                this
+            );
+        };
+
         if(typeof propertyDescription === 'function'){
             this.update = propertyDescription;
         }else{
@@ -949,7 +1002,7 @@
                 if(propertyDescription.hasOwnProperty(key)){
                     this[key] = propertyDescription[key];
                 }
-            }            
+            }
         }
     }
     Property = createSpec(Property);
@@ -1002,7 +1055,7 @@
     ViewContainer.prototype.getPath = function(){
         return getItemPath(this);
     };
-    ViewContainer.prototype.add = function(viewModel){
+    ViewContainer.prototype.add = function(viewModel, insertIndex){
 
         // If passed an array
         if(Array.isArray(viewModel)){
@@ -1017,13 +1070,13 @@
         // call addView, which binds and renderes the
         // inserted views.
         if(this.parent){
-            addView(viewModel, this.parent, this);
+            addView(viewModel, this.parent, this, insertIndex);
         }else{
         
         // Otherwise, just push the viewModel into the
         // ViewContainer, to be bound when the parent
         // ViewItem is bound.
-            this.push(viewModel);
+            this.splice(insertIndex != null ? insertIndex : this.length, 0, viewModel);
         }
         return this;
     };
@@ -1102,7 +1155,7 @@
         }
     };
     ViewItem.prototype.detach = function(){
-        $(this.renderedElement).detach();
+        this.renderedElement.parentNode.removeChild(this.renderedElement);
     };
     ViewItem.prototype.remove = function(){
         if(this.parentContainer){
@@ -1175,7 +1228,7 @@
         for(var key in this.actions){
             var actions = this.actions[key];
             
-            $(this.renderedElement).on(key, function (event) {
+            this.renderedElement.addEventListener(key, function (event) {
                 gaffa.actions.trigger(actions);
             });
         }
@@ -1186,18 +1239,25 @@
             child.render();
         });
     };    
-    View.prototype.insert = function(viewContainer){
-        var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
-        this.insertFunction(this.insertSelector || renderTarget, this.renderedElement);
-        typeof this.afterInsert === 'function' && this.afterInsert();
+    View.prototype.insert = function(viewContainer, insertIndex){
+        // Insert children first, for speed.
         this.forEachChild(function(child, viewContainer){
             child.insert(viewContainer);
         });
+
+        var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
+        this.insertFunction(this.insertSelector || renderTarget, this.renderedElement, insertIndex);
+        typeof this.afterInsert === 'function' && this.afterInsert();
     };    
     View.prototype.classes = new Property(function(viewModel, value){
-        var internalClassNames = viewModel.renderedElement.internalClassNames = viewModel.renderedElement.internalClassNames || $(viewModel.renderedElement).attr("class") || "";
-            
-        $(viewModel.renderedElement).attr("class", internalClassNames + " " + (value || ""));
+        if(!internalClassNames in viewModel.classes){
+            viewModel.classes.internalClassNames = viewModel.renderedElement.className;
+        }
+
+        var internalClassNames = viewModel.classes.internalClassNames,
+            classes = [internalClassNames, value].join(' ').trim();
+        
+        viewModel.renderedElement.className = classes ? classes : null;
     });
     View.prototype.forEachChild = function(callback){
         for(var key in this.views){
@@ -1208,11 +1268,7 @@
         }
     };
     View.prototype.visible = new Property(function(viewModel, value) {
-        if (value === false) {
-            $(viewModel.renderedElement).css("display", "none");
-        } else {
-            $(viewModel.renderedElement).css("display", "");
-        }
+        viewModel.renderedElement.style.display = value === false ? 'none' : null;
     });
     View.prototype.insertFunction = insertFunction;
     
@@ -1629,7 +1685,6 @@
                 var propertyName;
                 return function (viewModel, value) {
                     var property = this,
-                        sort = property.sort,
                         valueLength = 0,
                         childViews = viewModel.views[viewsName],
                         valueKeys = property.keys,
@@ -1646,7 +1701,7 @@
                         for(var key in viewModel){
                             if(viewModel[key] === property){
                                 propertyName = key;
-                                return;
+                                break;
                             }
                         }
                     }
@@ -1665,7 +1720,7 @@
                                     
                                 if(
                                     (
-                                        (valueKeys && !valueKeys.indexOf(existingKey)>=0) ||
+                                        (valueKeys && !(valueKeys.indexOf(existingKey)>=0)) ||
                                         !value[childView.key]
                                     ) &&
                                     childView.parentProperty === propertyName
@@ -1675,6 +1730,8 @@
                                     remove(viewModel, value, childView);
                                 }
                             }
+
+                            var itemIndex = 0;
                             
                             //Add items which do not exist in the dom
                             for (var key in value) {
@@ -1704,26 +1761,13 @@
                                         newViewKey = valueKeys[key];
                                     }
                                     newView = {key: newViewKey, parentProperty: propertyName};
-                                    insert(viewModel, value, newView);
+                                    insert(viewModel, value, newView, itemIndex);
                                 }
+
+                                itemIndex++;
                             }
                             
                             empty(viewModel, isEmpty);
-                                
-                            if(sort && !isEmpty){
-                                                            
-                                childViews.sort(function(a,b){
-                                
-                                    //Im hyjacking the fact that sort hits every childView
-                                    //to reset the isRendered flag. I could run a loop before this that
-                                    //reset it but this cuts down on a loop...
-                                    b.isRendered = false;
-                                    
-                                    return gaffa.utils.getProp(value[a.key], sort) - gaffa.utils.getProp(value[b.key], sort);
-                                });
-                                
-                                window.gaffa.views.render(childViews, childViews.element);
-                            }
                         }
                     }else{
                         for(var i = 0; i < childViews.length; i++){
@@ -1868,11 +1912,12 @@
                 }else if (value instanceof Date) {
                     return new Date(value);
                 }else{
-                    return $.extend(true, {}, value);
+                    return extend({}, value);
                 }
             }
             return value;
-        }
-
+        },
+        ajax: ajax,
+        crel: crel
     });
 })();

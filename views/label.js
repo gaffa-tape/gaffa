@@ -1,6 +1,9 @@
 (function(undefined) {
-    var viewType = "label",
-		cachedElement;
+    "use strict";
+    
+    var gaffa = window.gaffa,
+        crel = gaffa.crel,
+        viewType = 'label';
         
     function Label(){}
     Label = gaffa.createSpec(Label, gaffa.View);
@@ -9,7 +12,7 @@
     Label.prototype.render = function(){
         var classes = viewType;
         
-        var renderedElement = $(document.createElement('label')).addClass(classes)[0];
+        var renderedElement = crel('label');
         
         this.renderedElement = renderedElement;
         
