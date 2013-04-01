@@ -9,11 +9,8 @@
     Container.prototype.type = viewType;
     
     Container.prototype.render = function(){
-        var classes = viewType;
         
-        var renderedElement = (cachedElement = cachedElement || document.createElement('div'));
-		renderedElement = renderedElement.cloneNode(true);
-        renderedElement.className = classes;
+        var renderedElement = crel(this.tagName || 'div');
         
         this.views.content.element = renderedElement;
         

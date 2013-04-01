@@ -1,20 +1,27 @@
 (function(undefined) {
     var viewType = "textbox",
 		cachedElement;
-        
+    
+    function matchFail(element, failed){
+        if(failed){
+            if(element.className.indexOf('error') >= 0){
+                return;
+            }
+            element.className += ' error'
+            element.className.trim();
+        }else{
+            element.className.indexOf('error') >= 0 && element.className.replace(/error/g,'');
+        }
+    }
         
     function setValue(event){    
-        var input = this;
-        var matchFail = function(){
-            $(input).addClass('error');
-        };
-        
-        $(input).removeClass('error');
+        var input = this,
+            viewModel = input.viewModel;
                 
-        if ($(input).attr("type") === "number") {
-            window.gaffa.propertyUpdaters.string(input.viewModel, input.viewModel.value, parseFloat($(input).val()), matchFail);
+        if (viewModel.subType.value === "number") {
+            viewModel.value.set(parseFloat(input.value));
         } else {
-            window.gaffa.propertyUpdaters.string(input.viewModel, input.viewModel.value, $(input).val(), matchFail);
+            viewModel.value.set(input.value);
         } 
     }  
     
@@ -22,13 +29,7 @@
                 
         var element = viewModel.renderedElement,
             caretPosition = 0,
-            $element = $(element),
-            originalValue = $element.val(),
-            hasCaret = $element.is(':focus'); //this is only necissary because IE10 is a pile of crap (i know what a supprise)
-            
-        if(originalValue === value){
-            return;
-        }
+            hasCaret = element.focus; //this is only necissary because IE10 is a pile of crap (i know what a surprise)
 
         // Inspiration taken from http://stackoverflow.com/questions/2897155/get-caret-position-within-an-text-input-field
         // but WOW is that some horrendous code! Max <http://stackoverflow.com/users/43677/max> should feel bad.
@@ -48,7 +49,7 @@
             }       
         }
         
-        $element.val(value);                    
+        element.value = value;                    
         
         if(hasCaret){
             if(element.createTextRange) {
@@ -66,11 +67,11 @@
     });
     
     var updateSubType = window.gaffa.propertyUpdaters.string(function(viewModel, value){
-        $(viewModel.renderedElement).attr('type', value);
+        viewModel.renderedElement.setAttribute('type', value);
     });
     
     var updatePlaceholder = window.gaffa.propertyUpdaters.string(function(viewModel, value){
-        $(viewModel.renderedElement).attr('placeholder', value);
+        viewModel.renderedElement.setAttribute('placeholder', value);
     });
     
     var updateDisabled = window.gaffa.propertyUpdaters.bool(function(viewModel, value){
@@ -86,13 +87,9 @@
     Textbox.prototype.type = viewType;
     
     Textbox.prototype.render = function(){
-        var classes = viewType;
-
-        var renderedElement = cachedElement || (cachedElement = document.createElement('input'));
-
-        renderedElement = $(renderedElement.cloneNode(true)).addClass(classes)[0];
+        var renderedElement = crel('input');
                 
-        $(renderedElement).on(this.updateEventName || "change", setValue);
+        renderedElement.addEventListener(this.updateEventName || "change", setValue);
         
         this.renderedElement = renderedElement;
         

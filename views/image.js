@@ -15,9 +15,7 @@
     Image.prototype.type = viewType;
     
     Image.prototype.render = function(){
-        var classes = viewType;
-
-        var renderedElement = $(document.createElement('img')).addClass(classes)[0];
+        var renderedElement = crel('img');
         
         this.renderedElement = renderedElement;
         

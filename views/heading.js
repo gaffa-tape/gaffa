@@ -1,28 +1,25 @@
 (function(undefined) {
-    var viewType = "heading",
-		cachedElement;
+    "use strict";
+    
+    var gaffa = window.gaffa,
+        crel = gaffa.crel,
+        viewType = "heading";
         
     function Heading(){    }
     Heading = gaffa.createSpec(Heading, gaffa.View);
     Heading.prototype.type = viewType;
     
-    Heading.prototype.render = function(){
-        var classes = viewType;
-        
-        var renderedElement = $(document.createElement(this.level || 'h1')).addClass(classes)[0];
+    Heading.prototype.render = function(){        
+        var renderedElement = crel('h' + (parseInt(this.level) || 1));
         
         this.renderedElement = renderedElement;
         
         this.__super__.render.apply(this, arguments);
     };
     
-    Heading.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
-        if(typeof value === "string"){
-            viewModel.renderedElement.innerHTML = value;
-        }else{
-            viewModel.renderedElement.innerHTML = "";
-        }
-    }));
+    Heading.prototype.text = new gaffa.Property(function(viewModel, value){
+        viewModel.renderedElement.textContent = (value && typeof value === 'string') ? value : null;
+    });
     
     gaffa.views[viewType] = Heading;
     

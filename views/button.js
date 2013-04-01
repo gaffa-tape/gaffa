@@ -1,15 +1,16 @@
 (function(undefined) {
-    var viewType = "button",
-		cachedElement;
+    "use strict";
+    
+    var gaffa = window.gaffa,
+        crel = gaffa.crel,
+        viewType = "button";
         
     function Button(){}
     Button = gaffa.createSpec(Button, gaffa.ContainerView);
     Button.prototype.type = viewType;
     
-    Button.prototype.render = function(){
-        var classes = viewType;
-        
-        var renderedElement = $(document.createElement('button')).addClass(classes)[0];
+    Button.prototype.render = function(){        
+        var renderedElement = crel('button');
                 
         this.views.content.element = renderedElement;
         

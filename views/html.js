@@ -1,6 +1,9 @@
 (function(undefined) {
-    var viewType = "html",
-		cachedElement;
+    "use strict";
+    
+    var gaffa = window.gaffa,
+        crel = gaffa.crel,
+        viewType = "html";
         
     function Html(){}
     Html = gaffa.createSpec(Html, gaffa.View);
@@ -16,13 +19,9 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Html.prototype.html = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
-        if(value !== null && value !== undefined){
-            viewModel.renderedElement.innerHTML = value;
-        }else{
-            viewModel.renderedElement.innerHTML = "";
-        }
-    }));
+    Html.prototype.html = new gaffa.Property(function(viewModel, value){
+        viewModel.renderedElement.innerHTML = (value && typeof value === 'string') ? value : null;
+    });
     
     gaffa.views[viewType] = Html;
     

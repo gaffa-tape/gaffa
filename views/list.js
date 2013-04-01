@@ -10,9 +10,8 @@
     List.prototype.type = viewType;
     
     List.prototype.render = function(){
-        var classes = viewType;
         
-        var renderedElement = $(document.createElement('div')).addClass(classes)[0];
+        var renderedElement = crel(this.tagName || 'div');
         
         this.views.list.element = renderedElement;
         this.views.list.property = this.list;
@@ -38,7 +37,7 @@
         update: window.gaffa.propertyUpdaters.collection(
             "list",                     
             //increment
-            function(viewModel, list, addedItem){
+            function(viewModel, list, addedItem, insertIndex){
                 var listViews = viewModel.views.list,
                     property = viewModel.list,
                     newView = createNewView(property, 'template');
@@ -47,7 +46,7 @@
                     newView[key] = addedItem[key];
                 }
 
-                listViews.add(newView);
+                listViews.add(newView, insertIndex);
             },
             //decrement
             function(viewModel, list, removedItem){

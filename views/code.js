@@ -12,10 +12,8 @@
     Code = gaffa.createSpec(Code, gaffa.View);
     Code.prototype.type = viewType;
     
-    Code.prototype.render = function(){
-        var classes = viewType;
-        
-        var renderedElement = $(document.createElement('code')).addClass(classes).attr('tabindex','0')[0];
+    Code.prototype.render = function(){        
+        var renderedElement = crel('code', {'tabindex':0});
         
         this.renderedElement = renderedElement;
         

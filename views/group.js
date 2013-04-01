@@ -9,9 +9,8 @@
     Group = gaffa.createSpec(Group, gaffa.ContainerView);
     Group.prototype.type = viewType;
     Group.prototype.render = function(){
-        var classes = viewType;
         
-        var renderedElement = $(document.createElement('div')).addClass(classes)[0];
+        var renderedElement = crel('div');
         
         this.views.groups.element = renderedElement;
         this.views.groups.property = this.groups;
@@ -22,6 +21,16 @@
         this.__super__.render.apply(this, arguments);
     }
 
+
+    function createNewView(property, templateKey){
+        if(!property.templateCache){
+            property.templateCache= {};
+        }
+        return JSON.parse(
+            property.templateCache[templateKey] || 
+            (property.templateCache[templateKey] = JSON.stringify(property[templateKey]))
+        );
+    }
            
     Group.prototype.groups = new gaffa.Property(window.gaffa.propertyUpdaters.group(
         "groups",                     
@@ -45,7 +54,7 @@
             }
 
             if(property.listTemplate){
-                newList = JSON.parse(JSON.stringify(property.listTemplate));
+                newList = createNewView(property, 'listTemplate');
 
                 expression = '(filter [] {item (= (' + property.expression + ' item) "' + addedItem.group + '")})';
                 
@@ -72,7 +81,7 @@
             
             if(insert){
                 if(!emptyViews.length){
-                    window.gaffa.views.add($.extend(true, {}, property.emptyTemplate), viewModel, emptyViews);
+                    window.gaffa.views.add(createNewView(property, 'emptyTemplate'), viewModel, emptyViews);
                 }
             }else{
                 while(emptyViews.length){
