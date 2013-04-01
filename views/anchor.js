@@ -1,5 +1,8 @@
 (function(undefined) {
+    "use strict";
+
     var gaffa = window.gaffa,
+        crel = gaffa.crel,
         viewType = "anchor",
 		cachedElement;
     
@@ -9,9 +12,7 @@
     Anchor.prototype.type = viewType;
     
     Anchor.prototype.render = function(){
-        var classes = viewType;
-
-        var renderedElement = $(document.createElement('a')).addClass(classes)[0];
+        var renderedElement = crel('a');
 
         this.views.content.element = renderedElement;
         
@@ -20,20 +21,17 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Anchor.prototype.text = new gaffa.Property(gaffa.propertyUpdaters.string(function(viewModel, value){
-        if(value !== null && value !== undefined){
-            viewModel.renderedElement.innerHTML = value;
-        }else{
-            viewModel.renderedElement.innerHTML = "";
-        }
-    }));
-    Anchor.prototype.href = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
+    Anchor.prototype.text = new gaffa.Property(function(viewModel, value){
+        viewModel.renderedElement.textContent = (value && typeof value === 'string') ? value : null;
+    });
+
+    Anchor.prototype.href = new gaffa.Property(function(viewModel, value){
         if(value !== null && value !== undefined){
             viewModel.renderedElement.setAttribute("href",value);
         }else{
             viewModel.renderedElement.removeAttribute("href");
         }
-    }));
+    });
     
     gaffa.views[viewType] = Anchor;
     

@@ -6,25 +6,26 @@
     Form = gaffa.createSpec(Form, gaffa.ContainerView);
     Form.prototype.type = viewType;
     
-    Form.prototype.render = function(){
-        var classes = viewType;
-        
-        var form = document.createElement('form'),
-            renderedElement;
+    Form.prototype.render = function(){        
+        var form,
+            viewModel = this,
+            renderedElement = crel('div', 
+                form = crel('form')
+            );
         
         if (this.action) {
             form.setAttribute("action", this.action);
         } else {
-            $(form).on('submit', function (event) {
-                event.preventDefault();
+            form.addEventListener('submit', function (event) {
+                if(viewModel.actions.submit){
+                    event.preventDefault();
+                }
             });
         }
 
         if (this.method) {
             form.setAttribute("method", this.method);
         }
-
-        renderedElement = $(document.createElement('div')).append(form).addClass(classes)[0];
         
         this.views.content.element = form;
         
