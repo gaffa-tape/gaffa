@@ -111,12 +111,17 @@
 
 	function createMainSection(){
 		var mainSection = new views.container(),
-			toggleAllCheckbox = new views.checkbox();
+			toggleAllCheckbox = new views.checkbox(),
+			toggleAll = new actions.set();
+
+		toggleAll.source.binding = '(map [/todos] {todo (map todo {key (? (= key "checked") [toggleAll] key)})})';
+		toggleAll.target.binding = '[/todos]';
 
 		toggleAllCheckbox.showLabel.value = false;
 		toggleAllCheckbox.checked.binding = '[toggleAll]';
 		toggleAllCheckbox.classes.value = 'toggleAll';
 		toggleAllCheckbox.visible.binding = '(> (length [/todos]) 0)';
+		toggleAllCheckbox.actions.change = [toggleAll];
 
 		mainSection.tagName = 'section';
 		mainSection.classes.value = 'main';
@@ -212,7 +217,20 @@
 			}
 		],
 		filter: "all",
-		todos: []
+		todos: [
+			{
+				label: "Add persistance"
+			},
+			{
+				label: "Enable hash  based navigation"
+			},
+			{
+				label: "Focus edit box when shown"
+			},
+			{
+				label: "Hook up 'all' checkbox"
+			}
+		]
 	});
 
 	gaffa.views.add(createApp());

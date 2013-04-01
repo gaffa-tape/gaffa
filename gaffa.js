@@ -371,7 +371,7 @@
 
         if(settings.cache === false){
             if(typeof settings.url === 'string'){
-                var cacheAppend = (settings.url.indexOf('?')>=0 ? '&_=' : '?_=') + new Date();
+                var cacheAppend = (settings.url.indexOf('?')>=0 ? '&_=' : '?_=') + new Date().getTime();
             }
             settings.url = settings.url + cacheAppend;
         }
