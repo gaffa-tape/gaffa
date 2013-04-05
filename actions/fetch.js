@@ -1,14 +1,10 @@
 (function(undefined) {
-    var actionType = "fetch";
+    var gaffa = window.gaffa,
+        actionType = "fetch";
     
     
-    function Fetch(actionDefinition){
-        this.constructor.apply(this, arguments);
-    }
-    Fetch.prototype = new gaffa.Action();
-    Fetch.prototype.trigger = function(){
-        trigger(this);
-    };
+    function Fetch(){}
+    Fetch = gaffa.createSpec(Fetch, gaffa.Action);
         
     Fetch.prototype.target = new gaffa.Property();
     Fetch.prototype.source = new gaffa.Property();
@@ -16,11 +12,15 @@
     Fetch.prototype.dirty = new gaffa.Property();
     Fetch.prototype.location = 'server';
     
-    window.gaffa.actions[actionType] = Fetch;
+    gaffa.actions[actionType] = Fetch;
 
-    function trigger(action){
+    Fetch.prototype.trigger = function(){
+        this.__super__.trigger.apply(this, arguments);
+
+        var action = this;
+
         var errorHandler = function (error) {
-            window.gaffa.actions.trigger(action.actions.error, action.binding);
+            gaffa.actions.trigger(action.actions.error, action.binding);
             gaffa.notifications.notify("fetch.error." + action.kind, error);
         };
     
@@ -39,9 +39,9 @@
                     }
 
                     if(action.merge){
-                        var value = $.extend(true, window.gaffa.model.get(action.target.binding), value);
+                        var value = $.extend(true, gaffa.model.get(action.target.binding), value);
                     }
-                    window.gaffa.model.set(
+                    gaffa.model.set(
                         action.target.binding,
                         value,
                         action,
@@ -49,11 +49,11 @@
                     );
                 }
                 if (action.isModelRefresh && data.model) {
-                    window.gaffa.model.set(data.model, false, false, false);
+                    gaffa.model.set(data.model, false, false, false);
                 }
             }
             
-            window.gaffa.actions.trigger(action.actions.success, action);
+            gaffa.actions.trigger(action.actions.success, action);
             
             gaffa.notifications.notify("fetch.success." + action.kind);
         }
@@ -70,16 +70,15 @@
             if (action.useCache && action.target.value) {
                 return;
             }else{
-                if (window.gaffa.utils.propExists(action, "source.value")) {
+                if (gaffa.utils.propExists(action, "source.value")) {
                     gaffa.notifications.notify("fetch.begin." + action.kind);
-                    $.ajax({
+                    gaffa.ajax({
                         //cache: false,
                         type: 'get',
                         crossDomain: action.crossDomain,
                         url: action.source.value,
                         data: action.data.value,
                         dataType: 'json',
-                        contentType: 'application/json',
 
                         success:function(data){
                             handleData(action, data);
@@ -87,7 +86,7 @@
                         error: errorHandler,
                         complete:function(){
                             gaffa.notifications.notify("fetch.complete." + action.kind);
-                            window.gaffa.actions.trigger(action.actions.complete, action);
+                            gaffa.actions.trigger(action.actions.complete, action);
                         }
                     });
                 }

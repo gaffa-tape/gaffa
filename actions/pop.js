@@ -6,6 +6,8 @@
     Pop = gaffa.createSpec(Pop, gaffa.Action);
     Pop.prototype.type = actionType;
     Pop.prototype.trigger = function(){
+        this.__super__.trigger.apply(this, arguments);
+        
         if(this.source.value && this.source.value.pop){
             var popFrom = this.source.value,
                 poppedValue = popFrom.pop();

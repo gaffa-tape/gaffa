@@ -19,7 +19,6 @@
 
     // "constants"
     gaffa.pathSeparator = "/";
-    gaffa.pathWildcard = "*";
     
     // internal varaibles
     
@@ -360,32 +359,93 @@
 
     //***********************************************
     //
+    //      Parse QueryString
+    //
+    //***********************************************
+
+    function parseQueryString(url){
+        var urlParts = url.split('?'),
+            result = {};
+
+        if(urlParts.length>1){
+
+            var queryStringData = urlParts.pop().split("&");
+            
+            queryStringData.fastEach(function(keyValue){
+                var parts = keyValue.split("="),
+                    key = window.unescape(parts[0]),
+                    value = window.unescape(parts[1]);
+                    
+                result[key] = value;
+            });
+        }
+
+        return result;
+    }
+
+
+    //***********************************************
+    //
+    //      To QueryString
+    //
+    //***********************************************
+
+    function toQueryString(data){
+        var queryString = '';
+
+        for(var key in data){
+            if(data.hasOwnProperty(key) && data[key] !== undefined){
+                queryString += (queryString.length ? '&' : '?') + key + '=' + data[key];
+            }
+        }
+
+        return queryString;
+    }
+
+
+    //***********************************************
+    //
     //      Ajax
     //
     //***********************************************
 
     function ajax(settings){    
+        var queryStringData;
         if(typeof settings !== 'object'){
             settings = {};
         }
 
         if(settings.cache === false){
-            if(typeof settings.url === 'string'){
-                var cacheAppend = (settings.url.indexOf('?')>=0 ? '&_=' : '?_=') + new Date().getTime();
+            settings['_'] = new Date().getTime();
+        }
+
+        if(settings.type === 'get' && typeof settings.data === 'object'){
+            queryStringData = parseQueryString(settings.url);
+            for(var key in settings.data){
+                if(settings.data.hasOwnProperty(key)){
+                    queryStringData[key] = settings.data[key];
+                }
             }
-            settings.url = settings.url + cacheAppend;
+
+            settings.url  = settings.url.split('?').shift() + toQueryString(queryStringData);
+            settings.data = null;
         }
 
         var request = new XMLHttpRequest();
 
-        request.setRequestHeader('contentType', 'application/json; charset=utf-8');
         request.addEventListener("progress", settings.progress, false);
-        request.addEventListener("load", function(data){
-            settings.load && settings.load(JSON.parse(data))
+        request.addEventListener("load", function(event){
+            var data = event.target.responseText;
+            settings.success && settings.success(settings.dataType === 'json' ? JSON.parse(data) : data);
         }, false);
         request.addEventListener("error", settings.error, false);
         request.addEventListener("abort", settings.abort, false);
+
         request.open(settings.type || "get", settings.url, true);
+
+        request.setRequestHeader('contentType', settings.contentType || 'application/json; charset=utf-8');
+
+
         request.send(settings.data && JSON.stringify(settings.data));
     }
 
@@ -397,21 +457,19 @@
     //***********************************************
     
     function queryStringToModel(){
-        var queryStringData = window.location.search.slice(1).split("&");
+        var queryStringData = parseQueryString(window.location.search);
         
-        queryStringData.fastEach(function(keyValue){
-            var parts = keyValue.split("="),
-                key = window.unescape(parts[0]),
-                value = window.unescape(parts[1]);
-                
-            if(key){
-                if(value){
-                    gaffa.model.set(new Path(key), value);
-                }else{
-                    gaffa.model.set(new Path(key), null);
-                }
+        for(var key in queryStringData){
+            if(!queryStringData.hasOwnProperty(key)){
+                continue;
             }
-        });
+
+            if(queryStringData[key]){
+                gaffa.model.set(new Path(key), queryStringData[key]);
+            }else{
+                gaffa.model.set(new Path(key), null);
+            }
+        }
     }
 
     //***********************************************
@@ -572,8 +630,23 @@
     //
     //***********************************************
 
-    function triggerAction(action) {
-        action.trigger();
+    function triggerAction(action, parent, scope) {
+        action.parent = parent || action.parent;
+        action.trigger(parent, scope);
+    }
+
+    //***********************************************
+    //
+    //      Trigger Action
+    //
+    //***********************************************
+
+    function triggerActions(actions, parent, scope) {
+        if(Array.isArray(actions)){
+            actions.fastEach(function(action){
+                triggerAction(action, parent, scope);
+            });
+        }
     }
 
     
@@ -604,18 +677,20 @@
         var path,
             pathParts = [],
             referencePath,
-            referenceItem = item.parent;
+            referenceItem = item;
         
 
         while(referenceItem){
+
+            if(referenceItem.key != null){
+                pathParts.push(referenceItem.key);
+            }
+
             if(referenceItem.path != null){
                 referencePath = new Path(referenceItem.path);
                 for(var i = referencePath.length - 1; i >= 0; i--){
                     pathParts.push(referencePath[i]);
                 }
-            }
-            if(referenceItem.key != null){
-                pathParts.push(referenceItem.key);
             }
 
             if(referenceItem.parent){
@@ -1086,7 +1161,6 @@
                 this.splice(index, 1).remove();
             }
         });
-        this.getPath.__pathCache__ = null;
     };
     ViewContainer.prototype.toJSON = function(){
         return jsonConverter(this, ['element']);
@@ -1162,8 +1236,6 @@
             this.parentContainer.remove(this);
         }
         
-        this.getPath.__pathCache__ = null;
-        
         this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
         
         this.eventHandlers.fastEach(function(handler){
@@ -1221,6 +1293,8 @@
     function View(viewDescription){}
     View = createSpec(View, ViewItem);
     View.prototype.bind = function(){
+        var view = this;
+
         ViewItem.prototype.bind.apply(this, arguments);
         this.forEachChild(function(child){
             child.bind();
@@ -1229,7 +1303,7 @@
             var actions = this.actions[key];
             
             this.renderedElement.addEventListener(key, function (event) {
-                gaffa.actions.trigger(actions);
+                triggerActions(actions, view);
             });
         }
     };
@@ -1250,7 +1324,7 @@
         typeof this.afterInsert === 'function' && this.afterInsert();
     };    
     View.prototype.classes = new Property(function(viewModel, value){
-        if(!internalClassNames in viewModel.classes){
+        if(!('internalClassNames' in viewModel.classes)){
             viewModel.classes.internalClassNames = viewModel.renderedElement.className;
         }
 
@@ -1304,8 +1378,17 @@
     function Action(actionDescription){
     }
     Action = createSpec(Action, ViewItem);
-    Action.prototype.bind = function(){
-        ViewItem.prototype.bind.apply(this, arguments);
+    Action.prototype.bind = function(){};
+    Action.prototype.trigger = function(parent, scope){
+        this.parent = parent;
+
+        for(var propertyKey in this){
+            var property = this[propertyKey];
+
+            if(property instanceof Property && property.binding){
+                property.value = gaffa.model.get(property.binding, this, scope);
+            }
+        }        
     };
     
     //***********************************************
@@ -1345,7 +1428,7 @@
     PageLoadBehaviour.prototype.bind = function(){
         Behaviour.prototype.bind.apply(this, arguments);
         
-        gaffa.actions.trigger(this.actions.load, this);        
+        triggerActions(this.actions.load, this);
     };
     
     
@@ -1362,45 +1445,39 @@
         
         var behaviour = this;
         
-        function executeBehaviour(behaviour, context){
-            var currentValue = JSON.stringify(gedi.get(behaviour.path));
-                if(currentValue !== behaviour.previousValue){
-                    behaviour.previousValue = currentValue;
-                    gaffa.actions.trigger(behaviour.actions.change, behaviour, context);
-                }
+        function executeBehaviour(behaviour, value){
+            var currentValue = JSON.stringify(value);
+
+            if(!(behaviour.ignoreIfUnchanged && currentValue === behaviour.previousValue)){
+                behaviour.previousValue = currentValue;
+                triggerActions(behaviour.actions.change, behaviour);
+            }
         }
         
         gaffa.model.bind(behaviour.watch || '[]', function (modelChangeEvent){
-            var context;
+            var value = modelChangeEvent.getValue();
 
-            if(behaviour.context){
-                context = Path.parse(behaviour.context);
-                if(context.last() === gaffa.pathWildcard){
-                    context.pop();
-                    if(modelChangeEvent.target.toRawString().indexOf(context.toRawString()) === 0){
-                        context.push(modelChangeEvent.target[context.length]);
-                    }
-                }else{
-                    context = Path.parse(behaviour.path);
-                }
+            if(!value){
+                return;
             }
+
             var throttleTime = behaviour.throttle;
             if(!isNaN(throttleTime)){
                 var now = new Date();
                 if(!behaviour.lastTrigger || now - behaviour.lastTrigger > throttleTime){
                     behaviour.lastTrigger = now;
-                    executeBehaviour(behaviour, context);
+                    executeBehaviour(behaviour, value);
                 }else{
                     clearTimeout(behaviour.timeout);
                     behaviour.timeout = setTimeout(function(){
                             behaviour.lastTrigger = now;
-                            executeBehaviour(behaviour, context);
+                            executeBehaviour(behaviour, value);
                         },
                         throttleTime - (now - behaviour.lastTrigger)
                     );
                 }
             }else{
-                executeBehaviour(behaviour, context);
+                executeBehaviour(behaviour, value);
             }
         }, this);
     };
@@ -1431,7 +1508,7 @@
                 }
                 
                 currentTimeout = setTimeout(function(){
-                    behaviour.actions.tick && gaffa.actions.trigger(behaviour.actions.tick, behaviour);
+                    triggerActions(behaviour.actions.tick, behaviour);
                     intervalLoop();
                 },behaviour.time || 5000);//If you forget to set the interval, we will be nice and give you 5 seconds of debug time by default, rather than 0ms looping you to death.
             };
@@ -1515,7 +1592,7 @@
                 }
 
                 var parentPath;
-                if(Path.mightParse(path) && parent && parent.getPath){
+                if(parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
                 
@@ -1523,7 +1600,7 @@
             },
             set:function(path, value, parent, dirty) {
                 var parentPath;
-                if(Path.mightParse(path) && parent && parent.getPath){
+                if(parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
                 
@@ -1531,7 +1608,7 @@
             },
             remove: function(path, parent) {
                 var parentPath;
-                if(Path.mightParse(path) && parent && parent.getPath){
+                if(parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
                 
@@ -1539,7 +1616,7 @@
             },
             bind: function(path, callback, parent) {
                 var parentPath;
-                if(Path.mightParse(path) && parent && parent.getPath){
+                if(parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
                 
@@ -1571,12 +1648,7 @@
                 
                 internalActions[key] = actions;
             },
-            trigger: function (actions, parent) {
-                if(typeof actions === "string"){
-                    actions = internalActions[actions];
-                }
-                actions instanceof Array && actions.fastEach(triggerAction);
-            }
+            trigger: triggerActions
         },
 
         behaviours: {
