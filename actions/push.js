@@ -6,6 +6,8 @@
     Push = gaffa.createSpec(Push, gaffa.Action);
     Push.prototype.type = actionType;
     Push.prototype.trigger = function(){
+        this.__super__.trigger.apply(this, arguments);
+        
         var toObject = this.target.value;
         if(toObject === undefined || toObject === null){
             toObject = [];

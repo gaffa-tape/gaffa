@@ -20,7 +20,7 @@
     };
     
     Label.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
-        viewModel.renderedElement.innerHTML = value || "";
+        viewModel.renderedElement.textContent = value || "";
     }));
     
     Label.prototype.labelFor = new gaffa.Property(window.gaffa.propertyUpdaters.string(function (viewModel, value) {

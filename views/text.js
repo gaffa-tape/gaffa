@@ -30,7 +30,7 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Text.prototype.text = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
+    Text.prototype.text = new gaffa.Property(function(viewModel, value){
         if(!shit){
             viewModel.renderedElement.data = value;
             if(value !== null && value !== undefined){
@@ -45,7 +45,17 @@
                 viewModel.renderedElement.innerHTML = "";
             }
         }
-    }));
+    });
+    
+    Text.prototype.visible = new gaffa.Property(function(viewModel, value){
+        var element = viewModel.renderedElement;
+
+        if(!shit){
+            viewModel.renderedElement.data = value === false ? '' : viewModel.text.value;
+        }else{
+            viewModel.renderedElement.style.display = value === false ? 'none' : null;            
+        }
+    });
     
     gaffa.views[viewType] = Text;
     

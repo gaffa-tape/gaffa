@@ -32,7 +32,43 @@
         <script src="../gedi/gedi.js"></script>
         <script src="gaffa.js"></script>
 
-        <!-- views. -->
+
+        <script src="views/accordion.js"></script>
+        <script src="views/anchor.js"></script>
+        <script src="views/button.js"></script>
+        <script src="views/checkbox.js"></script>
+        <script src="views/code.js"></script>
+        <script src="views/container.js"></script>
+        <script src="views/dropdown.js"></script>
+        <script src="views/fileInput.js"></script>
+        <script src="views/form.js"></script>
+        <script src="views/group.js"></script>
+        <script src="views/heading.js"></script>
+        <script src="views/html.js"></script>
+        <script src="views/image.js"></script>
+        <script src="views/imageInput.js"></script>
+        <script src="views/label.js"></script>
+        <script src="views/list.js"></script>
+        <script src="views/paragraph.js"></script>
+        <script src="views/radio.js"></script>
+        <script src="views/select.js"></script>
+        <script src="views/text.js"></script>
+        <script src="views/textarea.js"></script>
+        <script src="views/textbox.js" ></script>
+
+        <script src="actions/concat.js"></script>
+        <script src="actions/conditional.js"></script>
+        <script src="actions/fetch.js"></script>
+        <script src="actions/fromJson.js"></script>
+        <script src="actions/navigate.js"></script>
+        <script src="actions/pop.js"></script>
+        <script src="actions/push.js"></script>
+        <script src="actions/remove.js"></script>
+        <script src="actions/set.js"></script>
+        <script src="actions/store.js"></script>
+        <script src="actions/toggle.js"></script>
+        <script src="actions/toJson.js"></script>
+
         <script>
             function hasAncestor(constructor, ancestor){
                 if(typeof constructor === 'function' && typeof ancestor === 'function' && constructor.prototype && constructor.prototype.__proto__){
@@ -44,65 +80,6 @@
                 return false;
             }
             
-            var scripts = "";
-            
-            var views = [
-                "accordion",
-                "anchor",
-                "button",
-                "checkbox",
-                "code",
-                "container",
-                "dropdown",
-                "fileInput",
-                "form",
-                "group",
-                "heading",
-                "html",
-                "image",
-                "imageInput",
-                "label",
-                "list",
-                "paragraph",
-                "radio",
-                "select",
-                "text",
-                "textarea",
-                "textbox"
-                ];
-            
-            views.fastEach(function(viewName){
-                scripts += '<script src="views/' + viewName + '.js"></' + 'script>';
-            });
-            
-            var actions = [
-                "concat",
-                "conditional",
-                "fetch",
-                "fromJson",
-                "navigate",
-                "pop",
-                "push",
-                "remove",
-                "set",
-                "store",
-                "toggle",
-                "toJson"
-                ];
-            
-            actions.fastEach(function(actionName){
-                scripts += '<script src="actions/' + actionName + '.js"></' + 'script>';
-            });
-            document.head.innerHTML += scripts;
-        </script>
-
-        <!-- actions. -->
-        <script src="actions/set.js"></script>
-        <script src="actions/push.js"></script>
-        <script src="actions/toggle.js"></script>
-        <script src="actions/store.js"></script>
-        <script src="actions/fetch.js"></script>
-        <script>
 
             /*
             
@@ -304,15 +281,17 @@
                                 template = new gaffa.views.label();
                             
                             template.text.binding = '[]';
-                            
+
+                            list.path = '[myArray]';
                             list.list.template = template;
-                            list.list.binding = '[myArray]';
+                            list.list.binding = '[]';
+                            list.classes.value = 'list';
                             
                             gaffa.views.add(list);
                             
                             gaffa.model.set('[myArray]', ['a','b','c','d']);
                             
-                            this.result = '' + $('.label').length + ' ' + $('.list').text();
+                            this.result = '' + $('label').length + ' ' + $('.list').text();
                         },
                         expected: '4 abcd'
                     },
@@ -327,14 +306,16 @@
                             
                             template.text.binding = '[]';
                             
+                            list.path = '[myArray]';
                             list.list.template = template;
-                            list.list.binding = '[myArray]';
+                            list.list.binding = '[]';
+                            list.classes.value = 'list';
                             
                             gaffa.views.add(list);                    
                             
                             gaffa.model.remove('[myArray/3]');                    
                             
-                            this.result = '' + $('.label').length + ' ' + $('.list').text();
+                            this.result = '' + $('label').length + ' ' + $('.list').text();
                         },
                         expected: '3 abc'
                     },
@@ -350,12 +331,13 @@
                             
                             list.list.template = template;
                             list.list.binding = '(filter [] {item (== item "b")})';
+                            list.classes.value = 'list';
                             
                             gaffa.views.add(list);
                             
                             gaffa.model.set('[myArray]', ['a','b','c','d']);
                             
-                            this.result = '' + $('.label').length + ' ' + $('.list').text();
+                            this.result = '' + $('label').length + ' ' + $('.list').text();
                         },
                         expected: '1 b'
                     },
@@ -371,12 +353,13 @@
                             
                             list.list.template = template;
                             list.list.binding = '(slice 0 -1 (filter [] {item (>= item "b")}))';
+                            list.classes.value = 'list';
                             
                             gaffa.views.add(list);
                             
                             gaffa.model.set('[myArray]', ['a','b','c','d']);
                             
-                            this.result = '' + $('.label').length + ' ' + $('.list').text();
+                            this.result = '' + $('label').length + ' ' + $('.list').text();
                         },
                         expected: '2 bc'
                     },
@@ -392,12 +375,13 @@
                             
                             list.list.template = template;
                             list.list.binding = '(? true (filter [] {item (== item "b")}) null)';
+                            list.classes.value = 'list';
                             
                             gaffa.views.add(list);
                             
                             gaffa.model.set('[myArray]', ['a','b','c','d']);
                             
-                            this.result = '' + $('.label').length + ' ' + $('.list').text();
+                            this.result = '' + $('label').length + ' ' + $('.list').text();
                         },
                         expected: '1 b'
                     },
@@ -413,12 +397,13 @@
                             
                             list.list.template = template;
                             list.list.binding = '(? true (sort [] {item1 item2 (- item1 item2)}) null)';
+                            list.classes.value = 'list';
                             
                             gaffa.views.add(list);
                             
                             gaffa.model.set('[myArray]', [3,1,4,2,6,7,5]);
                             
-                            this.result = '' + $('.label').length + ' ' + $('.list').text();
+                            this.result = '' + $('label').length + ' ' + $('.list').text();
                         },
                         expected: '7 1234567'
                     },
@@ -435,6 +420,7 @@
                             group.groups.template = list;
                             
                             list.list.template = template;
+                            list.classes.value = 'list';
                             
                             template.text.binding = '[name]';
                             
@@ -516,6 +502,8 @@
                         (function(test){
                             title.addEventListener("click", function(){
                                 test.test.call(test);
+                                //clear gaffa.
+                                gaffa.load({model:{}, views:[]});
                             });
                         })(test);
                         

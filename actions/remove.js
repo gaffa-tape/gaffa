@@ -6,6 +6,8 @@
     Remove = gaffa.createSpec(Remove, gaffa.Action);
     Remove.prototype.type = actionType;
     Remove.prototype.trigger = function(){
+        this.__super__.trigger.apply(this, arguments);
+        
         gaffa.model.remove(this.target.binding, this);
     };
     Remove.prototype.target = new gaffa.Property();

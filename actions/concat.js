@@ -6,6 +6,8 @@
     Concat = gaffa.createSpec(Concat, gaffa.Action);
     Concat.prototype.type = actionType;
     Concat.prototype.trigger = function(){
+        this.__super__.trigger.apply(this, arguments);
+        
         var target = this.target.value,
             source = this.source.value
             

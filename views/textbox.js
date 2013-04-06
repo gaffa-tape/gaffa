@@ -87,9 +87,12 @@
     Textbox.prototype.type = viewType;
     
     Textbox.prototype.render = function(){
-        var renderedElement = crel('input');
+        var renderedElement = crel('input'),
+            updateEventNames = (this.updateEventName || "change").split(' ');
                 
-        renderedElement.addEventListener(this.updateEventName || "change", setValue);
+        updateEventNames.fastEach(function (eventName) {
+            renderedElement.addEventListener(eventName, setValue);            
+        });
         
         this.renderedElement = renderedElement;
         

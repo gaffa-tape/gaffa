@@ -6,18 +6,12 @@
     }
     Store = gaffa.createSpec(Store, gaffa.Action);
     Store.prototype.type = actionType;
+    Store.prototype.location = 'server';
     Store.prototype.trigger = function(){
-        trigger(this);
-    };
-    Store.prototype.target = new gaffa.Property();
-    Store.prototype.source = new gaffa.Property();
-    Store.prototype.returnValue = new gaffa.Property();
-    Store.prototype.dirty = new gaffa.Property();
-    
-    gaffa.actions[actionType] = Store;
-    
-    function trigger(action) {
-        var data = JSON.stringify(action.source.value),
+        this.__super__.trigger.apply(this, arguments);
+
+        var action = this,
+            data = JSON.stringify(action.source.value),
             errorHandler = function (error) {
                 gaffa.actions.trigger(action.actions.error, action.binding);
                 gaffa.notifications.notify("store.error." + action.kind, error);
@@ -27,14 +21,14 @@
             localStorage.setItem(action.target.value, data);
         } else if (action.location === "server") {
             gaffa.notifications.notify("store.begin." + action.kind);
-			
-			var ajaxSettings = {
+            
+            var ajaxSettings = {
                 cache: false,
                 type: 'post',
                 url: action.target.value || window.location.pathname,
                 data: data,
                 dataType: 'json',
-                contentType: action.contentType || 'application/json; charset=utf-8',
+                contentType: action.contentType,
                 success:function(data){
                     if(gaffa.responseIsError && gaffa.responseIsError(data)){
                         errorHandler(data);
@@ -47,7 +41,7 @@
                             return;
                         }
                         if(action.transform){
-                            value = gaffa.model.get(action.transform, {data: value});
+                            value = gaffa.model.get(action.transform, {data: data});
                         }
                         
                         gaffa.model.set(
@@ -63,7 +57,7 @@
                         gaffa.model.setDirtyState(action.cleans, false, action);
                     }
                     
-                    gaffa.actions.trigger(action.actions.success, action);
+                    gaffa.actions.trigger(action.actions.success, action, {data: data});
                     
                     gaffa.notifications.notify("store.success." + action.kind);
                 },
@@ -73,19 +67,25 @@
                     gaffa.notifications.notify("store.complete." + action.kind);
                 }
             };
-			
-			if(action.dataType === 'binary'){
+            
+            if(action.dataType === 'binary'){
 
-				data = new FormData();
-				data.append("items[]", action.source.value);
-				ajaxSettings.contentType = false;
-				ajaxSettings.processData = false;
-				ajaxSettings.data = data;
-				dataType = false;
-				
-			}
-			
-			$.ajax(ajaxSettings);
+                data = new FormData();
+                data.append("items[]", action.source.value);
+                ajaxSettings.contentType = false;
+                ajaxSettings.processData = false;
+                ajaxSettings.data = data;
+                dataType = false;
+                
+            }
+            
+            gaffa.ajax(ajaxSettings);
         }
-    }
+    };
+    Store.prototype.target = new gaffa.Property();
+    Store.prototype.source = new gaffa.Property();
+    Store.prototype.returnValue = new gaffa.Property();
+    Store.prototype.dirty = new gaffa.Property();
+    
+    gaffa.actions[actionType] = Store;
 })();
