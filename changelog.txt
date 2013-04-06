@@ -1,3 +1,17 @@
+0.2.1
+
+- Added doc.
+
+- Removed jQuery dependancy, this means by default gaffa does not support legacy browsers. Legacy support can be added by overwriting gaffa.ajax etc.
+
+- Views no longer add non-functional classes to the rendered elements.
+
+- Container, Html, and List views can now have their 'tagName' set, to allow for custom element types to be created.
+
+- Other stuff I've forgotten..
+
+0.2.0
+
 *Breaking*
 
 - Changed modelChange behaviour binding method from behaviour.path only to behaviour.watch + .path. This allows the behaviour to watch multiple paths, and fixes a bug where all modelChange paths needed to be absolute.

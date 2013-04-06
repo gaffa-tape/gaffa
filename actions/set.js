@@ -6,6 +6,8 @@
     Set = gaffa.createSpec(Set, gaffa.Action);
     Set.prototype.type = actionType;
     Set.prototype.trigger = function(){
+        this.__super__.trigger.apply(this, arguments);
+        
         var fromObj = this.source.value;
         if(!(this.clone && this.clone.value === false)){
             fromObj = gaffa.clone(fromObj);

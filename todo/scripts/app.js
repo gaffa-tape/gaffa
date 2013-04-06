@@ -114,7 +114,7 @@
 			toggleAllCheckbox = new views.checkbox(),
 			toggleAll = new actions.set();
 
-		toggleAll.source.binding = '(map [/todos] {todo (map todo {key (? (= key "checked") [toggleAll] key)})})';
+		toggleAll.source.binding = '(map [/todos] {todo (apply object (map todo (array) {key (? (= key "checked") [toggleAll] key)})})';
 		toggleAll.target.binding = '[/todos]';
 
 		toggleAllCheckbox.showLabel.value = false;
