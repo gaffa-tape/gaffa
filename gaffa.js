@@ -9,6 +9,9 @@
 (function (undefined) {
     "use strict";
 
+    // doc
+    (function(){function e(a){return"string"===typeof a?d.find(a)[0]:a}var d=window.doc={},g=window.document;d.find=function(a,b){null==b&&(b=a,a=g);return e(a).querySelectorAll(b)};d.closest=function(a,b){for(a=e(a);a&&a.parentNode&&0>Array.prototype.slice.apply("string"===typeof b?d.find(a.parentNode,b):b.parentNode.childNodes).indexOf(a);)a=a.parentNode;return a===g?null:a};d.is=function(a,b){a=e(a);return 0<=Array.prototype.slice.call(d.find(a.parentNode,b)).indexOf(a)};d.on=function(a,b,l,f){var h=[];a=a.split(" ");for(var j=0;j<a.length;j++){var c=[];f?(!0===f&&(f=g),c.target=f,c.callback=function(a){var c=d.closest(a.target,b);c&&l(a,c)}):(c.target=b,c.callback=l);c.event=a[j];var k=c;e(k.target).addEventListener(k.event,k.callback,!1);h.push(c)}return function(){for(;h.length;){var a=h.pop();e(a.target).removeEventListener(a.event,e(a.target))}}}})();
+
     var gedi,
         // Create gaffa global.
         gaffa = window.gaffa = {},
@@ -440,13 +443,14 @@
         }, false);
         request.addEventListener("error", settings.error, false);
         request.addEventListener("abort", settings.abort, false);
+        request.addEventListener("loadend", settings.complete, false);
 
         request.open(settings.type || "get", settings.url, true);
 
-        request.setRequestHeader('contentType', settings.contentType || 'application/json; charset=utf-8');
+        request.setRequestHeader('Content-Type', settings.contentType || 'application/json; charset=utf-8');
+        request.setRequestHeader('X-Requested-With', settings.requestedWith || 'XMLHttpRequest');
 
-
-        request.send(settings.data && JSON.stringify(settings.data));
+        request.send(settings.data && settings.data);
     }
 
 
@@ -481,7 +485,7 @@
     function navigate(url, model, post, pushState) {
         
         gaffa.notifications.notify("navigation.begin");
-        ajax({
+        gaffa.ajax({
         
             // Internet explorer is an ABSOLUTE PIECE OF SHIT.
             // If you don't set this to false, it JUST RESPONDS WITH WHATEVER IT LAST GOT FROM THAT URL.
@@ -493,7 +497,7 @@
             type: (post && "post") || "get",
             data: "gaffaNavigate=1", // This is to avoid the cached HTML version of a page if you are bootstrapping.
             dataType: "json",
-            load: function (data) {
+            success: function (data) {
                 var title;
                         
                 if(data !== undefined && data !== null && data.title){
@@ -826,7 +830,7 @@
             defaultViewStyles = crel('style', {type: 'text/css', 'class':'dropdownDefaultStyle'});
         
             //Prepend so it can be overriden easily.
-            defaultViewStyles.insertBefore(document.head);
+            document.head.insertBefore(defaultViewStyles);
             
             return defaultViewStyles;
         })();
@@ -1302,7 +1306,7 @@
         for(var key in this.actions){
             var actions = this.actions[key];
             
-            this.renderedElement.addEventListener(key, function (event) {
+            gaffa.doc.on(key, this.renderedElement, function (event) {
                 triggerActions(actions, view);
             });
         }
@@ -1529,7 +1533,7 @@
     
     function addBehaviour(behaviours) {
         //if the views isnt an array, make it one.
-        if (behaviours && !behaviours.length) {
+        if (!Array.isArray(behaviours)) {
             behaviours = [behaviours];
         }
 
@@ -1990,6 +1994,7 @@
             return value;
         },
         ajax: ajax,
-        crel: crel
+        crel: crel,
+        doc: window.doc
     });
 })();
