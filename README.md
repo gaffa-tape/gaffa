@@ -1,8 +1,5 @@
 # gaffa.js
 
-# Warning! #
-## master is unstable, the last stable(ish) branch was 0.2.0 #
-
 ## Dependencies
 
 Gaffa depends on Gedi (https://github.com/gaffa-tape/gedi), which depends on Gel (https://github.com/gaffa-tape/gel).

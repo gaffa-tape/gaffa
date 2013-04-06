@@ -1,0 +1,13 @@
+[1mdiff --git a/changelog.txt b/changelog.txt[m
+[1mindex 86a9e92..0ebd82a 100644[m
+[1m--- a/changelog.txt[m
+[1m+++ b/changelog.txt[m
+[36m@@ -8,7 +8,7 @@[m
+ [m
+ - Container, Html, and List views can now have their 'tagName' set, to allow for custom element types to be created.[m
+ [m
+[31m-- Other stuff I've forgotten..[m
+[32m+[m[32m- Other stuff I've[m
+ [m
+ 0.2.0[m
+ [m
