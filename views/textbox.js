@@ -90,7 +90,7 @@
         var renderedElement = crel('input'),
             updateEventNames = (this.updateEventName || "change").split(' ');
                 
-        updateEventNames.fastEach(function (eventName) {
+        fastEach(updateEventNames, function (eventName) {
             renderedElement.addEventListener(eventName, setValue);            
         });
         

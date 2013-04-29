@@ -1,0 +1,25 @@
+{
+    "name": "gaffa",
+    "description": "The tape",
+    "author": "Kory Nunn <knunn187@gmail.com>",
+    "tags": [
+        "DOM"
+    ],
+    "version": "0.1.0",
+    "main": "gaffa.js",
+    "dependencies": {
+        "gedi":">= 0.0.0",
+        "doc-js":">= 0.0.0",
+        "crel": ">= 0.0.0",
+        "interact":">= 0.0.0"    
+    },
+    "devDependencies": {},
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/KoryNunn/gaffa-js.git"
+    },
+    "bugs": {
+        "url": "http://github.com/KoryNunn/gaffa-js/issues"
+    },
+    "contributors": []
+}

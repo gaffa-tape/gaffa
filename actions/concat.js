@@ -18,7 +18,7 @@
             
         if(target && target.concat){
             if(Array.isArray(target) && !(this.clone && this.clone.value === false)){
-                source.fastEach(function(item, index){
+                fastEach(source, function(item, index){
                     source[index] = gaffa.clone(item);
                 });
             }        

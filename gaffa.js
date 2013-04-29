@@ -6,20 +6,26 @@
 
 //THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-(function (undefined) {
+;(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa = factory();
+    }
+}(this, function () {
     "use strict";
 
-    // doc
-    (function(){function e(a){return"string"===typeof a?d.find(a)[0]:a}var d=window.doc={},g=window.document;d.find=function(a,b){null==b&&(b=a,a=g);return e(a).querySelectorAll(b)};d.closest=function(a,b){for(a=e(a);a&&a.parentNode&&0>Array.prototype.slice.apply("string"===typeof b?d.find(a.parentNode,b):b.parentNode.childNodes).indexOf(a);)a=a.parentNode;return a===g?null:a};d.is=function(a,b){a=e(a);return 0<=Array.prototype.slice.call(d.find(a.parentNode,b)).indexOf(a)};d.on=function(a,b,l,f){var h=[];a=a.split(" ");for(var j=0;j<a.length;j++){var c=[];f?(!0===f&&(f=g),c.target=f,c.callback=function(a){var c=d.closest(a.target,b);c&&l(a,c)}):(c.target=b,c.callback=l);c.event=a[j];var k=c;e(k.target).addEventListener(k.event,k.callback,!1);h.push(c)}return function(){for(;h.length;){var a=h.pop();e(a.target).removeEventListener(a.event,e(a.target))}}}})();
+    var Gedi = require('gedi'),
+        doc = require('doc-js'),
+        crel = require('crel'),
+        history = window.History || window.history;
 
     var gedi,
         // Create gaffa global.
-        gaffa = window.gaffa = {},
-        // Allow custom history implementations if defined.
-        history = window.History || window.history, 
-        // crel
-        crel = window.crel = function(k){function g(){var a=window.document,e=arguments,b=a.createElement(e[0]),c=e[1],d=2,h=e.length,l=g.attrMap,z;if(1===h)return b;if("object"!==typeof c||j(c))--d,c=null;if(1===h-d&&"string"===typeof e[d]&&b.textContent!==k)b.textContent=e[d];else for(;d<h;++d)z=e[d],null!=z&&(j(z)||(z=a.createTextNode(z)),b.appendChild(z));for(var f in c)l[f]?(a=g.attrMap[f],"function"===typeof a?a(b,c[f]):b.setAttribute(a,c[f])):b.setAttribute(f,c[f]);return b}var j="object"===typeof Node?function(a){return a instanceof Node}:function(a){return a&&"object"===typeof a&&"number"===typeof a.nodeType&&"string"===typeof a.nodeName};g.attrMap={};g.isNode=j;return g}();
-
+        gaffa = window.gaffa = {};
+        
     // "constants"
     gaffa.pathSeparator = "/";
     
@@ -53,7 +59,7 @@
     // Add gedi instance to gaffa.
     gaffa.gedi = gedi;
     
-    // Gel extensions
+    // Gedi.Gel extensions
     
     function getSourceKeys(array){            
         return array.__gaffaKeys__ || (function(){
@@ -63,8 +69,8 @@
         })();
     }
 
-    var originalFilter = gedi.gel.functions.filter;
-    gedi.gel.functions.filter = function(scope, args) {
+    var originalFilter = gedi.gel.scope.filter;
+    gedi.gel.scope.filter = function(scope, args) {
         if(!scope.get('__trackKeys__')){
             return originalFilter(scope, args);
         }
@@ -89,9 +95,9 @@
         
         if (Array.isArray(array)) {
             
-            array.fastEach(function(item, index){
+            fastEach(array, function(item, index){
                 if(typeof functionToCompare === "function"){
-                    if(gedi.gel.callWith(functionToCompare, scope, [item])){ 
+                    if(scope.callWith(functionToCompare, [item])){ 
                         filteredList.push(item);
                         filteredList.__gaffaKeys__.push(sourceArrayKeys[index]);
                     }
@@ -109,8 +115,8 @@
         }
     };
     
-    var originalSlice = gedi.gel.functions.slice;
-    gedi.gel.functions.slice = function(scope, args) {
+    var originalSlice = gedi.gel.scope.slice;
+    gedi.gel.scope.slice = function(scope, args) {
         if(!scope.get('__trackKeys__')){
             return originalSlice(scope, args);
         }
@@ -164,7 +170,7 @@
 
         for(var i = 0; i < source.length; i++){
             var item = source[i];
-            if(gedi.gel.callWith(sortFunction, scope, [item, pivot]) > 0){           
+            if(scope.callWith(sortFunction, [item, pivot]) > 0){           
                 right.push(item);
                 right.__gaffaKeys__.push(sourceKeys[i]);
             }else{
@@ -188,8 +194,8 @@
         return result;
     }
     
-    var originalSort = gedi.gel.functions.sort;
-    gedi.gel.functions.sort = function(scope, args) {
+    var originalSort = gedi.gel.scope.sort;
+    gedi.gel.scope.sort = function(scope, args) {
         if(!scope.get('__trackKeys__')){
             return originalSort(scope, args);
         }
@@ -274,7 +280,7 @@
     //IE Specific idiocy
 
     Array.prototype.indexOf = Array.prototype.indexOf || function(object) {
-        this.fastEach(function(value, index) {
+        fastEach(this, function(value, index) {
             if (value === object) {
                 return index;
             }
@@ -298,11 +304,11 @@
     //
     //***********************************************
 
-    Array.prototype.fastEach = function (callback) {
-        for (var i = 0; i < this.length; i++) {
-            if(callback(this[i], i, this)) break;
+    function fastEach(array, callback) {
+        for (var i = 0; i < array.length; i++) {
+            if(callback(array[i], i, array)) break;
         }
-        return this;
+        return array;
     };
     
 
@@ -374,7 +380,7 @@
 
             var queryStringData = urlParts.pop().split("&");
             
-            queryStringData.fastEach(function(keyValue){
+            fastEach(queryStringData, function(keyValue){
                 var parts = keyValue.split("="),
                     key = window.unescape(parts[0]),
                     value = window.unescape(parts[1]);
@@ -438,6 +444,10 @@
 
         request.addEventListener("progress", settings.progress, false);
         request.addEventListener("load", function(event){
+            if(event.target.status >= 400){
+                settings.error && settings.error(event);
+                return;
+            }
             var data = event.target.responseText;
             settings.success && settings.success(settings.dataType === 'json' ? JSON.parse(data) : data);
         }, false);
@@ -449,6 +459,9 @@
 
         request.setRequestHeader('Content-Type', settings.contentType || 'application/json; charset=utf-8');
         request.setRequestHeader('X-Requested-With', settings.requestedWith || 'XMLHttpRequest');
+        if(settings.auth){
+            request.setRequestHeader('Authorization', settings.auth);
+        }
 
         request.send(settings.data && settings.data);
     }
@@ -590,7 +603,7 @@
         
         if(collection && typeof collection === "object"){
             if(Array.isArray(collection)){
-                values.fastEach(function(value){
+                fastEach(values, function(value){
                     distinctValues[value] = null;
                 });
             }else{
@@ -634,9 +647,9 @@
     //
     //***********************************************
 
-    function triggerAction(action, parent, scope) {
+    function triggerAction(action, parent, scope, event) {
         action.parent = parent || action.parent;
-        action.trigger(parent, scope);
+        action.trigger(parent, scope, event);
     }
 
     //***********************************************
@@ -645,10 +658,10 @@
     //
     //***********************************************
 
-    function triggerActions(actions, parent, scope) {
+    function triggerActions(actions, parent, scope, event) {
         if(Array.isArray(actions)){
-            actions.fastEach(function(action){
-                triggerAction(action, parent, scope);
+            fastEach(actions, function(action){
+                triggerAction(action, parent, scope, event);
             });
         }
     }
@@ -728,7 +741,7 @@
                 if(typeof sourceProperty === "object" && sourceProperty != null){
                     if(sourceProperty instanceof Array){
                         targetProperty = new sourceProperty.constructor();
-                        sourceProperty.fastEach(function(value){
+                        fastEach(sourceProperty, function(value){
                             var item = new value.constructor();
                             internalExtend(item, value);
                             targetProperty.push(item);
@@ -781,10 +794,10 @@
     function notify(kind, data){
         var subKinds = kind.split(".");
             
-        subKinds.fastEach(function(subKind, index){
+        fastEach(subKinds, function(subKind, index){
             var notificationKind = subKinds.slice(0, index + 1).join(".");
             
-            internalNotifications[notificationKind] && internalNotifications[notificationKind].fastEach(function(callback){
+            internalNotifications[notificationKind] && fastEach(internalNotifications[notificationKind], function(callback){
                 callback(data);
             });
         });
@@ -873,13 +886,13 @@
             if(!(viewItem.views[key] instanceof ViewContainer)){
                 viewItem.views[key] = new ViewContainer(viewItem.views[key]);
             }
-            viewItem.views[key].fastEach(function(view, index, views){
+            fastEach(viewItem.views[key], function(view, index, views){
                 views[index] = initialiseViewItem(view, viewItem, viewItem.views[key], View);
             });
         }
         
         for(var key in viewItem.actions){
-            viewItem.actions[key].fastEach(function(action, index, actions){
+            fastEach(viewItem.actions[key], function(action, index, actions){
                 actions[index] = initialiseViewItem(action, viewItem, viewItem.actions[key], Action);
             });
         }
@@ -911,7 +924,7 @@
     function addView(viewModel, parentView, parentViewChildArray, insertIndex, addInPlace) {
         //if the viewModel is an array, recurse.
         if (viewModel instanceof Array) {
-            viewModel.fastEach(function (viewModel, insertIndex, viewModels) {
+            fastEach(viewModel, function (viewModel, insertIndex, viewModels) {
                 if(viewModels instanceof ViewContainer){
                     addView(viewModel, parentView, viewModels, insertIndex, true);
                 }else{
@@ -959,7 +972,7 @@
         }
         !Array.isArray(views) && (views = [views]);
         
-        views.fastEach(function(viewModel){
+        fastEach(views, function(viewModel){
             viewModel.remove();
         });
     }
@@ -1117,7 +1130,7 @@
     
     function ViewContainer(viewContainerDescription){
         var viewContainer = this;
-        viewContainerDescription instanceof Array && viewContainerDescription.fastEach(function(childView){
+        viewContainerDescription instanceof Array && fastEach(viewContainerDescription, function(childView){
             viewContainer.push(childView);
         });
         
@@ -1139,7 +1152,7 @@
         // If passed an array
         if(Array.isArray(viewModel)){
             var viewContainer = this;
-            viewModel.fastEach(function(viewModel){
+            fastEach(viewModel, function(viewModel){
                 viewContainer.add(viewModel);
             });
             return this;
@@ -1160,7 +1173,7 @@
         return this;
     };
     ViewContainer.prototype.remove = function(viewModel){
-        this.fastEach(function(childViewModel, index){
+        fastEach(this, function(childViewModel, index){
             if(childViewModel === viewModel){
                 this.splice(index, 1).remove();
             }
@@ -1219,7 +1232,7 @@
     ViewItem.prototype.bind = function(){
         for(var eventKey in this.actions){
             var viewModel = this;
-            this.actions[eventKey].fastEach(function(action, index, actions){
+            fastEach(this.actions[eventKey], function(action, index, actions){
                 var action = actions[index];
                 
                 action.bind();
@@ -1242,7 +1255,7 @@
         
         this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
         
-        this.eventHandlers.fastEach(function(handler){
+        fastEach(this.eventHandlers, function(handler){
             gedi.debind(handler);
         });
     };
@@ -1294,10 +1307,18 @@
     //
     //***********************************************
     
-    function View(viewDescription){}
+    function View(viewDescription){
+        var view = this;
+
+        view.behaviours = view.behaviours || [];        
+    }
     View = createSpec(View, ViewItem);
     View.prototype.bind = function(){
         var view = this;
+
+        fastEach(view.behaviours, function(behaviour){
+            behaviour.bind();
+        });
 
         ViewItem.prototype.bind.apply(this, arguments);
         this.forEachChild(function(child){
@@ -1307,9 +1328,16 @@
             var actions = this.actions[key];
             
             gaffa.doc.on(key, this.renderedElement, function (event) {
-                triggerActions(actions, view);
+                triggerActions(actions, view, event);
             });
         }
+    };
+    View.prototype.remove = function(){
+        fastEach(this.behaviours, function(behaviour){
+            behaviour.remove();
+        });
+
+        ViewItem.prototype.remove.call(this);
     };
     View.prototype.render = function(){
         this.renderedElement.viewModel = this;
@@ -1318,6 +1346,7 @@
         });
     };    
     View.prototype.insert = function(viewContainer, insertIndex){
+        var view = this;
         // Insert children first, for speed.
         this.forEachChild(function(child, viewContainer){
             child.insert(viewContainer);
@@ -1325,7 +1354,13 @@
 
         var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
         this.insertFunction(this.insertSelector || renderTarget, this.renderedElement, insertIndex);
-        typeof this.afterInsert === 'function' && this.afterInsert();
+
+        // Lazy. Call after current callstack. 
+        if(view.afterInsert){
+            setTimeout(function () {
+                view.afterInsert();
+            },50);
+        }
     };    
     View.prototype.classes = new Property(function(viewModel, value){
         if(!('internalClassNames' in viewModel.classes)){
@@ -1340,7 +1375,7 @@
     View.prototype.forEachChild = function(callback){
         for(var key in this.views){
             var parentView = this;
-            this.views[key].fastEach(function(view){
+            fastEach(this.views[key], function(view){
                 callback(view, parentView.views[key]);
             });
         }
@@ -1383,13 +1418,14 @@
     }
     Action = createSpec(Action, ViewItem);
     Action.prototype.bind = function(){};
-    Action.prototype.trigger = function(parent, scope){
+    Action.prototype.trigger = function(parent, scope, event){
         this.parent = parent;
 
         for(var propertyKey in this){
             var property = this[propertyKey];
 
             if(property instanceof Property && property.binding){
+                property.parent = this;
                 property.value = gaffa.model.get(property.binding, this, scope);
             }
         }        
@@ -1410,7 +1446,7 @@
     };
     Behaviour.prototype.remove = function(){
         var thisBehaviour = this;
-        internalBehaviours.fastEach(function(behaviour, index){
+        fastEach(internalBehaviours, function(behaviour, index){
             if(behaviour === thisBehaviour){
                 internalBehaviours.splice(index, 1);
             }
@@ -1457,8 +1493,8 @@
                 triggerActions(behaviour.actions.change, behaviour);
             }
         }
-        
-        gaffa.model.bind(behaviour.watch || '[]', function (modelChangeEvent){
+
+        behaviour.__callback__ = function (modelChangeEvent){
             var value = modelChangeEvent.getValue();
 
             if(!value){
@@ -1483,7 +1519,14 @@
             }else{
                 executeBehaviour(behaviour, value);
             }
-        }, this);
+        };
+        
+        gaffa.model.bind(behaviour.watch || '[]',behaviour.__callback__ , this);
+    };
+    ModelChangeBehaviour.prototype.remove = function () {
+        gaffa.gedi.debind(this.__callback__);
+
+        this.__super__.remove.apply(this);
     };
     
     
@@ -1537,7 +1580,7 @@
             behaviours = [behaviours];
         }
 
-        behaviours.fastEach(function (behaviour, index, behaviours) {
+        fastEach(behaviours, function (behaviour, index, behaviours) {
             behaviour = initialiseViewItem(behaviour, null, null, Behaviour);  
             
             behaviour.bind();
@@ -1604,6 +1647,11 @@
             },
             set:function(path, value, parent, dirty) {
                 var parentPath;
+
+                if(path == null){
+                    return;
+                }
+
                 if(parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
@@ -1612,6 +1660,11 @@
             },
             remove: function(path, parent) {
                 var parentPath;
+
+                if(path == null){
+                    return;
+                }
+                
                 if(parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
@@ -1876,7 +1929,7 @@
                                 return;
                             }
                             var same = true;
-                            previousGroups.fastEach(function(group, index){
+                            fastEach(previousGroups, function(group, index){
                                 if(group !== viewModel.distinctGroups[group]){
                                     same = false;
                                 }
@@ -1898,9 +1951,9 @@
                             }
                         }
                         
-                        viewModel.distinctGroups.fastEach(function(group){
+                        fastEach(viewModel.distinctGroups, function(group){
                             var exists = false;
-                            childViews.fastEach(function(child){
+                            fastEach(childViews, function(child){
                                 if(child.group === group){
                                     exists = true;
                                 }
@@ -1916,7 +1969,7 @@
                                                     
                         empty(viewModel, isEmpty);
                     }else{
-                        childViews.fastEach(function(childView, index){
+                        fastEach(childViews, function(childView, index){
                             childViews.splice(index, 1);
                             remove(viewModel, property.value, childView);
                         });
@@ -1995,6 +2048,9 @@
         },
         ajax: ajax,
         crel: crel,
-        doc: window.doc
+        doc: doc,
+        fastEach: fastEach
     });
+
+    return gaffa;
 })();

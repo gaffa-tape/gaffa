@@ -7,20 +7,36 @@
     Store = gaffa.createSpec(Store, gaffa.Action);
     Store.prototype.type = actionType;
     Store.prototype.location = 'server';
+    Store.prototype.dataType = 'json';
     Store.prototype.trigger = function(){
         this.__super__.trigger.apply(this, arguments);
 
         var action = this,
-            data = JSON.stringify(action.source.value),
+            data = action.source.value,
             errorHandler = function (error) {
                 gaffa.actions.trigger(action.actions.error, action.binding);
                 gaffa.notifications.notify("store.error." + action.kind, error);
             };
 
         if (action.location === "local") {
-            localStorage.setItem(action.target.value, data);
+            localStorage.setItem(action.target.value, JSON.stringify(data));
         } else if (action.location === "server") {
             gaffa.notifications.notify("store.begin." + action.kind);
+
+            switch(action.dataType){
+                case "formData":
+                    var formData = new FormData();
+                    for(var key in data){
+                        if(data.hasOwnProperty(key)){
+                            data[key] != null && formData.append(key, data[key]);
+                        }
+                    }
+                    data = formData;
+                break;
+                case "json":
+                    data = JSON.stringify(data);
+                break;
+            }
             
             var ajaxSettings = {
                 cache: false,
@@ -28,6 +44,7 @@
                 url: action.target.value || window.location.pathname,
                 data: data,
                 dataType: 'json',
+                auth: action.auth,
                 contentType: action.contentType,
                 success:function(data){
                     if(gaffa.responseIsError && gaffa.responseIsError(data)){
