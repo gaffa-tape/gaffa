@@ -1,4 +1,12 @@
-(function (undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-push = factory();
+    }
+}(this, function(){
     var gaffa = window.gaffa,
         actionType = "push";
     
@@ -26,4 +34,7 @@
     Push.prototype.source = new gaffa.Property();
     
     window.gaffa.actions[actionType] = Push;
-})();
+
+    return Push;
+
+}));

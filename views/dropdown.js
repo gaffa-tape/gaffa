@@ -1,4 +1,12 @@
-(function(undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-dropdown = factory();
+    }
+}(this, function(){
     var viewType = "dropdown",
 		showEvents = {};
 	
@@ -72,4 +80,6 @@
     };
     
     gaffa.views[viewType] = Dropdown;
-})();
+
+    return Dropdown;
+}));

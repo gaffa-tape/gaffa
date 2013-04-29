@@ -54,7 +54,7 @@
         
         
     // Gedi initialisation
-    gedi = new window.Gedi(internalModel);
+    gedi = new Gedi(internalModel);
 
     // Add gedi instance to gaffa.
     gaffa.gedi = gedi;
@@ -2053,4 +2053,4 @@
     });
 
     return gaffa;
-})();
+}));

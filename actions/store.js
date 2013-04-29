@@ -1,4 +1,12 @@
-(function (undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-store = factory();
+    }
+}(this, function(){
     var gaffa = window.gaffa,
         actionType = "store";
     
@@ -105,4 +113,7 @@
     Store.prototype.dirty = new gaffa.Property();
     
     gaffa.actions[actionType] = Store;
-})();
+
+    return Store;
+
+}));

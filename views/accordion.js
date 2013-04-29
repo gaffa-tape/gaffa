@@ -1,5 +1,13 @@
 /******************************************accordion******************************************/
-(function(undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-accordion = factory();
+    }
+}(this, function(){
     var viewType = "accordion",
 		cachedElement;
         
@@ -63,11 +71,21 @@
     ));
     
     gaffa.views[viewType] = Accordion;
+
+    return Accordion;
     
-})();
+}));
     
 /******************************************accordionNode******************************************/
-(function(undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-accordionNode = factory();
+    }
+}(this, function(){
     var viewType = "accordionNode",
 		cachedElement;
     
@@ -128,5 +146,7 @@
     });
     
     gaffa.views[viewType] = AccordionNode;
+
+    return AccordionNode
     
-})();
+}));

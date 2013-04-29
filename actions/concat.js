@@ -1,4 +1,12 @@
-(function (undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-concat = factory();
+    }
+}(this, function(){
     var gaffa = window.gaffa,
         actionType = "concat";
     
@@ -30,4 +38,7 @@
     Concat.prototype.clone = new gaffa.Property();
     
     window.gaffa.actions[actionType] = Concat;
-})();
+
+    return Concat;
+
+}));

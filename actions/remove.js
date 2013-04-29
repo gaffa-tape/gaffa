@@ -1,4 +1,12 @@
-(function (undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-remove = factory();
+    }
+}(this, function(){
     var gaffa = window.gaffa,
         actionType = "remove";
     
@@ -13,4 +21,7 @@
     Remove.prototype.target = new gaffa.Property();
     
     window.gaffa.actions[actionType] = Remove;
-})();
+
+    return Remove;
+
+}));

@@ -1,5 +1,12 @@
-(function (undefined) {
-
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-imageinput = factory();
+    }
+}(this, function(){
     var gaffa = window.gaffa,
         viewType = "imageInput",
         cachedElement;
@@ -129,5 +136,7 @@
     }));
     
     gaffa.views[viewType] = ImageInput;
+
+    return ImageInput;
 	
-})();
+}));

@@ -1,4 +1,12 @@
-(function(undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-select = factory();
+    }
+}(this, function(){
     var viewType = "select",
 		cachedElement;
     
@@ -98,5 +106,7 @@
     Select.prototype.defaultIndex = new gaffa.Property();
     
     gaffa.views[viewType] = Select;
+
+    return Select;
     
-})();
+}));

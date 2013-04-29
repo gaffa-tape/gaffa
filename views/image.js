@@ -1,4 +1,12 @@
-(function(undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-image = factory();
+    }
+}(this, function(){
     var viewType = "image",
 		cachedElement;
         
@@ -40,5 +48,7 @@
     }));
     
     gaffa.views[viewType] = Image;
+
+    return Image;
     
-})();
+}));

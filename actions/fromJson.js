@@ -1,4 +1,12 @@
-(function (undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-fromJson = factory();
+    }
+}(this, function(){
     var gaffa = window.gaffa,
         actionType = "fromJson";
     
@@ -14,4 +22,7 @@
     FromJson.prototype.source = new gaffa.Property();
     
     window.gaffa.actions[actionType] = FromJson;
-})();
+
+    return FromJson;
+
+}));

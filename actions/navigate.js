@@ -1,4 +1,12 @@
-(function (undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-navigate = factory();
+    }
+}(this, function(){
     var actionType = "navigate";
     
     function Navigate(){}
@@ -20,4 +28,7 @@
         }
         gaffa.navigate(this.url.value, this.model.value, this.post.value);
     }
-})();
+
+    return Navigate;
+
+}));

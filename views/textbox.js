@@ -1,4 +1,12 @@
-(function(undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-textbox = factory();
+    }
+}(this, function(){
     var viewType = "textbox",
 		cachedElement;
     
@@ -108,5 +116,7 @@
     Textbox.prototype.disabled = new gaffa.Property(updateDisabled);
     
     gaffa.views[viewType] = Textbox;
+
+    return Textbox;
     
-})();
+}));

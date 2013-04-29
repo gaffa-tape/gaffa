@@ -1,4 +1,12 @@
-(function(undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-text = factory();
+    }
+}(this, function(){
     var viewType = "text",
         shit,
         findShitBrowsersRegex = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
@@ -58,5 +66,7 @@
     });
     
     gaffa.views[viewType] = Text;
+
+    return Text;
     
-})();
+}));

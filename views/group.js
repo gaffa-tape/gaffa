@@ -1,4 +1,12 @@
-(function(undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-group = factory();
+    }
+}(this, function(){
     var gaffa = window.gaffa,
         viewType = "group";
     
@@ -92,5 +100,7 @@
     ));
                 
     gaffa.views[viewType] = Group;
+
+    return Group;
     
-})();
+}));

@@ -1,4 +1,12 @@
-;(function (undefined) {
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        root.gaffa-toggle = factory();
+    }
+}(this, function(){
     var gaffa = window.gaffa,
         actionType = "toggle";
     
@@ -13,4 +21,7 @@
     Toggle.prototype.target = new gaffa.Property();
     
     window.gaffa.actions[actionType] = Toggle;
-})();
+
+    return Toggle;
+
+}));
