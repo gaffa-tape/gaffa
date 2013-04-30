@@ -4,23 +4,23 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-remove = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var gaffa = window.gaffa,
+    var Gaffa = require('gaffa'),
         actionType = "remove";
     
     function Remove(){}
-    Remove = gaffa.createSpec(Remove, gaffa.Action);
+    Remove = Gaffa.createSpec(Remove, Gaffa.Action);
     Remove.prototype.type = actionType;
     Remove.prototype.trigger = function(){
         this.__super__.trigger.apply(this, arguments);
         
-        gaffa.model.remove(this.target.binding, this);
+        this.gaffa.model.remove(this.target.binding, this);
     };
-    Remove.prototype.target = new gaffa.Property();
+    Remove.prototype.target = new Gaffa.Property();
     
-    window.gaffa.actions[actionType] = Remove;
+    
 
     return Remove;
 

@@ -4,17 +4,19 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-list = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var viewType = "list",
+    var Gaffa = require('gaffa'),
+        crel = require('crel'),
+        viewType = "list",
 		cachedElement;
         
     function List(){
-        this.views.list = new gaffa.ViewContainer(this.views.list);
-        this.views.empty = new gaffa.ViewContainer(this.views.empty);
+        this.views.list = new Gaffa.ViewContainer(this.views.list);
+        this.views.empty = new Gaffa.ViewContainer(this.views.empty);
     }
-    List = gaffa.createSpec(List, gaffa.ContainerView);
+    List = Gaffa.createSpec(List, Gaffa.ContainerView);
     List.prototype.type = viewType;
     
     List.prototype.render = function(){
@@ -41,8 +43,8 @@
         );
     }
     
-    List.prototype.list = new gaffa.Property({
-        update: window.gaffa.propertyUpdaters.collection(
+    List.prototype.list = new Gaffa.Property({
+        update: Gaffa.propertyUpdaters.collection(
             "list",                     
             //increment
             function(viewModel, list, addedItem, insertIndex){
@@ -82,8 +84,6 @@
         ),
         trackKeys: true
     });
-    
-    gaffa.views[viewType] = List;
 
     return List;
     

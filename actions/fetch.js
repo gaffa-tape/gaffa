@@ -4,35 +4,35 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-fetch = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var gaffa = window.gaffa,
+    var Gaffa = require('gaffa'),
         actionType = "fetch";
     
     
     function Fetch(){}
-    Fetch = gaffa.createSpec(Fetch, gaffa.Action);
+    Fetch = Gaffa.createSpec(Fetch, Gaffa.Action);
         
-    Fetch.prototype.target = new gaffa.Property();
-    Fetch.prototype.source = new gaffa.Property();
-    Fetch.prototype.data = new gaffa.Property();
-    Fetch.prototype.dirty = new gaffa.Property();
+    Fetch.prototype.target = new Gaffa.Property();
+    Fetch.prototype.source = new Gaffa.Property();
+    Fetch.prototype.data = new Gaffa.Property();
+    Fetch.prototype.dirty = new Gaffa.Property();
     Fetch.prototype.location = 'server';
-    
-    gaffa.actions[actionType] = Fetch;
 
     Fetch.prototype.trigger = function(){
         this.__super__.trigger.apply(this, arguments);
 
-        var action = this;
+        var action = this,
+            gaffa = action.gaffa;
 
         var errorHandler = function (error) {
-            gaffa.actions.trigger(action.actions.error, action.binding);
-            gaffa.notifications.notify("fetch.error." + action.kind, error);
+            action.gaffa.actions.trigger(action.actions.error, action.binding);
+            action.gaffa.notifications.notify("fetch.error." + action.kind, error);
         };
     
         function handleData(action, data){
+
             if(gaffa.responseIsError && gaffa.responseIsError(data)){
                 errorHandler(data);
                 return;
@@ -49,15 +49,14 @@
                     if(action.merge){
                         var value = $.extend(true, gaffa.model.get(action.target.binding), value);
                     }
-                    gaffa.model.set(
-                        action.target.binding,
+                    this.target.set(
                         value,
                         action,
                         !!action.dirty.value
                     );
                 }
                 if (action.isModelRefresh && data.model) {
-                    gaffa.model.set(data.model, false, false, false);
+                    this.gaffa.model.set(data.model, false, false, false);
                 }
             }
             

@@ -4,17 +4,17 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-button = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
     "use strict";
     
-    var gaffa = window.gaffa,
-        crel = gaffa.crel,
+    var Gaffa = require('gaffa'),
+        crel = require('crel'),
         viewType = "button";
         
     function Button(){}
-    Button = gaffa.createSpec(Button, gaffa.ContainerView);
+    Button = Gaffa.createSpec(Button, Gaffa.ContainerView);
     Button.prototype.type = viewType;
     
     Button.prototype.render = function(){        
@@ -27,7 +27,7 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Button.prototype.text = new gaffa.Property(function(viewModel, value){
+    Button.prototype.text = new Gaffa.Property(function(viewModel, value){
         if(value !== null && value !== undefined){
             viewModel.renderedElement.innerHTML = value;
         }else{
@@ -35,19 +35,17 @@
         }
     });
     
-    Button.prototype.subType = new gaffa.Property(function(viewModel, value){
+    Button.prototype.subType = new Gaffa.Property(function(viewModel, value){
         viewModel.renderedElement.setAttribute("type", value || 'button');
     });
     
-    Button.prototype.disabled = new gaffa.Property(function(viewModel, value){
+    Button.prototype.disabled = new Gaffa.Property(function(viewModel, value){
         if(value){
             viewModel.renderedElement.setAttribute("disabled", "disabled");
         }else{
             viewModel.renderedElement.removeAttribute("disabled");					
         }
     });
-    
-    gaffa.views[viewType] = Button;
 
     return Button;
     

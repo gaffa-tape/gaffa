@@ -4,10 +4,12 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-select = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var viewType = "select",
+    var Gaffa = require('gaffa'),
+        crel = require('crel'),
+        viewType = "select",
 		cachedElement;
     
     function addCurrentValue(renderedElement, value) {
@@ -26,7 +28,7 @@
     function Select(){
         this.views.list = new gaffa.ViewContainer(this.views.list);
     }
-    Select = gaffa.createSpec(Select, gaffa.ContainerView);
+    Select = Gaffa.createSpec(Select, Gaffa.ContainerView);
     Select.prototype.type = viewType;
     
     Select.prototype.render = function(){
@@ -55,7 +57,7 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Select.prototype.options = new gaffa.Property(function(viewModel, value) {
+    Select.prototype.options = new Gaffa.Property(function(viewModel, value) {
         var property = this,
             value = property.value,
             element = $(viewModel.renderedElement);
@@ -96,16 +98,14 @@
         }
     });
     
-    Select.prototype.value = new gaffa.Property(function(viewModel, value) {
+    Select.prototype.value = new Gaffa.Property(function(viewModel, value) {
         viewModel.renderedElement.value = value;
     });
     
-    Select.prototype.optionText = new gaffa.Property();
-    Select.prototype.optionValue = new gaffa.Property();
-    Select.prototype.showBlank = new gaffa.Property();
-    Select.prototype.defaultIndex = new gaffa.Property();
-    
-    gaffa.views[viewType] = Select;
+    Select.prototype.optionText = new Gaffa.Property();
+    Select.prototype.optionValue = new Gaffa.Property();
+    Select.prototype.showBlank = new Gaffa.Property();
+    Select.prototype.defaultIndex = new Gaffa.Property();
 
     return Select;
     

@@ -4,41 +4,30 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-text = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var viewType = "text",
-        shit,
+    var Gaffa = require('gaffa'),
+        crel = require('crel'),
+        viewType = "text",
         findShitBrowsersRegex = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
-    
-    if (navigator.appName == 'Microsoft Internet Explorer'&&
-        parseFloat(findShitBrowsersRegex.exec(navigator.userAgent)[1])<9
-    ){
-        shit = true;
-    }
         
     function Text(){}
-    Text = gaffa.createSpec(Text, gaffa.View);
+    Text = Gaffa.createSpec(Text, Gaffa.View);
     Text.prototype.type = viewType;
     
     Text.prototype.render = function(){
         var classes = viewType,
             renderedElement;
         
-        //Internet expoder, as usual, is FUCKING SHIT.
-        //and won't let you add values to textNode elements.
-        if(!shit){
-            renderedElement = document.createTextNode('');
-        }else{
-            renderedElement = document.createElement('span');
-        }
+        renderedElement = document.createElement('span');
         
         this.renderedElement = renderedElement;
         
         this.__super__.render.apply(this, arguments);
     };
     
-    Text.prototype.text = new gaffa.Property(function(viewModel, value){
+    Text.prototype.text = new Gaffa.Property(function(viewModel, value){
         if(!shit){
             viewModel.renderedElement.data = value;
             if(value !== null && value !== undefined){
@@ -55,7 +44,7 @@
         }
     });
     
-    Text.prototype.visible = new gaffa.Property(function(viewModel, value){
+    Text.prototype.visible = new Gaffa.Property(function(viewModel, value){
         var element = viewModel.renderedElement;
 
         if(!shit){
@@ -64,8 +53,6 @@
             viewModel.renderedElement.style.display = value === false ? 'none' : null;            
         }
     });
-    
-    gaffa.views[viewType] = Text;
 
     return Text;
     

@@ -4,14 +4,16 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-form = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var viewType = "form",
+    var Gaffa = require('gaffa'),
+        viewType = "form",
+        crel = require('crel'),
 		cachedElement;
     
     function Form(){}
-    Form = gaffa.createSpec(Form, gaffa.ContainerView);
+    Form = Gaffa.createSpec(Form, Gaffa.ContainerView);
     Form.prototype.type = viewType;
     
     Form.prototype.render = function(){        
@@ -41,8 +43,6 @@
         
         this.__super__.render.apply(this, arguments);
     };
-    
-    gaffa.views[viewType] = Form;
 
     return Form;
     

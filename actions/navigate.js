@@ -4,21 +4,19 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-navigate = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var actionType = "navigate";
+    var Gaffa = require('gaffa'),
+        actionType = "navigate";
     
     function Navigate(){}
-    Navigate = gaffa.createSpec(Navigate, gaffa.Action);
+    Navigate = Gaffa.createSpec(Navigate, Gaffa.Action);
     Navigate.prototype.type = actionType;
-    Navigate.prototype.url = new gaffa.Property();
-    Navigate.prototype.model = new gaffa.Property();
-    Navigate.prototype.post = new gaffa.Property();
-    Navigate.prototype.external = new gaffa.Property();
-    
-    window.gaffa.actions[actionType] = Navigate;
-    
+    Navigate.prototype.url = new Gaffa.Property();
+    Navigate.prototype.model = new Gaffa.Property();
+    Navigate.prototype.post = new Gaffa.Property();
+    Navigate.prototype.external = new Gaffa.Property();    
     Navigate.prototype.trigger = function() {
         this.__super__.trigger.apply(this, arguments);
 
@@ -26,7 +24,7 @@
             window.location = this.url.value;
             return;
         }
-        gaffa.navigate(this.url.value, this.model.value, this.post.value);
+        Gaffa.navigate(this.url.value, this.model.value, this.post.value);
     }
 
     return Navigate;

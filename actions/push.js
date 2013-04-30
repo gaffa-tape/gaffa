@@ -4,14 +4,14 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-push = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var gaffa = window.gaffa,
+    var Gaffa = require('gaffa'),
         actionType = "push";
     
     function Push(){}
-    Push = gaffa.createSpec(Push, gaffa.Action);
+    Push = Gaffa.createSpec(Push, Gaffa.Action);
     Push.prototype.type = actionType;
     Push.prototype.trigger = function(){
         this.__super__.trigger.apply(this, arguments);
@@ -27,13 +27,13 @@
                 fromObj = gaffa.clone(fromObj);
             }
             var pushToBinding = new gaffa.Path(this.target.binding).append(toObject.length.toString());
-            gaffa.model.set(pushToBinding, fromObj, this);            
+            this.gaffa.model.set(pushToBinding, fromObj, this);            
         } 
     };
-    Push.prototype.target = new gaffa.Property();
-    Push.prototype.source = new gaffa.Property();
+    Push.prototype.target = new Gaffa.Property();
+    Push.prototype.source = new Gaffa.Property();
     
-    window.gaffa.actions[actionType] = Push;
+    
 
     return Push;
 

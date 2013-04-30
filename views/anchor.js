@@ -4,19 +4,19 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-anchor = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
     "use strict";
 
-    var gaffa = window.gaffa,
-        crel = gaffa.crel,
+    var Gaffa = require('gaffa'),
+        crel = require('crel'),
         viewType = "anchor",
 		cachedElement;
     
     function Anchor(){
     }
-    Anchor = gaffa.createSpec(Anchor, gaffa.ContainerView);
+    Anchor = Gaffa.createSpec(Anchor, Gaffa.ContainerView);
     Anchor.prototype.type = viewType;
     
     Anchor.prototype.render = function(){
@@ -29,20 +29,18 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Anchor.prototype.text = new gaffa.Property(function(viewModel, value){
+    Anchor.prototype.text = new Gaffa.Property(function(viewModel, value){
         viewModel.renderedElement.textContent = (value && typeof value === 'string') ? value : null;
     });
 
-    Anchor.prototype.href = new gaffa.Property(function(viewModel, value){
+    Anchor.prototype.href = new Gaffa.Property(function(viewModel, value){
         if(value !== null && value !== undefined){
             viewModel.renderedElement.setAttribute("href",value);
         }else{
             viewModel.renderedElement.removeAttribute("href");
         }
     });
-    
-    gaffa.views[viewType] = Anchor;
 
-    return Anchor
+    return Anchor;
     
 }));

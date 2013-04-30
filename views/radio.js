@@ -4,14 +4,15 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-radio = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var gaffa = window.gaffa,
+    var Gaffa = require('gaffa'),
+        crel = require('crel'),
         viewType = "radio";
 
     function Radio(){}
-    Radio = gaffa.createSpec(Radio, gaffa.View);
+    Radio = Gaffa.createSpec(Radio, Gaffa.View);
     Radio.prototype.type = viewType;
     Radio.prototype.render = function() {
         var classes = viewType,
@@ -21,7 +22,7 @@
         renderedElement.className = classes;
         
         $(renderedElement).bind(this.updateEventName || "change", function () {
-            window.gaffa.model.set(viewModel.value.binding, $(this).find(':checked').val(), viewModel);
+            viewModel.value.set(viewModel.value.binding, $(this).find(':checked').val(), viewModel);
         });
 
         this.renderedElement = renderedElement;
@@ -62,11 +63,11 @@
         }
     }
 
-    Radio.prototype.groupName = new gaffa.Property(updateOptions);
+    Radio.prototype.groupName = new Gaffa.Property(updateOptions);
     
-    Radio.prototype.options = new gaffa.Property(updateOptions);
+    Radio.prototype.options = new Gaffa.Property(updateOptions);
     
-    Radio.prototype.value = new gaffa.Property(function (viewModel, value) {
+    Radio.prototype.value = new Gaffa.Property(function (viewModel, value) {
         var options = $(this.renderedElement).find('input');
             
         options.each(function(){
@@ -76,8 +77,6 @@
             }
         });
     });
-            
-    gaffa.views[viewType] = Radio;
 
     return Radio;
 

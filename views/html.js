@@ -4,17 +4,17 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-html = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
     "use strict";
     
-    var gaffa = window.gaffa,
-        crel = gaffa.crel,
+    var Gaffa = require('gaffa'),
+        crel = require('crel'),
         viewType = "html";
         
     function Html(){}
-    Html = gaffa.createSpec(Html, gaffa.View);
+    Html = Gaffa.createSpec(Html, Gaffa.View);
     Html.prototype.type = viewType;
     
     Html.prototype.render = function(){
@@ -27,11 +27,9 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Html.prototype.html = new gaffa.Property(function(viewModel, value){
+    Html.prototype.html = new Gaffa.Property(function(viewModel, value){
         viewModel.renderedElement.innerHTML = (value && typeof value === 'string') ? value : null;
     });
-    
-    gaffa.views[viewType] = Html;
 
     return Html;
     

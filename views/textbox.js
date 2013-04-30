@@ -4,10 +4,12 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-textbox = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var viewType = "textbox",
+    var Gaffa = require('gaffa'),
+        crel = require('crel'),
+        viewType = "textbox",
 		cachedElement;
     
     function matchFail(element, failed){
@@ -33,7 +35,7 @@
         } 
     }  
     
-    var updateValue = window.gaffa.propertyUpdaters.string(function(viewModel, value){
+    var updateValue = Gaffa.propertyUpdaters.string(function(viewModel, value){
                 
         var element = viewModel.renderedElement,
             caretPosition = 0,
@@ -74,15 +76,15 @@
         
     });
     
-    var updateSubType = window.gaffa.propertyUpdaters.string(function(viewModel, value){
+    var updateSubType = Gaffa.propertyUpdaters.string(function(viewModel, value){
         viewModel.renderedElement.setAttribute('type', value);
     });
     
-    var updatePlaceholder = window.gaffa.propertyUpdaters.string(function(viewModel, value){
+    var updatePlaceholder = Gaffa.propertyUpdaters.string(function(viewModel, value){
         viewModel.renderedElement.setAttribute('placeholder', value);
     });
     
-    var updateDisabled = window.gaffa.propertyUpdaters.bool(function(viewModel, value){
+    var updateDisabled = Gaffa.propertyUpdaters.bool(function(viewModel, value){
         if (value){
             viewModel.renderedElement.setAttribute('disabled', 'disabled');
         }else{
@@ -91,7 +93,7 @@
     });
     
     function Textbox(){}
-    Textbox = gaffa.createSpec(Textbox, gaffa.View);
+    Textbox = Gaffa.createSpec(Textbox, Gaffa.View);
     Textbox.prototype.type = viewType;
     
     Textbox.prototype.render = function(){
@@ -107,15 +109,13 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Textbox.prototype.value = new gaffa.Property(updateValue);
+    Textbox.prototype.value = new Gaffa.Property(updateValue);
     
-    Textbox.prototype.subType = new gaffa.Property(updateSubType);
+    Textbox.prototype.subType = new Gaffa.Property(updateSubType);
     
-    Textbox.prototype.placeholder = new gaffa.Property(updatePlaceholder);
+    Textbox.prototype.placeholder = new Gaffa.Property(updatePlaceholder);
     
-    Textbox.prototype.disabled = new gaffa.Property(updateDisabled);
-    
-    gaffa.views[viewType] = Textbox;
+    Textbox.prototype.disabled = new Gaffa.Property(updateDisabled);
 
     return Textbox;
     

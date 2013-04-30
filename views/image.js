@@ -4,10 +4,12 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-image = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var viewType = "image",
+    var Gaffa = require('gaffa'),
+        viewType = "image",
+        crel = require('crel'),
 		cachedElement;
         
     function imageToURI(image, callback) {
@@ -19,7 +21,7 @@
 	}
     
     function Image(){}
-    Image = gaffa.createSpec(Image, gaffa.View);
+    Image = Gaffa.createSpec(Image, Gaffa.View);
     Image.prototype.type = viewType;
     
     Image.prototype.render = function(){
@@ -30,11 +32,11 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Image.prototype.source = new gaffa.Property(window.gaffa.propertyUpdaters.string(function (viewModel, value) {
+    Image.prototype.source = new Gaffa.Property(Gaffa.propertyUpdaters.string(function (viewModel, value) {
         viewModel.renderedElement.setAttribute("src", value);
     }));
     
-    Image.prototype.image = new gaffa.Property(window.gaffa.propertyUpdaters.object(function (viewModel, value) {
+    Image.prototype.image = new Gaffa.Property(Gaffa.propertyUpdaters.object(function (viewModel, value) {
         if(!value){
             return;
         }
@@ -46,8 +48,6 @@
             });
         }
     }));
-    
-    gaffa.views[viewType] = Image;
 
     return Image;
     

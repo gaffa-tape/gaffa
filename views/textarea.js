@@ -4,10 +4,12 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-textarea = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var viewType = "textarea",
+    var Gaffa = require('gaffa'),
+        crel = require('crel'),
+        viewType = "textarea",
 		cachedElement;
         
     function setValue(event){
@@ -17,11 +19,11 @@
             $(textArea).addClass('error');
         }
         
-        window.gaffa.propertyUpdaters.string(textArea.viewModel, textArea.viewModel.value, $(textArea).val(), matchFail); 
+        Gaffa.propertyUpdaters.string(textArea.viewModel, textArea.viewModel.value, $(textArea).val(), matchFail); 
     }
         
     function Textarea(){}
-    Textarea = gaffa.createSpec(Textarea, gaffa.View);
+    Textarea = Gaffa.createSpec(Textarea, Gaffa.View);
     Textarea.prototype.type = viewType;
     
     Textarea.prototype.render = function(){
@@ -37,23 +39,21 @@
         this.__super__.render.apply(this, arguments);
     };
     
-    Textarea.prototype.value = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
+    Textarea.prototype.value = new Gaffa.Property(Gaffa.propertyUpdaters.string(function(viewModel, value){
         $(viewModel.renderedElement).val(value);
     }));
     
-    Textarea.prototype.placeholder = new gaffa.Property(window.gaffa.propertyUpdaters.string(function(viewModel, value){
+    Textarea.prototype.placeholder = new Gaffa.Property(Gaffa.propertyUpdaters.string(function(viewModel, value){
         $(viewModel.renderedElement).attr('placeholder', value);
     }));
     
-    Textarea.prototype.disabled = new gaffa.Property(window.gaffa.propertyUpdaters.bool(function(viewModel, value){
+    Textarea.prototype.disabled = new Gaffa.Property(Gaffa.propertyUpdaters.bool(function(viewModel, value){
         if (value){
             viewModel.renderedElement.setAttribute('disabled', 'disabled');
         }else{
             viewModel.renderedElement.removeAttribute('disabled');
         }
     }));
-    
-    gaffa.views[viewType] = Textarea;
 
     return Textarea;
     

@@ -4,18 +4,20 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-dropdown = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var viewType = "dropdown",
+    var Gaffa = require('gaffa'),
+        viewType = "dropdown",
+        crel = require('crel'),
 		showEvents = {};
 	
-	gaffa.addDefaultStyle(".dropdown .content.hidden{display:none;}");
+	Gaffa.addDefaultStyle(".dropdown .content.hidden{display:none;}");
 
     function Dropdown(){
         this.views.activator = new gaffa.ViewContainer(this.views.activator);
     }
-    Dropdown = gaffa.createSpec(Dropdown, gaffa.ContainerView);
+    Dropdown = Gaffa.createSpec(Dropdown, Gaffa.ContainerView);
     Dropdown.prototype.type = viewType;
     
     Dropdown.prototype.render = function(){
@@ -78,8 +80,6 @@
         
         this.__super__.render.apply(this, arguments);
     };
-    
-    gaffa.views[viewType] = Dropdown;
 
     return Dropdown;
 }));

@@ -4,14 +4,14 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-set = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var gaffa = window.gaffa,
+    var Gaffa = require('gaffa'),
         actionType = "set";
     
     function Set(){}
-    Set = gaffa.createSpec(Set, gaffa.Action);
+    Set = Gaffa.createSpec(Set, Gaffa.Action);
     Set.prototype.type = actionType;
     Set.prototype.trigger = function(){
         this.__super__.trigger.apply(this, arguments);
@@ -20,13 +20,11 @@
         if(!(this.clone && this.clone.value === false)){
             fromObj = gaffa.clone(fromObj);
         }
-        window.gaffa.model.set(this.target.binding, fromObj, this); 
+        this.target.set(fromObj, this); 
     };
-    Set.prototype.target = new gaffa.Property();
-    Set.prototype.source = new gaffa.Property();
-    Set.prototype.clone = new gaffa.Property();
-    
-    window.gaffa.actions[actionType] = Set;
+    Set.prototype.target = new Gaffa.Property();
+    Set.prototype.source = new Gaffa.Property();
+    Set.prototype.clone = new Gaffa.Property();
 
     return Set;
 

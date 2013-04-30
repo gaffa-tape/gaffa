@@ -4,23 +4,21 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-toggle = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var gaffa = window.gaffa,
+    var Gaffa = require('gaffa'),
         actionType = "toggle";
     
     function Toggle(){}
-    Toggle = gaffa.createSpec(Toggle, gaffa.Action);
+    Toggle = Gaffa.createSpec(Toggle, Gaffa.Action);
     Toggle.prototype.type = actionType;
     Toggle.prototype.trigger = function(){
         this.__super__.trigger.apply(this, arguments);
 
-        gaffa.model.set(this.target.binding, !this.target.value, this);
+        this.target.set(!this.target.value, this);
     };
-    Toggle.prototype.target = new gaffa.Property();
-    
-    window.gaffa.actions[actionType] = Toggle;
+    Toggle.prototype.target = new Gaffa.Property();
 
     return Toggle;
 

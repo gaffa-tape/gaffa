@@ -4,17 +4,18 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-group = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var gaffa = window.gaffa,
+    var Gaffa = require('gaffa'),
+        crel = require('crel'),
         viewType = "group";
     
     function Group(){
-        this.views.groups = new gaffa.ViewContainer(this.views.groups);
-        this.views.empty = new gaffa.ViewContainer(this.views.empty);
+        this.views.groups = new Gaffa.ViewContainer(this.views.groups);
+        this.views.empty = new Gaffa.ViewContainer(this.views.empty);
     }
-    Group = gaffa.createSpec(Group, gaffa.ContainerView);
+    Group = Gaffa.createSpec(Group, Gaffa.ContainerView);
     Group.prototype.type = viewType;
     Group.prototype.render = function(){
         
@@ -40,7 +41,7 @@
         );
     }
            
-    Group.prototype.groups = new gaffa.Property(window.gaffa.propertyUpdaters.group(
+    Group.prototype.groups = new Gaffa.Property(Gaffa.propertyUpdaters.group(
         "groups",                     
         //increment
         function(viewModel, groups, addedItem){
@@ -98,8 +99,6 @@
             }
         }
     ));
-                
-    gaffa.views[viewType] = Group;
 
     return Group;
     

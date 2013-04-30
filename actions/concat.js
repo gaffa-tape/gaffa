@@ -4,19 +4,20 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-concat = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var gaffa = window.gaffa,
+    var Gaffa = require('gaffa'),
         actionType = "concat";
     
     function Concat(){}
-    Concat = gaffa.createSpec(Concat, gaffa.Action);
+    Concat = Gaffa.createSpec(Concat, Gaffa.Action);
     Concat.prototype.type = actionType;
     Concat.prototype.trigger = function(){
         this.__super__.trigger.apply(this, arguments);
         
-        var target = this.target.value,
+        var gaffa = this.gaffa,
+            target = this.target.value,
             source = this.source.value
             
             
@@ -30,14 +31,14 @@
                     source[index] = gaffa.clone(item);
                 });
             }        
-            window.gaffa.model.set(this.target.binding, this.target.value.concat(source), this); 
+            this.target.set(this.target.value.concat(source), this); 
         }   
     };
-    Concat.prototype.target = new gaffa.Property();
-    Concat.prototype.source = new gaffa.Property();
-    Concat.prototype.clone = new gaffa.Property();
+    Concat.prototype.target = new Gaffa.Property();
+    Concat.prototype.source = new Gaffa.Property();
+    Concat.prototype.clone = new Gaffa.Property();
     
-    window.gaffa.actions[actionType] = Concat;
+    
 
     return Concat;
 

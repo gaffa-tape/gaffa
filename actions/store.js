@@ -4,15 +4,15 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-store = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var gaffa = window.gaffa,
+    var Gaffa = require('gaffa'),
         actionType = "store";
     
     function Store(actionDefinition){
     }
-    Store = gaffa.createSpec(Store, gaffa.Action);
+    Store = Gaffa.createSpec(Store, Gaffa.Action);
     Store.prototype.type = actionType;
     Store.prototype.location = 'server';
     Store.prototype.dataType = 'json';
@@ -69,8 +69,7 @@
                             value = gaffa.model.get(action.transform, {data: data});
                         }
                         
-                        gaffa.model.set(
-                            action.returnValue.binding,
+                        action.returnValue.set(
                             value,
                             action,
                             !!action.dirty.value
@@ -107,12 +106,10 @@
             gaffa.ajax(ajaxSettings);
         }
     };
-    Store.prototype.target = new gaffa.Property();
-    Store.prototype.source = new gaffa.Property();
-    Store.prototype.returnValue = new gaffa.Property();
-    Store.prototype.dirty = new gaffa.Property();
-    
-    gaffa.actions[actionType] = Store;
+    Store.prototype.target = new Gaffa.Property();
+    Store.prototype.source = new Gaffa.Property();
+    Store.prototype.returnValue = new Gaffa.Property();
+    Store.prototype.dirty = new Gaffa.Property();
 
     return Store;
 

@@ -4,27 +4,28 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-conditional = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var actionType = "conditional";
+    var Gaffa = require('gaffa'),
+        actionType = "conditional";
     
     function Conditional(){}
-    Conditional = gaffa.createSpec(Conditional, gaffa.Action);
+    Conditional = Gaffa.createSpec(Conditional, Gaffa.Action);
     Conditional.prototype.type = actionType;
-    Conditional.prototype.condition = new gaffa.Property();
+    Conditional.prototype.condition = new Gaffa.Property();
 
     Conditional.prototype.trigger = function() {
         this.__super__.trigger.apply(this, arguments);
 
         if (action.condition.value) {
-            window.gaffa.actions.trigger(action.actions['true'], action);
+            this.gaffa.actions.trigger(action.actions['true'], action);
         } else {
-            window.gaffa.actions.trigger(action.actions['false'], action);
+            this.gaffa.actions.trigger(action.actions['false'], action);
         }           
     };
     
-    window.gaffa.actions[actionType] = Conditional;
+    
     
     return Conditional;
     

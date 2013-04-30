@@ -4,10 +4,11 @@
     } else if (typeof define === 'function' && define.amd) {
         define(factory);
     } else {
-        root.gaffa-imageinput = factory();
+        throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var gaffa = window.gaffa,
+    var Gaffa = require('gaffa'),
+        crel = require('crel'),
         viewType = "imageInput",
         cachedElement;
 		
@@ -91,7 +92,7 @@
     }  
     
     function ImageInput(){}
-    ImageInput = gaffa.createSpec(ImageInput, gaffa.ContainerView);
+    ImageInput = Gaffa.createSpec(ImageInput, Gaffa.ContainerView);
     ImageInput.prototype.type = viewType;
     
     ImageInput.prototype.render = function(){
@@ -122,20 +123,18 @@
     }
 
 
-    ImageInput.prototype.file = new gaffa.Property();
-    ImageInput.prototype.bytes = new gaffa.Property();
-    ImageInput.prototype.dataURL = new gaffa.Property();
-    ImageInput.prototype.maxWidth = new gaffa.Property();
-    ImageInput.prototype.maxHeight = new gaffa.Property();
-    ImageInput.prototype.disabled = new gaffa.Property(window.gaffa.propertyUpdaters.bool(function(viewModel, value){
+    ImageInput.prototype.file = new Gaffa.Property();
+    ImageInput.prototype.bytes = new Gaffa.Property();
+    ImageInput.prototype.dataURL = new Gaffa.Property();
+    ImageInput.prototype.maxWidth = new Gaffa.Property();
+    ImageInput.prototype.maxHeight = new Gaffa.Property();
+    ImageInput.prototype.disabled = new Gaffa.Property(Gaffa.propertyUpdaters.bool(function(viewModel, value){
         if (value){
             viewModel.renderedElement.setAttribute('disabled', 'disabled');
         }else{
             viewModel.renderedElement.removeAttribute('disabled');
         }
     }));
-    
-    gaffa.views[viewType] = ImageInput;
 
     return ImageInput;
 	
