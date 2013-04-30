@@ -20,6 +20,7 @@
     var Gedi = require('gedi'),
         doc = require('doc-js'),
         crel = require('crel'),
+        fastEach = require('fasteach'),
         history = window.History || window.history;
 
     //internal functions
@@ -269,122 +270,6 @@
         request.send(settings.data && settings.data);
     }
 
-
-    //***********************************************
-    //
-    //      QueryString To Model
-    //
-    //***********************************************
-    
-    function queryStringToModel(){
-        var queryStringData = parseQueryString(window.location.search);
-        
-        for(var key in queryStringData){
-            if(!queryStringData.hasOwnProperty(key)){
-                continue;
-            }
-
-            if(queryStringData[key]){
-                gaffa.model.set(key, queryStringData[key]);
-            }else{
-                gaffa.model.set(key, null);
-            }
-        }
-    }
-
-    //***********************************************
-    //
-    //      Navigate
-    //
-    //***********************************************
-
-    function navigate(url, target, pushState) {
-        
-        gaffa.notifications.notify("navigation.begin");
-        gaffa.ajax({
-        
-            cache: navigator.appName !== 'Microsoft Internet Explorer',
-            url: url,
-            type: "get",
-            data: "gaffaNavigate=1", // This is to avoid the cached HTML version of a page if you are bootstrapping.
-            dataType: "json",
-            success: function (data) {
-                var title;
-                        
-                if(data !== undefined && data !== null && data.title){
-                    title = data.title;
-                }
-                
-                // Always use pushstate unless triggered by onpopstate
-                if(pushState !== false) {
-                    history.pushState(data, title, url);
-                }
-                
-                load(data, target);
-                
-                gaffa.notifications.notify("navigation.success");
-                
-                window.scrollTo(0,0);
-            },
-            error: function(error){
-                gaffa.notifications.notify("navigation.error", error);
-            },
-            complete: function(){
-                gaffa.notifications.notify("navigation.complete");
-            }
-        });
-    }
-    
-    //***********************************************
-    //
-    //      Pop State
-    //
-    //***********************************************
-
-     // ToDo: Pop state no worksies in exploder.
-    window.onpopstate = function(event){
-        if(event.state){
-            navigate(window.location.toString(), null, false);            
-        }
-    };
-
-    //***********************************************
-    //
-    //      Load
-    //
-    //***********************************************
-    
-    function load(app, target){
-
-        var targetView = gaffa.views;
-
-        if(target){
-            targetView = internalNamedViews[target];
-        }
-    
-        while(internalIntervals.length){
-            clearInterval(internalIntervals.pop());
-        }
-
-        //clear state first
-        if (app.views) {
-            targetView.views.remove();
-        }
-        
-        //set up state
-        if (app.model) {
-            gedi.set({});
-            gaffa.model.set(app.model, null, null, false);
-        }
-        if (app.views) {
-            targetView.views.add(app.views);
-        }
-        if (app.behaviours) {
-            gaffa.behaviours.add(app.behaviours);
-        }
-        
-        queryStringToModel();
-    }
     
        
     //***********************************************
@@ -393,7 +278,7 @@
     //
     //***********************************************
     
-    function getDistinctGroups(collection, expression){
+    function getDistinctGroups(gaffa, collection, expression){
         var distinctValues = {},
             values = gaffa.model.get('(map items ' + expression + ')', {items: collection});
         
@@ -825,7 +710,7 @@
 
         function bindProperty(viewItem) {
 
-            this.gaffa = viewItem.gaffa;
+            var gaffa = this.gaffa = viewItem.gaffa;
         
             // Shortcut for properties that have no binding.
             // This has a significant impact on performance.
@@ -934,10 +819,8 @@
     //***********************************************
     
     function Property(propertyDescription){
-        var property = this;
-
         this.set = function(value){
-            property.gaffa.model.set(
+            this.gaffa.model.set(
                 this.set.binding || this.binding,
                 this.set.binding ? gaffa.model.get(this.set.binding, this, {value: value}) : value,
                 this
@@ -961,6 +844,7 @@
     };
     Property.prototype.toJSON = function(){
         var tempObject = jsonConverter(this),
+            gaffa = this.gaffa,
             noTemplate = !tempObject.template,
             noValue = tempObject.value === undefined,
             noBinding = !tempObject.binding || tempObject.binding instanceof gaffa.Expression && !(tempObject.binding.paths && tempObject.binding.paths.length);
@@ -1172,7 +1056,8 @@
     }
     View = createSpec(View, ViewItem);
     View.prototype.bind = function(){
-        var view = this;
+        var view = this,
+            gaffa = this.gaffa;
 
         fastEach(view.behaviours, function(behaviour){
             behaviour.bind();
@@ -1287,7 +1172,7 @@
 
             if(property instanceof Property && property.binding){
                 property.parent = this;
-                property.value = gaffa.model.get(property.binding, this, scope);
+                property.value = this.gaffa.model.get(property.binding, this, scope);
             }
         }        
     };
@@ -1512,6 +1397,122 @@
             result = ksort(target, scope, sortFunction);
             
             return result;
+        };
+
+        //***********************************************
+        //
+        //      QueryString To Model
+        //
+        //***********************************************
+        
+        function queryStringToModel(){
+            var queryStringData = parseQueryString(window.location.search);
+            
+            for(var key in queryStringData){
+                if(!queryStringData.hasOwnProperty(key)){
+                    continue;
+                }
+
+                if(queryStringData[key]){
+                    gaffa.model.set(key, queryStringData[key]);
+                }else{
+                    gaffa.model.set(key, null);
+                }
+            }
+        }
+
+        //***********************************************
+        //
+        //      Load
+        //
+        //***********************************************
+        
+        function load(app, target){
+
+            var targetView = gaffa.views;
+
+            if(target){
+                targetView = internalNamedViews[target];
+            }
+        
+            while(internalIntervals.length){
+                clearInterval(internalIntervals.pop());
+            }
+
+            //clear state first
+            if (app.views) {
+                targetView.views.remove();
+            }
+            
+            //set up state
+            if (app.model) {
+                gedi.set({});
+                gaffa.model.set(app.model, null, null, false);
+            }
+            if (app.views) {
+                targetView.views.add(app.views);
+            }
+            if (app.behaviours) {
+                gaffa.behaviours.add(app.behaviours);
+            }
+            
+            queryStringToModel();
+        }
+
+        //***********************************************
+        //
+        //      Navigate
+        //
+        //***********************************************
+
+        function navigate(url, target, pushState) {
+            
+            gaffa.notifications.notify("navigation.begin");
+            gaffa.ajax({
+            
+                cache: navigator.appName !== 'Microsoft Internet Explorer',
+                url: url,
+                type: "get",
+                data: "gaffaNavigate=1", // This is to avoid the cached HTML version of a page if you are bootstrapping.
+                dataType: "json",
+                success: function (data) {
+                    var title;
+                            
+                    if(data !== undefined && data !== null && data.title){
+                        title = data.title;
+                    }
+                    
+                    // Always use pushstate unless triggered by onpopstate
+                    if(pushState !== false) {
+                        history.pushState(data, title, url);
+                    }
+                    
+                    load(data, target);
+                    
+                    gaffa.notifications.notify("navigation.success");
+                    
+                    window.scrollTo(0,0);
+                },
+                error: function(error){
+                    gaffa.notifications.notify("navigation.error", error);
+                },
+                complete: function(){
+                    gaffa.notifications.notify("navigation.complete");
+                }
+            });
+        }
+        
+        //***********************************************
+        //
+        //      Pop State
+        //
+        //***********************************************
+
+         // ToDo: Pop state no worksies in exploder.
+        window.onpopstate = function(event){
+            if(event.state){
+                navigate(window.location.toString(), null, false);            
+            }
         };
 
         extend(gaffa, {
@@ -1873,6 +1874,7 @@
         group: function (viewsName, insert, remove, empty) {
             return function (viewModel, value) {
                 var property = this,
+                    gaffa = property.gaffa,
                     childViews = viewModel.views[viewsName],
                     previousGroups = property.previousGroups,
                     newView,
@@ -1880,7 +1882,7 @@
                 
                 if (value && typeof value === "object"){
                     
-                    viewModel.distinctGroups = getDistinctGroups(property.value, property.expression);
+                    viewModel.distinctGroups = getDistinctGroups(gaffa, property.value, property.expression);
 
                     if(previousGroups){
                         if(previousGroups.length === viewModel.distinctGroups.length){

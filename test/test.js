@@ -10,6 +10,8 @@ var testContainer = new views.container();
 
 var textbox = new views.textbox();
 
+textbox.value.binding = '[things]';
+
 testContainer.views.content.add(textbox);
 
 

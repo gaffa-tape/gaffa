@@ -8,6 +8,7 @@
     }
 }(this, function(){
     var Gaffa = require('gaffa'),
+        fastEach = require('fasteach'),
         actionType = "concat";
     
     function Concat(){}

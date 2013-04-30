@@ -10,6 +10,7 @@
     var Gaffa = require('gaffa'),
         crel = require('crel'),
         viewType = "textbox",
+        fastEach = require('fasteach'),
 		cachedElement;
     
     function matchFail(element, failed){

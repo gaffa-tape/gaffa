@@ -8,6 +8,7 @@
     "version": "0.1.1",
     "main": "gaffa.js",
     "dependencies": {
+        "fasteach":">= 1.0.0",
         "gedi":">= 0.0.0",
         "doc-js":">= 0.0.0",
         "crel": ">= 0.0.0"   
