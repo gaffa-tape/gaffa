@@ -10,12 +10,6 @@
     var Gaffa = require('gaffa'),
         crel = require('crel'),
         viewType = "code";
-    
-    if (navigator.appName == 'Microsoft Internet Explorer'&&
-        parseFloat(findShitBrowsersRegex.exec(navigator.userAgent)[1])<9
-    ){
-        shit = true;
-    }
         
     function Code(){}
     Code = Gaffa.createSpec(Code, Gaffa.View);

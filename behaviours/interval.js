@@ -7,10 +7,12 @@
         throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var Gaffa = require('gaffa');
+    var Gaffa = require('gaffa'),
+        behaviourType = 'interval';
 
     function IntervalBehaviour(){}
-    IntervalBehaviour = createSpec(IntervalBehaviour, Behaviour);
+    IntervalBehaviour = Gaffa.createSpec(IntervalBehaviour, Gaffa.Behaviour);
+    IntervalBehaviour.prototype.type = behaviourType;
     IntervalBehaviour.prototype.bind = function(){  
         Behaviour.prototype.bind.apply(this, arguments);
         var behaviour = this,

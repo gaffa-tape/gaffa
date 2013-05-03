@@ -47,7 +47,7 @@
 				})[0],
 				data = option && option.data || undefined;
 			
-            window.gaffa.model.set(viewModel.value.binding, data, viewModel);
+            viewModel.value.set(viewModel.value.binding, data, viewModel);
         });
         
         this.views.list.element = renderedElement;

@@ -14,6 +14,7 @@
     function Fetch(){}
     Fetch = Gaffa.createSpec(Fetch, Gaffa.Action);
         
+    Fetch.prototype.type = actionType;
     Fetch.prototype.target = new Gaffa.Property();
     Fetch.prototype.source = new Gaffa.Property();
     Fetch.prototype.data = new Gaffa.Property();
@@ -49,14 +50,14 @@
                     if(action.merge){
                         var value = $.extend(true, gaffa.model.get(action.target.binding), value);
                     }
-                    this.target.set(
+                    action.target.set(
                         value,
                         action,
                         !!action.dirty.value
                     );
                 }
                 if (action.isModelRefresh && data.model) {
-                    this.gaffa.model.set(data.model, false, false, false);
+                    action.gaffa.model.set(data.model, false, false, false);
                 }
             }
             

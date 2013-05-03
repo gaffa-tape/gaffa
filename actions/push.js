@@ -19,7 +19,7 @@
         var toObject = this.target.value;
         if(toObject === undefined || toObject === null){
             toObject = [];
-            gaffa.model.set(this.target.binding, toObject, this);
+            this.target.set(toObject, this);
         }
         if(Array.isArray(toObject)){
             var fromObj = this.source.value;

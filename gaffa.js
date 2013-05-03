@@ -23,6 +23,11 @@
         fastEach = require('fasteach'),
         history = window.History || window.history;
 
+
+    
+    // Storage for applications default styles.
+    var defaultViewStyles;
+
     //internal functions
     
     //***********************************************
@@ -261,10 +266,17 @@
 
         request.open(settings.type || "get", settings.url, true);
 
+        // Set default headers
         request.setRequestHeader('Content-Type', settings.contentType || 'application/json; charset=utf-8');
         request.setRequestHeader('X-Requested-With', settings.requestedWith || 'XMLHttpRequest');
+        request.setRequestHeader('x-gaffa', 'request');
         if(settings.auth){
             request.setRequestHeader('Authorization', settings.auth);
+        }
+
+        // Set custom headers
+        for(var key in settings.headers){
+            request.setRequestHeader(key, settings.headers[key]);            
         }
 
         request.send(settings.data && settings.data);
@@ -457,35 +469,6 @@
     
     //***********************************************
     //
-    //      Add Notification
-    //
-    //***********************************************
-    
-    function addNotification(kind, callback){
-        internalNotifications[kind] = internalNotifications[kind] || [];
-        internalNotifications[kind].push(callback);
-    }
-    
-    //***********************************************
-    //
-    //      Notify
-    //
-    //***********************************************
-    
-    function notify(kind, data){
-        var subKinds = kind.split(".");
-            
-        fastEach(subKinds, function(subKind, index){
-            var notificationKind = subKinds.slice(0, index + 1).join(".");
-            
-            internalNotifications[notificationKind] && fastEach(internalNotifications[notificationKind], function(callback){
-                callback(data);
-            });
-        });
-    }
-    
-    //***********************************************
-    //
     //      Same As
     //
     //***********************************************
@@ -524,7 +507,15 @@
             defaultViewStyles = crel('style', {type: 'text/css', 'class':'dropdownDefaultStyle'});
         
             //Prepend so it can be overriden easily.
-            document.head.insertBefore(defaultViewStyles);
+            var addToHead = function(){
+                if(window.document.head){
+                    window.document.head.insertBefore(defaultViewStyles);
+                }else{
+                    setTimeout(addToHead, 100);
+                }
+            };
+
+            addToHead();
             
             return defaultViewStyles;
         })();
@@ -539,7 +530,7 @@
     
     //***********************************************
     //
-    //      Initialise Action
+    //      Initialise ViewItem
     //
     //***********************************************
     
@@ -549,11 +540,11 @@
             gaffa = viewItem.gaffa;
         
         if (spec === Action){
-           specCollection = gaffa.actions;
+           specCollection = gaffa.actions.constructors;
         }else if(spec === View){
-           specCollection = gaffa.views;
+           specCollection = gaffa.views.constructors;
         }else if(spec === Behaviour){
-           specCollection = gaffa.behaviours;
+           specCollection = gaffa.behaviours.constructors;
         }
         
         if(!(viewItem instanceof spec)){
@@ -570,14 +561,14 @@
             }
             fastEach(viewItem.views[key], function(view, index, views){
                 views[index].gaffa = gaffa;
-                views[index] = initialiseViewItem(view, viewItem, viewItem.views[key], View);
+                views[index] = initialiseView(view, viewItem, viewItem.views[key]);
             });
         }
             
         for(var key in viewItem.actions){
             fastEach(viewItem.actions[key], function(action, index, actions){
                 actions[index].gaffa = gaffa;
-                actions[index] = initialiseViewItem(action, viewItem, viewItem.actions[key], Action);
+                actions[index] = initialiseAction(action, viewItem, viewItem.actions[key]);
             });
         }
         
@@ -588,227 +579,219 @@
         return viewItem;
     }
         
-        //***********************************************
-        //
-        //      Initialise View
-        //
-        //***********************************************
-        
-        function initialiseView(viewModel, parentView, viewContainer) {
-            return initialiseViewItem(viewModel, parentView, viewContainer, View);
+    //***********************************************
+    //
+    //      Initialise View
+    //
+    //***********************************************
+    
+    function initialiseView(viewModel, parentView, viewContainer) {                
+        if(viewModel.name){
+            viewModel.gaffa.namedViews[viewModel.name] = viewModel;
         }
+        return initialiseViewItem(viewModel, parentView, viewContainer, View);
+    }
         
-        
-        //***********************************************
-        //
-        //      Add View
-        //
-        //***********************************************
-        
-        function addView(viewModel, parentViewChildArray, insertIndex, internalViewItems) {
+    //***********************************************
+    //
+    //      Initialise Action
+    //
+    //***********************************************
+    
+    function initialiseAction(viewModel, parentView, viewContainer) { 
+        return initialiseViewItem(viewModel, parentView, viewContainer, Action);
+    }
+    
+    
+    //***********************************************
+    //
+    //      Add View
+    //
+    //***********************************************
+    
+    function addView(viewModel, parentViewChildArray, insertIndex, internalViewItems, insertInPlace) {
 
-            var parent = parentViewChildArray && parentViewChildArray.parent;
+        var parent = parentViewChildArray && parentViewChildArray.parent;
 
-            //if the viewModel is an array, recurse.
-            if (viewModel instanceof Array) {
-                fastEach(viewModel, function (viewModel, insertIndex, viewModels) {
-                    if(viewModels instanceof ViewContainer){
-                        addView(viewModel, viewModels, insertIndex, true);
-                    }else{
-                        addView(viewModel);
-                    }
-                });
-                return;
-            }
-
-            if(viewModel.name){
-                namedViews[viewModel.name] = viewModel;
-            }
-            
-            viewModel = initialiseView(viewModel, parent, parentViewChildArray);
-            
-            viewModel.parentContainer = parentViewChildArray;
-                
-            if (parentViewChildArray) {
-                if(insertIndex != null){
-                    parentViewChildArray.splice(insertIndex, 0, viewModel);
+        //if the viewModel is an array, recurse.
+        if (viewModel instanceof Array) {
+            fastEach(viewModel, function (viewModel, insertIndex, viewModels) {
+                if(viewModels instanceof ViewContainer){
+                    addView(viewModel, viewModels, insertIndex, internalViewItems, true);
                 }else{
-                    parentViewChildArray.push(viewModel);
+                    addView(viewModel);
                 }
-            } else {
-                internalViewItems.push(viewModel);
-            }
-            
-            viewModel.render();
-            viewModel.bind();
-            viewModel.insert(parentViewChildArray, insertIndex);
-                    
-            return viewModel;
-        }
-        
-        
-        //***********************************************
-        //
-        //      Remove Views
-        //
-        //***********************************************
-        
-        function removeViews(views){
-            if(!views){
-                views = internalViewItems;
-            }
-            !Array.isArray(views) && (views = [views]);
-            
-            fastEach(views, function(viewModel){
-                viewModel.remove();
             });
+            return;
         }
-
-        //***********************************************
-        //
-        //      JSON Converter
-        //
-        //***********************************************
-
-        function jsonConverter(object, exclude, include){
-            var tempObject = Array.isArray(object) || object instanceof Array && [] || {},
-            excludeProps = ["parent", "viewContainer", "renderedElement"],
-            includeProps = ["type"];
-                        
-            if(exclude){
-                excludeProps = excludeProps.concat(exclude);
-            }
-
-            if(include){
-                includeProps = includeProps.concat(include);
-            }
-
-            for(var key in object){
-                if(
-                    object[key] == null ||
-                    excludeProps.indexOf(key)>=0
-                ){
-                    continue;
-                }
-                if(
-                    object.hasOwnProperty(key) ||
-                    includeProps.indexOf(key)>=0
-                ){
-                    tempObject[key] = object[key];
-                }
-            }
+        
+        viewModel = initialiseView(viewModel, parent, parentViewChildArray);
+        
+        viewModel.parentContainer = parentViewChildArray;
             
-            return tempObject;
+        if (parentViewChildArray) {
+            if(insertInPlace){
+                parentViewChildArray[insertIndex] = viewModel;
+            }else if(insertIndex != null){
+                parentViewChildArray.splice(insertIndex, 0, viewModel);
+            }else{
+                parentViewChildArray.push(viewModel);
+            }
+        } else {
+            internalViewItems.push(viewModel);
         }
         
+        viewModel.render();
+        viewModel.bind();
+        viewModel.insert(parentViewChildArray, insertIndex);
+                
+        return viewModel;
+    }
+    
+    
+    //***********************************************
+    //
+    //      Remove Views
+    //
+    //***********************************************
+    
+    function removeViews(views){
+        if(!views){
+            return;
+        }
 
-        //***********************************************
-        //
-        //      Bind Property
-        //
-        //***********************************************
+        views = views instanceof Array ? views : [views];
 
-        function bindProperty(viewItem) {
-
-            var gaffa = this.gaffa = viewItem.gaffa;
+        views = views.slice();
         
-            // Shortcut for properties that have no binding.
-            // This has a significant impact on performance.
-            if(this.binding == null){
-                if(this.update){
-                    this.update(viewItem, this.value);
-                }
-                return;
-            }
+        fastEach(views, function(viewModel){
+            viewModel.remove();
+        });
+    }
+
+    //***********************************************
+    //
+    //      JSON Converter
+    //
+    //***********************************************
+
+    function jsonConverter(object, exclude, include){
+        var tempObject = Array.isArray(object) || object instanceof Array && [] || {},
+        excludeProps = ["gaffa", "parent", "viewContainer", "renderedElement"],
+        includeProps = ["type"];
                     
-            var property = this,
-                updateProperty = function (event) {
-                    if(event){                    
-                        var value,                        
-                            scope = { // Scope passed to the property when evaluated.
-                                __trackKeys__: property.trackKeys,
-                                viewItem: viewItem
-                            };
+        if(exclude){
+            excludeProps = excludeProps.concat(exclude);
+        }
 
-                        
-                        if(event === true){ // Initial update.
-                            value = gaffa.model.get(property.binding, property, scope);
+        if(include){
+            includeProps = includeProps.concat(include);
+        }
 
-                        } else if(property.binding){ // Model change update.
-                            value = event.getValue(scope);
+        for(var key in object){
+            if(
+                object[key] == null ||
+                excludeProps.indexOf(key)>=0
+            ){
+                continue;
+            }
+            if(
+                object.hasOwnProperty(key) ||
+                includeProps.indexOf(key)>=0
+            ){
+                tempObject[key] = object[key];
+            }
+        }
+        
+        return tempObject;
+    }
+    
 
-                        }
+    //***********************************************
+    //
+    //      Bind Property
+    //
+    //***********************************************
 
-                        property.keys = value && value.__gaffaKeys__;
-                        property.value = value;
-                    }
+    function bindProperty(viewItem) {
+
+        var gaffa = this.gaffa = viewItem.gaffa;
+    
+        // Shortcut for properties that have no binding.
+        // This has a significant impact on performance.
+        if(this.binding == null){
+            if(this.update){
+                this.update(viewItem, this.value);
+            }
+            return;
+        }
+                
+        var property = this,
+            updateProperty = function (event) {
+                if(event){                    
+                    var value,                        
+                        scope = { // Scope passed to the property when evaluated.
+                            __trackKeys__: property.trackKeys,
+                            viewItem: viewItem
+                        };
+
                     
-                    // Call the properties update function, if it has one.
-                    // Only call if the changed value is an object, or if it actually changed.
-                    if(property.update){
-                        if(! 'previousValue' in property || (value && typeof value === 'object') || value !== property.previousValue){
-                            property.update(viewItem, value);
-                            property.previousValue = value;
-                        }
-                    }
-                };
-                
-            this.parent = viewItem;
-            this.binding = new gaffa.Expression(this.binding);
-            gaffa.model.bind(property.binding, updateProperty, property);
-            updateProperty(true);
-        }
-        
-        
-        //***********************************************
-        //
-        //      add Behaviour
-        //
-        //*********************************************** 
-        
-        function addBehaviour(behaviours) {
-            //if the views isnt an array, make it one.
-            if (!Array.isArray(behaviours)) {
-                behaviours = [behaviours];
-            }
+                    if(event === true){ // Initial update.
+                        value = gaffa.model.get(property.binding, property, scope);
 
-            fastEach(behaviours, function (behaviour, index, behaviours) {
-                behaviour = initialiseViewItem(behaviour, null, null, Behaviour);  
-                
-                behaviour.bind();
-                
-                internalBehaviours.push(behaviour);
-            });
-        }
-        
-        
-        //***********************************************
-        //
-        //      Remove Behaviour
-        //
-        //***********************************************
-        
-        function removeBehaviour(behaviour){
-            if(!behaviour){
-                for(var key in internalBehaviours){
-                    internalBehaviours[key].remove();
+                    } else if(property.binding){ // Model change update.
+                        value = event.getValue(scope);
+
+                    }
+
+                    property.keys = value && value.__gaffaKeys__;
+                    property.value = value;
                 }
-                return;
-            }
+                
+                // Call the properties update function, if it has one.
+                // Only call if the changed value is an object, or if it actually changed.
+                if(property.update){
+                    if(! 'previousValue' in property || (value && typeof value === 'object') || value !== property.previousValue){
+                        property.update(viewItem, value);
+                        property.previousValue = value;
+                    }
+                }
+            };
             
-            if(behaviour instanceof Behaviour){
-                behaviour.remove();
-            }else if(typeof behaviour === 'string'){
-                internalBehaviours[behaviour].remove();
+        this.parent = viewItem;
+        this.binding = new gaffa.Expression(this.binding);
+        gaffa.model.bind(property.binding, updateProperty, property);
+        updateProperty(true);
+    }
+    
+    
+    //***********************************************
+    //
+    //      Remove Behaviour
+    //
+    //***********************************************
+    
+    function removeBehaviour(behaviour){
+        if(!behaviour){
+            for(var key in internalBehaviours){
+                internalBehaviours[key].remove();
             }
+            return;
         }
         
+        if(behaviour instanceof Behaviour){
+            behaviour.remove();
+        }else if(typeof behaviour === 'string'){
+            internalBehaviours[behaviour].remove();
+        }
+    }
+    
 
-        //***********************************************
-        //
-        //      Gaffa object.
-        //
-        //***********************************************
+    //***********************************************
+    //
+    //      Gaffa object.
+    //
+    //***********************************************
 
     //Public Objects ******************************************************************************
     
@@ -847,7 +830,7 @@
             gaffa = this.gaffa,
             noTemplate = !tempObject.template,
             noValue = tempObject.value === undefined,
-            noBinding = !tempObject.binding || tempObject.binding instanceof gaffa.Expression && !(tempObject.binding.paths && tempObject.binding.paths.length);
+            noBinding = !(tempObject.binding  && tempObject.binding.length);
 
         if(noBinding && noTemplate){
             if(noValue){
@@ -899,6 +882,10 @@
             });
             return this;
         }
+
+        if(this.gaffa){
+            viewModel.gaffa = this.gaffa;
+        }
     
         // If this has a parent (it has been bound)
         // call addView, which binds and renderes the
@@ -914,12 +901,8 @@
         }
         return this;
     };
-    ViewContainer.prototype.remove = function(viewModel){
-        fastEach(this, function(childViewModel, index){
-            if(childViewModel === viewModel){
-                this.splice(index, 1).remove();
-            }
-        });
+    ViewContainer.prototype.empty = function(){
+        removeViews(this);
     };
     ViewContainer.prototype.toJSON = function(){
         return jsonConverter(this, ['element']);
@@ -991,12 +974,6 @@
         this.renderedElement.parentNode.removeChild(this.renderedElement);
     };
     ViewItem.prototype.remove = function(){
-        if(this.parentContainer){
-            this.parentContainer.remove(this);
-        }
-        
-        this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
-        
         fastEach(this.eventHandlers, function(handler){
             gedi.debind(handler);
         });
@@ -1076,11 +1053,20 @@
         }
     };
     View.prototype.remove = function(){
+        ViewItem.prototype.remove.call(this);
+
         fastEach(this.behaviours, function(behaviour){
             behaviour.remove();
         });
 
-        ViewItem.prototype.remove.call(this);
+        if(this.parentContainer){
+            var index = this.parentContainer.indexOf(this);
+            if(index>=0){
+                this.parentContainer.splice(index, 1);
+            }
+        }
+        
+        this.renderedElement && this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
     };
     View.prototype.render = function(){
         this.renderedElement.viewModel = this;
@@ -1167,12 +1153,15 @@
     Action.prototype.trigger = function(parent, scope, event){
         this.parent = parent;
 
+        var gaffa = this.gaffa = parent.gaffa;
+
         for(var propertyKey in this){
             var property = this[propertyKey];
 
             if(property instanceof Property && property.binding){
+                property.gaffa = gaffa;
                 property.parent = this;
-                property.value = this.gaffa.model.get(property.binding, this, scope);
+                property.value = gaffa.model.get(property.binding, this, scope);
             }
         }        
     };
@@ -1188,7 +1177,7 @@
     Behaviour.prototype.bind = function(){   
         ViewItem.prototype.bind.apply(this, arguments);  
         
-        this.path = Path.parse(this.path);
+        this.path = this.gaffa.Path.parse(this.path);
     };
     Behaviour.prototype.remove = function(){
         var thisBehaviour = this;
@@ -1217,9 +1206,6 @@
         
             // Storage for the applications view.
             internalViewItems = [],
-
-            // Storage for the applications named views.
-            internalNamedViews = {},
             
             // Storage for application actions.
             internalActions = {},
@@ -1231,10 +1217,7 @@
             internalNotifications = {},
             
             // Storage for interval based behaviours.
-            internalIntervals = [],
-            
-            // Storage for applications default styles.
-            defaultViewStyles;
+            internalIntervals = [];
             
             
         // Gedi initialisation
@@ -1398,6 +1381,62 @@
             
             return result;
         };
+    
+        
+        //***********************************************
+        //
+        //      add Behaviour
+        //
+        //*********************************************** 
+        
+        function addBehaviour(behaviours) {
+            //if the views isnt an array, make it one.
+            if (!Array.isArray(behaviours)) {
+                behaviours = [behaviours];
+            }
+
+            fastEach(behaviours, function (behaviour, index, behaviours) {
+                behaviour.gaffa = gaffa;
+                
+                behaviour = initialiseViewItem(behaviour, null, null, Behaviour);  
+                
+                behaviour.bind();
+                
+                internalBehaviours.push(behaviour);
+            });
+        }
+
+        
+        //***********************************************
+        //
+        //      Add Notification
+        //
+        //***********************************************
+        
+        function addNotification(kind, callback){
+            internalNotifications[kind] = internalNotifications[kind] || [];
+            internalNotifications[kind].push(callback);
+        }
+
+        
+        //***********************************************
+        //
+        //      Notify
+        //
+        //***********************************************
+        
+        function notify(kind, data){
+            var subKinds = kind.split(".");
+                
+            fastEach(subKinds, function(subKind, index){
+                var notificationKind = subKinds.slice(0, index + 1).join(".");
+                
+                internalNotifications[notificationKind] && fastEach(internalNotifications[notificationKind], function(callback){
+                    callback(data);
+                });
+            });
+        }
+
 
         //***********************************************
         //
@@ -1432,7 +1471,11 @@
             var targetView = gaffa.views;
 
             if(target){
-                targetView = internalNamedViews[target];
+                var targetParts = target.split('.'),
+                    targetName = targetParts[0],
+                    targetViewContainer = targetParts[1];
+
+                targetView = gaffa.namedViews[targetName].views[targetViewContainer];
             }
         
             while(internalIntervals.length){
@@ -1441,7 +1484,7 @@
 
             //clear state first
             if (app.views) {
-                targetView.views.remove();
+                targetView.empty();
             }
             
             //set up state
@@ -1450,7 +1493,7 @@
                 gaffa.model.set(app.model, null, null, false);
             }
             if (app.views) {
-                targetView.views.add(app.views);
+                targetView.add(app.views);
             }
             if (app.behaviours) {
                 gaffa.behaviours.add(app.behaviours);
@@ -1469,7 +1512,9 @@
             
             gaffa.notifications.notify("navigation.begin");
             gaffa.ajax({
-            
+                headers:{
+                    'x-gaffa': 'navigate'
+                },         
                 cache: navigator.appName !== 'Microsoft Internet Explorer',
                 url: url,
                 type: "get",
@@ -1477,6 +1522,8 @@
                 dataType: "json",
                 success: function (data) {
                     var title;
+
+                    data.target = target;
                             
                     if(data !== undefined && data !== null && data.title){
                         title = data.title;
@@ -1511,7 +1558,7 @@
          // ToDo: Pop state no worksies in exploder.
         window.onpopstate = function(event){
             if(event.state){
-                navigate(window.location.toString(), null, false);            
+                navigate(window.location.toString(), event.state.target, false);            
             }
         };
 
@@ -1594,10 +1641,16 @@
                     addView(viewModel, parentViewChildArray, insertIndex, internalViewItems);
                 },
                 
-                remove: removeViews
+                remove: removeViews,
+
+                empty: function(){
+                    removeViews(internalViewItems);
+                },
+
+                constructors: {}
             },
 
-            namedViews: internalNamedViews,
+            namedViews: {},
 
             actions: {
                 add: function(key, actions){
@@ -1607,13 +1660,17 @@
                     
                     internalActions[key] = actions;
                 },
-                trigger: triggerActions
+                trigger: triggerActions,
+
+                constructors: {}
             },
 
             behaviours: {
                 add: addBehaviour,
                 
-                remove: removeBehaviour
+                remove: removeBehaviour,
+
+                constructors: {}
             },
 
             utils: {
@@ -1660,6 +1717,7 @@
                 if(app !== undefined && app !== null && app.title){
                     title = app.title;
                 }
+
                 if(pushPageState){
                     // ToDo: Push state no worksies in exploder.
                     history.pushState(app, title, document.location);

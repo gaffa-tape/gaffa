@@ -73,7 +73,7 @@
                 
                 if(insert){
                     if(!emptyViews.length){
-                        window.gaffa.views.add(createNewView(property, 'emptyTemplate'), viewModel, emptyViews);
+                        viewModel.gaffa.views.add(createNewView(property, 'emptyTemplate'), viewModel, emptyViews);
                     }
                 }else{
                     while(emptyViews.length){

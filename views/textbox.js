@@ -36,22 +36,22 @@
         } 
     }  
     
-    var updateValue = Gaffa.propertyUpdaters.string(function(viewModel, value){
+    function updateValue(viewModel, value){
                 
         var element = viewModel.renderedElement,
             caretPosition = 0,
             hasCaret = element.focus; //this is only necissary because IE10 is a pile of crap (i know what a surprise)
 
         // Inspiration taken from http://stackoverflow.com/questions/2897155/get-caret-position-within-an-text-input-field
-        // but WOW is that some horrendous code! Max <http://stackoverflow.com/users/43677/max> should feel bad.
+        // but WOW is that some horrendous code!
         // hungarian notation in JS, mixing between explicit and implicit braces in an if-else
         // spaces between function and call parenthesies...
         // And you couldn't afford yo type 'Position'?? wtf, was 'ition' that much more that you couldn't type it?!
         // iSel.... WHAT THE FUCK IS THAT? I assumed selection, but FUCK, just type 'selection'!
         // Just wow.
         if(hasCaret){
-            if (document.selection) {
-                var selection = document.selection.createRange();
+            if (window.document.selection) {
+                var selection = window.document.selection.createRange();
                 selection.moveStart('character', -element.value.length);
                 caretPosition = selection.text.length;
             }
@@ -73,25 +73,24 @@
             if(element.selectionStart) {
                 element.setSelectionRange(caretPosition, caretPosition);
             }
-        }
-        
-    });
+        }        
+    }
     
-    var updateSubType = Gaffa.propertyUpdaters.string(function(viewModel, value){
-        viewModel.renderedElement.setAttribute('type', value);
-    });
+    function updateSubType(viewModel, value){
+        viewModel.renderedElement.setAttribute('type', value != null ? value : "");
+    }
     
-    var updatePlaceholder = Gaffa.propertyUpdaters.string(function(viewModel, value){
-        viewModel.renderedElement.setAttribute('placeholder', value);
-    });
-    
-    var updateDisabled = Gaffa.propertyUpdaters.bool(function(viewModel, value){
+    function updatePlaceholder(viewModel, value){
+        viewModel.renderedElement.setAttribute('placeholder', value != null ? value : "");
+    }
+
+    function updateDisabled(viewModel, value){
         if (value){
             viewModel.renderedElement.setAttribute('disabled', 'disabled');
         }else{
             viewModel.renderedElement.removeAttribute('disabled');
         }
-    });
+    }
     
     function Textbox(){}
     Textbox = Gaffa.createSpec(Textbox, Gaffa.View);

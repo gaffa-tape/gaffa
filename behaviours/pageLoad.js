@@ -7,10 +7,12 @@
         throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var Gaffa = require('gaffa');
+    var Gaffa = require('gaffa'),
+        behaviourType = 'pageLoad';
 
     function PageLoadBehaviour(){}
-    PageLoadBehaviour = createSpec(PageLoadBehaviour, Gaffa.Behaviour);
+    PageLoadBehaviour = Gaffa.createSpec(PageLoadBehaviour, Gaffa.Behaviour);
+    PageLoadBehaviour.prototype.type = behaviourType;
     PageLoadBehaviour.prototype.bind = function(){
         Gaffa.Behaviour.prototype.bind.apply(this, arguments);
         

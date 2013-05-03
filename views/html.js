@@ -20,7 +20,7 @@
     Html.prototype.render = function(){
         var classes = viewType;
         
-        var renderedElement = document.createElement('span');
+        var renderedElement = crel('span');
         
         this.renderedElement = renderedElement;
         

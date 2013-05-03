@@ -14,8 +14,7 @@
     Navigate = Gaffa.createSpec(Navigate, Gaffa.Action);
     Navigate.prototype.type = actionType;
     Navigate.prototype.url = new Gaffa.Property();
-    Navigate.prototype.model = new Gaffa.Property();
-    Navigate.prototype.post = new Gaffa.Property();
+    Navigate.prototype.target = new Gaffa.Property();
     Navigate.prototype.external = new Gaffa.Property();    
     Navigate.prototype.trigger = function() {
         this.__super__.trigger.apply(this, arguments);
@@ -24,7 +23,7 @@
             window.location = this.url.value;
             return;
         }
-        Gaffa.navigate(this.url.value, this.model.value, this.post.value);
+        this.gaffa.navigate(this.url.value, this.target.value);
     }
 
     return Navigate;

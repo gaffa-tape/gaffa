@@ -20,7 +20,7 @@
             var popFrom = this.source.value,
                 poppedValue = popFrom.pop();
                 
-            this.target.binding && gaffa.model.set(this.target.binding, poppedValue, this);
+            this.target.binding && this.target.set(poppedValue, this);
             this.source.set(popFromArray, this);
         } 
     };

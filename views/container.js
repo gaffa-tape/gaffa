@@ -9,22 +9,18 @@
 }(this, function(){
     var viewType = "container",
         crel = require('crel'),
-        Gaffa = require('gaffa'),
-		cachedElement;
+        Gaffa = require('gaffa');
     
-    function Container(){
-        this.views.content = new Gaffa.ViewContainer(this.views.content);
-    }
+    function Container(){}
     Container = Gaffa.createSpec(Container, Gaffa.ContainerView);
     Container.prototype.type = viewType;
     
     Container.prototype.render = function(){
         
-        var renderedElement = crel(this.tagName || 'div');
-        
-        this.views.content.element = renderedElement;
-        
-        this.renderedElement = renderedElement;
+        var renderedElement = 
+            this.views.content.element = 
+            this.renderedElement = 
+            crel(this.tagName || 'div');
         
         this.__super__.render.apply(this, arguments);
     };

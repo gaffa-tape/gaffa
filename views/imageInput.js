@@ -12,7 +12,7 @@
         viewType = "imageInput",
         cachedElement;
 		
-	gaffa.addDefaultStyle('.imageInput{position:relative; min-height:200px;background-color:white;border:solid 1px gray;}.imageInput:before{content:"Click to upload a file";text-align:center;padding-top:100px;position:absolute;top:0;left:0;right:0;bottom:0;opacity:.4;font-weight:bold;font-size:1.5em;}.imageInput input[type="file"]{position:absolute;top:0;left:0;right:0;bottom:0;opacity:0;width:auto;height:auto}');
+	Gaffa.addDefaultStyle('.imageInput{position:relative; min-height:200px;background-color:white;border:solid 1px gray;}.imageInput:before{content:"Click to upload a file";text-align:center;padding-top:100px;position:absolute;top:0;left:0;right:0;bottom:0;opacity:.4;font-weight:bold;font-size:1.5em;}.imageInput input[type="file"]{position:absolute;top:0;left:0;right:0;bottom:0;opacity:0;width:auto;height:auto}');
 	
 	function imageToBytes(image, callback) {
         var reader = new window.FileReader();
@@ -72,12 +72,12 @@
 			properties = viewModel,
 			image = input.files[0],
 			setDataURL = function(file){
-				window.gaffa.model.set(properties.dataURL.binding, file, viewModel);
+				viewModel.gaffa.model.set(properties.dataURL.binding, file, viewModel);
 			};
 			
-		properties.file.binding && window.gaffa.model.set(properties.file.binding, image, viewModel);
+		properties.file.binding && viewModel.fiel.set(properties.file.binding, image, viewModel);
 		properties.bytes.binding && imageToBytes(image,function(bytes){
-			window.gaffa.model.set(properties.bytes.binding, bytes, viewModel);		
+			viewModel.bytes.set(properties.bytes.binding, bytes, viewModel);		
 		});
 		
 		if(properties.maxWidth.value || properties.maxHeight.value && properties.dataURL.binding){

@@ -7,12 +7,14 @@
         throw "Gaffa must be compiled with browserify";
     }
 }(this, function(){
-    var Gaffa = require('gaffa');
+    var Gaffa = require('gaffa'),
+        behaviourType = 'modelChange';
     
     function ModelChangeBehaviour(){}
-    ModelChangeBehaviour = createSpec(ModelChangeBehaviour, Behaviour);
+    ModelChangeBehaviour = Gaffa.createSpec(ModelChangeBehaviour, Gaffa.Behaviour);
+    ModelChangeBehaviour.prototype.type = behaviourType;
     ModelChangeBehaviour.prototype.bind = function(){
-        Behaviour.prototype.bind.apply(this, arguments);
+        Gaffa.Behaviour.prototype.bind.apply(this, arguments);
         
         var behaviour = this,
             gaffa = behaviour.gaffa;
@@ -22,7 +24,7 @@
 
             if(!(behaviour.ignoreIfUnchanged && currentValue === behaviour.previousValue)){
                 behaviour.previousValue = currentValue;
-                triggerActions(behaviour.actions.change, behaviour);
+                gaffa.actions.trigger(behaviour.actions.change, behaviour);
             }
         }
 
