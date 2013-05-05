@@ -1643,6 +1643,10 @@
             }
         };
 
+        function addDefaultsToScope(scope){
+            scope.windowLocation = window.location.toString();
+        }
+
         extend(gaffa, {
             addDefaultStyle: addDefaultStyle,
             createSpec: createSpec,
@@ -1667,6 +1671,10 @@
                     if(parent && parent.getPath){
                         parentPath = parent.getPath();
                     }
+            
+                    scope = scope || {};
+
+                    addDefaultsToScope(scope);
                     
                     return gedi.get(path, parentPath, scope);
                 },
