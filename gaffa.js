@@ -283,7 +283,42 @@
 
         request.send(settings.data && settings.data);
     }
+    
+       
+    //***********************************************
+    //
+    //      Get Closest Item
+    //
+    //***********************************************
 
+    function getClosestItem(target){
+        var viewModel = target.viewModel;
+
+        while(!viewModel && target){
+            target = target.parentNode;
+
+            if(target){
+                viewModel = target.viewModel;
+            }
+        }
+
+        return viewModel;
+    }
+    
+       
+    //***********************************************
+    //
+    //      Get Closest Item
+    //
+    //***********************************************
+
+    function langify(fn, context){
+        return function(scope, args){
+            var args = args.all();
+
+            return fn.apply(context, args);
+        }
+    }
     
        
     //***********************************************
@@ -573,6 +608,13 @@
                 actions[index] = initialiseAction(action, viewItem, viewItem.actions[key]);
             });
         }
+            
+        if(viewItem.behaviours){
+            fastEach(viewItem.behaviours, function(behaviour, index, behaviours){
+                behaviours[index].gaffa = gaffa;
+                behaviours[index] = initialiseBehaviour(behaviour, viewItem, viewItem.behaviours);
+            });
+        }
         
         viewItem.viewContainer = viewContainer;
         
@@ -587,11 +629,11 @@
     //
     //***********************************************
     
-    function initialiseView(viewModel, parentView, viewContainer) {                
-        if(viewModel.name){
-            viewModel.gaffa.namedViews[viewModel.name] = viewModel;
+    function initialiseView(viewItem, parentView, viewContainer) {                
+        if(viewItem.name){
+            viewItem.gaffa.namedViews[viewItem.name] = viewItem;
         }
-        return initialiseViewItem(viewModel, parentView, viewContainer, View);
+        return initialiseViewItem(viewItem, parentView, viewContainer, View);
     }
         
     //***********************************************
@@ -600,9 +642,20 @@
     //
     //***********************************************
     
-    function initialiseAction(viewModel, parentView, viewContainer) { 
-        return initialiseViewItem(viewModel, parentView, viewContainer, Action);
+    function initialiseAction(viewItem, parentView, viewContainer) { 
+        return initialiseViewItem(viewItem, parentView, viewContainer, Action);
     }
+
+        
+    //***********************************************
+    //
+    //      Initialise Behaviour
+    //
+    //***********************************************
+    
+    function initialiseBehaviour(viewItem, parentView, viewContainer) { 
+        return initialiseViewItem(viewItem, parentView, viewContainer, Behaviour);
+    }    
     
     
     //***********************************************
@@ -764,28 +817,6 @@
         this.binding = new gaffa.Expression(this.binding);
         gaffa.model.bind(property.binding, updateProperty, property);
         updateProperty(true);
-    }
-    
-    
-    //***********************************************
-    //
-    //      Remove Behaviour
-    //
-    //***********************************************
-    
-    function removeBehaviour(behaviour){
-        if(!behaviour){
-            for(var key in internalBehaviours){
-                internalBehaviours[key].remove();
-            }
-            return;
-        }
-        
-        if(behaviour instanceof Behaviour){
-            behaviour.remove();
-        }else if(typeof behaviour === 'string'){
-            internalBehaviours[behaviour].remove();
-        }
     }
     
 
@@ -1027,6 +1058,21 @@
     //      View Object
     //
     //***********************************************
+
+    function createEventedActionScope(view, event){
+
+        return {
+            targetItem: getClosestItem(event.target),
+            preventDefault: langify(event.preventDefault, event),
+            stopPropagation: langify(event.stopPropagation, event)
+        };
+    }
+
+    function bindViewEvent(view, eventName){
+        gaffa.doc.on(eventName, view.renderedElement, function (event) {
+            triggerActions(view.actions[eventName], view, createEventedActionScope(view, event), event);
+        });
+    }
     
     function View(viewDescription){
         var view = this;
@@ -1043,15 +1089,21 @@
         });
 
         ViewItem.prototype.bind.apply(this, arguments);
+
         this.forEachChild(function(child){
             child.bind();
         });
+
         for(var key in this.actions){
             var actions = this.actions[key];
+
+            if(actions._bound){
+                continue;
+            }
             
-            gaffa.doc.on(key, this.renderedElement, function (event) {
-                triggerActions(actions, view, event);
-            });
+            actions._bound = true;
+
+            bindViewEvent(view, key);
         }
     };
     View.prototype.remove = function(){
@@ -1183,11 +1235,11 @@
     };
     Behaviour.prototype.remove = function(){
         var thisBehaviour = this;
-        fastEach(internalBehaviours, function(behaviour, index){
-            if(behaviour === thisBehaviour){
-                internalBehaviours.splice(index, 1);
-            }
-        });
+
+        this.removed = true;
+
+        this.gaffa.behaviours.remove(this);
+
         ViewItem.prototype.remove.call(this);
     };
     Behaviour.prototype.toJSON = function(){
@@ -1549,6 +1601,33 @@
                     gaffa.notifications.notify("navigation.complete");
                 }
             });
+        }
+
+        
+        //***********************************************
+        //
+        //      Remove Behaviour
+        //
+        //***********************************************
+        
+        function removeBehaviour(behaviour){
+            if(!behaviour){
+                for(var key in internalBehaviours){
+                    internalBehaviours[key].remove();
+                }
+                return;
+            }
+
+            for(var i = 0; i < internalBehaviours.length; i++){
+                if(behaviour === internalBehaviours[i]){
+                    internalBehaviours.splice(i, 1);
+                    i--;
+                }
+            }
+            
+            if(!behaviour.removed){
+                behaviour.remove();
+            }
         }
         
         //***********************************************

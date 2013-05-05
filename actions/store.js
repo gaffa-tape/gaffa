@@ -15,6 +15,7 @@
     Store = Gaffa.createSpec(Store, Gaffa.Action);
     Store.prototype.type = actionType;
     Store.prototype.location = 'server';
+    Store.prototype.requestType = 'post';
     Store.prototype.dataType = 'json';
     Store.prototype.trigger = function(){
         this.__super__.trigger.apply(this, arguments);
@@ -48,7 +49,7 @@
             
             var ajaxSettings = {
                 cache: false,
-                type: 'post',
+                type: action.requestType || 'post',
                 url: action.target.value || window.location.pathname,
                 data: data,
                 dataType: 'json',
