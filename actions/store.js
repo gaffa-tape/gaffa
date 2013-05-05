@@ -92,15 +92,13 @@
                 }
             };
             
-            if(action.dataType === 'binary'){
-
+            if(action.dataType === 'file'){
                 data = new FormData();
-                data.append("items[]", action.source.value);
+                data.append("file", action.source.value);
                 ajaxSettings.contentType = false;
                 ajaxSettings.processData = false;
                 ajaxSettings.data = data;
-                dataType = false;
-                
+                dataType = false;                
             }
             
             gaffa.ajax(ajaxSettings);

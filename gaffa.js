@@ -267,7 +267,9 @@
         request.open(settings.type || "get", settings.url, true);
 
         // Set default headers
-        request.setRequestHeader('Content-Type', settings.contentType || 'application/json; charset=utf-8');
+        if(settings.contentType !== false){
+            request.setRequestHeader('Content-Type', settings.contentType || 'application/json; charset=utf-8');
+        }
         request.setRequestHeader('X-Requested-With', settings.requestedWith || 'XMLHttpRequest');
         request.setRequestHeader('x-gaffa', 'request');
         if(settings.auth){
