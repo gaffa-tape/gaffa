@@ -760,6 +760,39 @@
         
         return tempObject;
     }
+
+    function createPropertyCallback(property){
+        return function (event) {
+            if(event){                    
+                var value,                        
+                    scope = { // Scope passed to the property when evaluated.
+                        __trackKeys__: property.trackKeys,
+                        viewItem: property.parent
+                    };
+
+                
+                if(event === true){ // Initial update.
+                    value = gaffa.model.get(property.binding, property, scope);
+
+                } else if(property.binding){ // Model change update.
+                    value = event.getValue(scope);
+
+                }
+
+                property.keys = value && value.__gaffaKeys__;
+                property.value = value;
+            }
+            
+            // Call the properties update function, if it has one.
+            // Only call if the changed value is an object, or if it actually changed.
+            if(property.update){
+                if(! 'previousValue' in property || (value && typeof value === 'object') || value !== property.previousValue){
+                    property.update(property.parent, value);
+                    property.previousValue = value;
+                }
+            }
+        }
+    }
     
 
     //***********************************************
@@ -771,6 +804,8 @@
     function bindProperty(viewItem) {
 
         var gaffa = this.gaffa = viewItem.gaffa;
+
+        this.parent = viewItem;
     
         // Shortcut for properties that have no binding.
         // This has a significant impact on performance.
@@ -781,41 +816,10 @@
             return;
         }
                 
-        var property = this,
-            updateProperty = function (event) {
-                if(event){                    
-                    var value,                        
-                        scope = { // Scope passed to the property when evaluated.
-                            __trackKeys__: property.trackKeys,
-                            viewItem: viewItem
-                        };
-
-                    
-                    if(event === true){ // Initial update.
-                        value = gaffa.model.get(property.binding, property, scope);
-
-                    } else if(property.binding){ // Model change update.
-                        value = event.getValue(scope);
-
-                    }
-
-                    property.keys = value && value.__gaffaKeys__;
-                    property.value = value;
-                }
-                
-                // Call the properties update function, if it has one.
-                // Only call if the changed value is an object, or if it actually changed.
-                if(property.update){
-                    if(! 'previousValue' in property || (value && typeof value === 'object') || value !== property.previousValue){
-                        property.update(viewItem, value);
-                        property.previousValue = value;
-                    }
-                }
-            };
+        var updateProperty = createPropertyCallback(this);
             
-        this.parent = viewItem;
         this.binding = new gaffa.Expression(this.binding);
-        gaffa.model.bind(property.binding, updateProperty, property);
+        gaffa.model.bind(this.binding, updateProperty, this);
         updateProperty(true);
     }
     
@@ -852,9 +856,14 @@
                 }
             }
         }
+
+        this.gediCallbacks = [];
     }
     Property = createSpec(Property);
     Property.prototype.bind = bindProperty;
+    Property.prototype.unbind = function(){
+        gaffa.model.debind(this);
+    };
     Property.prototype.getPath = function(){
         return getItemPath(this);
     };
@@ -890,11 +899,6 @@
         viewContainerDescription instanceof Array && fastEach(viewContainerDescription, function(childView){
             viewContainer.push(childView);
         });
-        
-        this.render = new Property(this.render || {value:true});
-        this.render.update = function(viewModel){
-            
-        };
     }
     ViewContainer = createSpec(ViewContainer, Array);
     ViewContainer.prototype.bind = function(parent){
@@ -971,7 +975,6 @@
         }
         
         this.actions = {};
-        this.eventHandlers = [];
 
         for(var key in viewItemDescription){
             if(viewItemDescription.hasOwnProperty(key)){
@@ -1007,9 +1010,18 @@
         this.renderedElement.parentNode.removeChild(this.renderedElement);
     };
     ViewItem.prototype.remove = function(){
-        fastEach(this.eventHandlers, function(handler){
-            gedi.debind(handler);
-        });
+
+        for(var key in this){
+            if(this[key] instanceof Property){
+                this[key].unbind();
+            }
+        }
+
+        for(var key in this.actions){
+            fastEach(this.actions[key].slice(), function(action){
+                action.remove();
+            });
+        }
     };
     ViewItem.prototype.getPath = function(){
         return getItemPath(this);
@@ -1081,6 +1093,8 @@
     }
     View = createSpec(View, ViewItem);
     View.prototype.bind = function(){
+        ViewItem.prototype.bind.call(this);
+
         var view = this,
             gaffa = this.gaffa;
 
@@ -1112,6 +1126,12 @@
         fastEach(this.behaviours, function(behaviour){
             behaviour.remove();
         });
+
+        for(var key in this.views){
+            fastEach(this.views[key].slice(), function(view){
+                view.remove();
+            });
+        }
 
         if(this.parentContainer){
             var index = this.parentContainer.indexOf(this);
@@ -1203,7 +1223,9 @@
     function Action(actionDescription){
     }
     Action = createSpec(Action, ViewItem);
-    Action.prototype.bind = function(){};
+    Action.prototype.bind = function(){
+        ViewItem.prototype.bind.call(this);
+    };
     Action.prototype.trigger = function(parent, scope, event){
         this.parent = parent;
 
@@ -1639,7 +1661,7 @@
          // ToDo: Pop state no worksies in exploder.
         window.onpopstate = function(event){
             if(event.state){
-                navigate(window.location.toString(), event.state.target, false);            
+                navigate(window.location.toString(), event.state.target, false);
             }
         };
 
@@ -1711,13 +1733,16 @@
                     }
                     
                     // Add the callback to the list of handlers associated with the viewItem
-                    if(parent instanceof ViewItem && !(callback in parent.eventHandlers)){
-                        parent.eventHandlers.push(callback);
+                    if(parent.gediCallbacks && parent.gediCallbacks.indexOf(callback)<0){
+                        parent.gediCallbacks.push(callback);
                     }
                     
-                    gedi.bind(path, function(event){
-                        return callback(event);
-                    }, parentPath);
+                    gedi.bind(path, callback, parentPath);
+                },
+                debind: function(item) {
+                    while(item.gediCallbacks && item.gediCallbacks.length){
+                        gedi.debind(item.gediCallbacks.pop());
+                    }
                 }
             },
             views: {
