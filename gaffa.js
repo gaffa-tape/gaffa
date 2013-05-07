@@ -1860,7 +1860,8 @@
             ajax: ajax,
             crel: crel,
             doc: doc,
-            fastEach: fastEach
+            fastEach: fastEach,
+            getClosestItem: getClosestItem
         });
 
         return gaffa;

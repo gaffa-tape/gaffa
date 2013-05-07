@@ -27,7 +27,7 @@
                 fromObj = gaffa.clone(fromObj);
             }
             var pushToBinding = new gaffa.Path(this.target.binding).append(toObject.length.toString());
-            this.gaffa.model.set(pushToBinding, fromObj, this);            
+            this.gaffa.model.set(pushToBinding, fromObj, this);
         } 
     };
     Push.prototype.target = new Gaffa.Property();
