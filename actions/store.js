@@ -23,7 +23,7 @@
         var action = this,
             data = action.source.value,
             errorHandler = function (error) {
-                gaffa.actions.trigger(action.actions.error, action.binding);
+                gaffa.actions.trigger(action.actions.error, action);
                 gaffa.notifications.notify("store.error." + action.kind, error);
             };
 

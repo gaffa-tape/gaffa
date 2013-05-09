@@ -258,7 +258,7 @@
                 return;
             }
             var data = event.target.responseText;
-            settings.success && settings.success(settings.dataType === 'json' ? JSON.parse(data) : data);
+            settings.success && settings.success(settings.dataType === 'json' ? data === '' ? undefined : JSON.parse(data) : data);
         }, false);
         request.addEventListener("error", settings.error, false);
         request.addEventListener("abort", settings.abort, false);

@@ -21,7 +21,7 @@
     }  
     
     function FileInput(){}
-    FileInput = Gaffa.createSpec(FileInput, Gaffa.ContainerView);
+    FileInput = Gaffa.createSpec(FileInput, Gaffa.View);
     FileInput.prototype.type = viewType;
     FileInput.prototype.render = function(){
         var classes = viewType;
@@ -31,8 +31,6 @@
         renderedElement.type = 'file';
 
         doc.on("change", 'input[type="file"]', setValue, renderedElement);
-
-        this.views.content.element = renderedElement;
 
         this.renderedElement = renderedElement;
         

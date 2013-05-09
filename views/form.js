@@ -17,16 +17,13 @@
     Form.prototype.type = viewType;
     
     Form.prototype.render = function(){        
-        var form,
-            viewModel = this,
-            renderedElement = crel('div', 
-                form = crel('form')
-            );
+        var viewModel = this,
+            renderedElement = crel('form')
         
         if (this.action) {
-            form.setAttribute("action", this.action);
+            renderedElement.setAttribute("action", this.action);
         } else {
-            form.addEventListener('submit', function (event) {
+            renderedElement.addEventListener('submit', function (event) {
                 if(viewModel.actions.submit){
                     event.preventDefault();
                 }
@@ -34,10 +31,10 @@
         }
 
         if (this.method) {
-            form.setAttribute("method", this.method);
+            renderedElement.setAttribute("method", this.method);
         }
         
-        this.views.content.element = form;
+        this.views.content.element = renderedElement;
         
         this.renderedElement = renderedElement;
         

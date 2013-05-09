@@ -9,49 +9,24 @@
 }(this, function(){
     var Gaffa = require('gaffa'),
         crel = require('crel'),
-        viewType = "text",
-        findShitBrowsersRegex = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+        viewType = "text";
         
     function Text(){}
     Text = Gaffa.createSpec(Text, Gaffa.View);
     Text.prototype.type = viewType;
     
-    Text.prototype.render = function(){
-        var classes = viewType,
-            renderedElement;
-        
-        renderedElement = document.createElement('span');
-        
-        this.renderedElement = renderedElement;
+    Text.prototype.render = function(){        
+        this.renderedElement = document.createTextNode('');
         
         this.__super__.render.apply(this, arguments);
     };
     
     Text.prototype.text = new Gaffa.Property(function(viewModel, value){
-        if(!shit){
-            viewModel.renderedElement.data = value;
-            if(value !== null && value !== undefined){
-                viewModel.renderedElement.data = value;
-            }else{
-                viewModel.renderedElement.data = "";
-            }
-        }else{
-            if(value !== null && value !== undefined){
-                viewModel.renderedElement.innerHTML = value;
-            }else{
-                viewModel.renderedElement.innerHTML = "";
-            }
-        }
+        viewModel.renderedElement.data = value || '';
     });
     
     Text.prototype.visible = new Gaffa.Property(function(viewModel, value){
-        var element = viewModel.renderedElement;
-
-        if(!shit){
-            viewModel.renderedElement.data = value === false ? '' : viewModel.text.value;
-        }else{
-            viewModel.renderedElement.style.display = value === false ? 'none' : null;            
-        }
+        viewModel.renderedElement.data = (value === false ? '' : viewModel.text.value || '');
     });
 
     return Text;
