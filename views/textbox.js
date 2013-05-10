@@ -37,10 +37,18 @@
     }  
     
     function updateValue(viewModel, value){
+
+        value = value || '';
+
                 
         var element = viewModel.renderedElement,
             caretPosition = 0,
-            hasCaret = element.focus; //this is only necissary because IE10 is a pile of crap (i know what a surprise)
+            hasCaret = element === document.activeElement; //this is only necissary because IE10 is a pile of crap (i know what a surprise)
+
+        // Skip if the text hasnt changed
+        if(value === element.value){
+            return;
+        }
 
         // Inspiration taken from http://stackoverflow.com/questions/2897155/get-caret-position-within-an-text-input-field
         // but WOW is that some horrendous code!
