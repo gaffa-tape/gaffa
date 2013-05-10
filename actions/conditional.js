@@ -18,7 +18,7 @@
     Conditional.prototype.trigger = function() {
         this.__super__.trigger.apply(this, arguments);
 
-        if (action.condition.value) {
+        if (this.condition.value) {
             this.gaffa.actions.trigger(action.actions['true'], action);
         } else {
             this.gaffa.actions.trigger(action.actions['false'], action);
