@@ -19,9 +19,9 @@
         this.__super__.trigger.apply(this, arguments);
 
         if (this.condition.value) {
-            this.gaffa.actions.trigger(action.actions['true'], action);
+            this.gaffa.actions.trigger(this.actions['true'], this);
         } else {
-            this.gaffa.actions.trigger(action.actions['false'], action);
+            this.gaffa.actions.trigger(this.actions['false'], this);
         }           
     };
     
