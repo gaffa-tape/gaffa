@@ -641,8 +641,8 @@
     //
     //***********************************************
     
-    function initialiseAction(viewItem, parentView, viewContainer) { 
-        return initialiseViewItem(viewItem, parentView, viewContainer, Action);
+    function initialiseAction(viewItem, parentView) { 
+        return initialiseViewItem(viewItem, parentView, null, Action);
     }
 
         
@@ -652,8 +652,8 @@
     //
     //***********************************************
     
-    function initialiseBehaviour(viewItem, parentView, viewContainer) { 
-        return initialiseViewItem(viewItem, parentView, viewContainer, Behaviour);
+    function initialiseBehaviour(viewItem, parentView) { 
+        return initialiseViewItem(viewItem, parentView, null, Behaviour);
     }    
     
     
@@ -1684,6 +1684,7 @@
             Behaviour: Behaviour,
             Property: Property,
             ViewContainer: ViewContainer,
+            initialiseViewItem: initialiseViewItem,
             model: {
                 get:function(path, parent, scope) {
                     if(!(parent instanceof ViewItem || parent instanceof Property)){

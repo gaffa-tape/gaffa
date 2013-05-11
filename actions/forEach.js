@@ -27,15 +27,26 @@
         var keys = items.__gaffaKeys__;
 
         for(var i = 0; i < items.length; i++){
-            this.key = keys ? keys[i] : '' + i;
-            this.gaffa.actions.trigger(this.actions['forEach'], this);
+            var psudoParent = new EachPsudoParent();
+            psudoParent.gaffa = this.gaffa;
+            psudoParent.path = this.getPath();
+            psudoParent.key = keys ? keys[i] : '' + i;
+
+            var actions = JSON.parse(JSON.stringify(this.actions['forEach']));
+
+            psudoParent.actions.all = actions;
+            psudoParent = this.gaffa.initialiseViewItem(psudoParent, null, null, Gaffa.Action);
+
+            this.gaffa.actions.trigger(psudoParent.actions.all, psudoParent);
         }
 
         this.key = null;
     };
-    
-    
-    
+
+    function EachPsudoParent(){}
+    EachPsudoParent = Gaffa.createSpec(EachPsudoParent, Gaffa.Action);
+    EachPsudoParent.prototype.type = 'eachPsudoParent';
+
     return ForEach;
     
 }));
