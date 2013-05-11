@@ -20,8 +20,7 @@
     var Gedi = require('gedi'),
         doc = require('doc-js'),
         crel = require('crel'),
-        fastEach = require('fasteach'),
-        history = window.History || window.history;
+        fastEach = require('fasteach');
 
 
     
@@ -839,14 +838,6 @@
     //***********************************************
     
     function Property(propertyDescription){
-        this.set = function(value){
-            this.gaffa.model.set(
-                this.set.binding || this.binding,
-                this.set.binding ? gaffa.model.get(this.set.binding, this, {value: value}) : value,
-                this
-            );
-        };
-
         if(typeof propertyDescription === 'function'){
             this.update = propertyDescription;
         }else{
@@ -860,6 +851,15 @@
         this.gediCallbacks = [];
     }
     Property = createSpec(Property);
+    Property.prototype.set = function(value){
+        var gaffa = this.gaffa;
+
+        gaffa.model.set(
+            this.set.binding || this.binding,
+            this.set.binding ? gaffa.model.get(this.set.binding, this, {value: value}) : value,
+            this
+        );
+    }
     Property.prototype.bind = bindProperty;
     Property.prototype.unbind = function(){
         gaffa.model.debind(this);
@@ -1607,7 +1607,7 @@
                     
                     // Always use pushstate unless triggered by onpopstate
                     if(pushState !== false) {
-                        history.pushState(data, title, url);
+                        gaffa.pushState(data, title, url);
                     }
                     
                     load(data, target);
@@ -1658,12 +1658,14 @@
         //
         //***********************************************
 
-         // ToDo: Pop state no worksies in exploder.
-        window.onpopstate = function(event){
+        gaffa.onpopstate = function(event){
             if(event.state){
                 navigate(window.location.toString(), event.state.target, false);
             }
         };
+
+        // Overridable handler
+        window.onpopstate = gaffa.onpopstate;
 
         function addDefaultsToScope(scope){
             scope.windowLocation = window.location.toString();
@@ -1834,7 +1836,7 @@
 
                 if(pushPageState){
                     // ToDo: Push state no worksies in exploder.
-                    history.pushState(app, title, document.location);
+                    gaffa.pushState(app, title, document.location);
                 }
                 load(app);
             },
@@ -1861,7 +1863,10 @@
             crel: crel,
             doc: doc,
             fastEach: fastEach,
-            getClosestItem: getClosestItem
+            getClosestItem: getClosestItem,
+            pushState: function(state, title, location){
+                window.history.pushState(state, title, location);
+            }
         });
 
         return gaffa;
