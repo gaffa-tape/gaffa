@@ -15,7 +15,7 @@
     ForEach.prototype.type = actionType;
     ForEach.prototype.target = new Gaffa.Property();
 
-    ForEach.prototype.trigger = function() {
+    ForEach.prototype.trigger = function(parent, scope, event) {
         this.__super__.trigger.apply(this, arguments);
 
         var items = this.target.value;
@@ -37,7 +37,7 @@
             psudoParent.actions.all = actions;
             psudoParent = this.gaffa.initialiseViewItem(psudoParent, null, null, Gaffa.Action);
 
-            this.gaffa.actions.trigger(psudoParent.actions.all, psudoParent);
+            this.gaffa.actions.trigger(psudoParent.actions.all, psudoParent, scope, event);
         }
 
         this.key = null;

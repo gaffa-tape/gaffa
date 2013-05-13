@@ -17,13 +17,13 @@
     Store.prototype.location = 'server';
     Store.prototype.requestType = 'post';
     Store.prototype.dataType = 'json';
-    Store.prototype.trigger = function(){
+    Store.prototype.trigger = function(parent, scope, event){
         this.__super__.trigger.apply(this, arguments);
 
         var action = this,
             data = action.source.value,
             errorHandler = function (error) {
-                gaffa.actions.trigger(action.actions.error, action);
+                gaffa.actions.trigger(action.actions.error, action, scope, event);
                 gaffa.notifications.notify("store.error." + action.kind, error);
             };
 
@@ -81,14 +81,18 @@
                     if(action.cleans){
                         gaffa.model.setDirtyState(action.cleans, false, action);
                     }
+
+                    scope = scope || {};
+
+                    scope.data = data;
                     
-                    gaffa.actions.trigger(action.actions.success, action, {data: data});
+                    gaffa.actions.trigger(action.actions.success, action, scope, event);
                     
                     gaffa.notifications.notify("store.success." + action.kind);
                 },
                 error: errorHandler,
                 complete:function(){
-                    gaffa.actions.trigger(action.actions.complete, action);
+                    gaffa.actions.trigger(action.actions.complete, action, scope, event);
                     gaffa.notifications.notify("store.complete." + action.kind);
                 }
             };

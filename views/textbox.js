@@ -100,6 +100,14 @@
         }
     }
     
+    function updateRequired(viewModel, value){
+        if (value){
+            viewModel.renderedElement.setAttribute('required', 'required');
+        }else{
+            viewModel.renderedElement.removeAttribute('required');
+        }
+    }
+    
     function Textbox(){}
     Textbox = Gaffa.createSpec(Textbox, Gaffa.View);
     Textbox.prototype.type = viewType;
@@ -124,6 +132,8 @@
     Textbox.prototype.placeholder = new Gaffa.Property(updatePlaceholder);
     
     Textbox.prototype.disabled = new Gaffa.Property(updateDisabled);
+
+    Textbox.prototype.required = new Gaffa.Property(updateRequired);
 
     return Textbox;
     

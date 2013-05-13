@@ -21,14 +21,14 @@
     Fetch.prototype.dirty = new Gaffa.Property();
     Fetch.prototype.location = 'server';
 
-    Fetch.prototype.trigger = function(){
+    Fetch.prototype.trigger = function(parent, scope, event){
         this.__super__.trigger.apply(this, arguments);
 
         var action = this,
             gaffa = action.gaffa;
 
         var errorHandler = function (error) {
-            action.gaffa.actions.trigger(action.actions.error, action.binding);
+            action.gaffa.actions.trigger(action.actions.error, action, scope, event);
             action.gaffa.notifications.notify("fetch.error." + action.kind, error);
         };
     
@@ -61,7 +61,7 @@
                 }
             }
             
-            gaffa.actions.trigger(action.actions.success, action);
+            gaffa.actions.trigger(action.actions.success, action, scope, event);
             
             gaffa.notifications.notify("fetch.success." + action.kind);
         }
@@ -94,7 +94,7 @@
                         error: errorHandler,
                         complete:function(){
                             gaffa.notifications.notify("fetch.complete." + action.kind);
-                            gaffa.actions.trigger(action.actions.complete, action);
+                            gaffa.actions.trigger(action.actions.complete, action, scope, event);
                         }
                     });
                 }
