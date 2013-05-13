@@ -10,58 +10,40 @@
     var Gaffa = require('gaffa'),
         behaviourType = 'modelChange';
     
+        
+    function executeBehaviour(behaviour, value){
+        gaffa.actions.trigger(behaviour.actions.change, behaviour);
+    }
+
     function ModelChangeBehaviour(){}
     ModelChangeBehaviour = Gaffa.createSpec(ModelChangeBehaviour, Gaffa.Behaviour);
     ModelChangeBehaviour.prototype.type = behaviourType;
-    ModelChangeBehaviour.prototype.bind = function(){
-        Gaffa.Behaviour.prototype.bind.apply(this, arguments);
-        
-        var behaviour = this,
-            gaffa = behaviour.gaffa;
-        
-        function executeBehaviour(behaviour, value){
-            var currentValue = JSON.stringify(value);
+    ModelChangeBehaviour.prototype.watch = new Gaffa.Property(function(behaviour, value){
+        var gaffa = behaviour.gaffa;
 
-            if(!(behaviour.ignoreIfUnchanged && currentValue === behaviour.previousValue)){
-                behaviour.previousValue = currentValue;
-                gaffa.actions.trigger(behaviour.actions.change, behaviour);
-            }
+        if(!value){
+            return;
         }
 
-        behaviour.__callback__ = function (modelChangeEvent){
-            var value = modelChangeEvent.getValue();
-
-            if(!value){
-                return;
-            }
-
-            var throttleTime = behaviour.throttle;
-            if(!isNaN(throttleTime)){
-                var now = new Date();
-                if(!behaviour.lastTrigger || now - behaviour.lastTrigger > throttleTime){
-                    behaviour.lastTrigger = now;
-                    executeBehaviour(behaviour, value);
-                }else{
-                    clearTimeout(behaviour.timeout);
-                    behaviour.timeout = setTimeout(function(){
-                            behaviour.lastTrigger = now;
-                            executeBehaviour(behaviour, value);
-                        },
-                        throttleTime - (now - behaviour.lastTrigger)
-                    );
-                }
-            }else{
+        var throttleTime = behaviour.throttle;
+        if(!isNaN(throttleTime)){
+            var now = new Date();
+            if(!behaviour.lastTrigger || now - behaviour.lastTrigger > throttleTime){
+                behaviour.lastTrigger = now;
                 executeBehaviour(behaviour, value);
+            }else{
+                clearTimeout(behaviour.timeout);
+                behaviour.timeout = setTimeout(function(){
+                        behaviour.lastTrigger = now;
+                        executeBehaviour(behaviour, value);
+                    },
+                    throttleTime - (now - behaviour.lastTrigger)
+                );
             }
-        };
-        
-        gaffa.model.bind(behaviour.watch || '[]',behaviour.__callback__ , this);
-    };
-    ModelChangeBehaviour.prototype.remove = function () {
-        this.gaffa.gedi.debind(this.__callback__);
-
-        this.__super__.remove.apply(this);
-    };
+        }else{
+            executeBehaviour(behaviour, value);
+        }
+    });
 
     return ModelChangeBehaviour;
     

@@ -1093,8 +1093,6 @@
     }
     View = createSpec(View, ViewItem);
     View.prototype.bind = function(){
-        ViewItem.prototype.bind.call(this);
-
         var view = this,
             gaffa = this.gaffa;
 
@@ -1734,17 +1732,21 @@
                     if(parent && parent.getPath){
                         parentPath = parent.getPath();
                     }
+
+                    if(!parent.gediCallbacks){
+                        parent.gediCallbacks = [];
+                    }
                     
                     // Add the callback to the list of handlers associated with the viewItem
-                    if(parent.gediCallbacks && parent.gediCallbacks.indexOf(callback)<0){
-                        parent.gediCallbacks.push(callback);
-                    }
+                    parent.gediCallbacks.push(function(){
+                        gedi.debind(callback);
+                    });
                     
                     gedi.bind(path, callback, parentPath);
                 },
                 debind: function(item) {
                     while(item.gediCallbacks && item.gediCallbacks.length){
-                        gedi.debind(item.gediCallbacks.pop());
+                        item.gediCallbacks.pop()();
                     }
                 }
             },
