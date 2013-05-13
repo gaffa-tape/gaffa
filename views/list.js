@@ -73,11 +73,11 @@
                 
                 if(insert){
                     if(!emptyViews.length){
-                        viewModel.gaffa.views.add(createNewView(property, 'emptyTemplate'), viewModel, emptyViews);
+                        emptyViews.add(createNewView(property, 'emptyTemplate'));
                     }
                 }else{
                     while(emptyViews.length){
-                        viewModel.renderedElement.removeChild(emptyViews.pop().renderedElement);
+                        emptyViews.pop().remove();
                     }
                 }
             }
