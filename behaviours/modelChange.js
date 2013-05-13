@@ -18,10 +18,11 @@
     function ModelChangeBehaviour(){}
     ModelChangeBehaviour = Gaffa.createSpec(ModelChangeBehaviour, Gaffa.Behaviour);
     ModelChangeBehaviour.prototype.type = behaviourType;
+    ModelChangeBehaviour.prototype.condition = new Gaffa.Property({value: true});
     ModelChangeBehaviour.prototype.watch = new Gaffa.Property(function(behaviour, value){
         var gaffa = behaviour.gaffa;
 
-        if(!value){
+        if(!behaviour.condition.value){
             return;
         }
 
