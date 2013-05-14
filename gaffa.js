@@ -1079,12 +1079,12 @@
         var view = this,
             gaffa = this.gaffa;
 
+        ViewItem.prototype.bind.apply(this, arguments);
+
         fastEach(view.behaviours, function(behaviour){
             behaviour.gaffa = view.gaffa;
             behaviour.bind(view);
         });
-
-        ViewItem.prototype.bind.apply(this, arguments);
 
         for(var key in this.actions){
             var actions = this.actions[key];
@@ -1225,10 +1225,8 @@
     
     function Behaviour(behaviourDescription){}
     Behaviour = createSpec(Behaviour, ViewItem);
-    Behaviour.prototype.bind = function(){   
-        ViewItem.prototype.bind.apply(this, arguments);  
-        
-        this.path = this.gaffa.Path.parse(this.path);
+    Behaviour.prototype.bind = function(parent){   
+        ViewItem.prototype.bind.apply(this, arguments);
     };
     Behaviour.prototype.remove = function(){
         var thisBehaviour = this;
