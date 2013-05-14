@@ -22,7 +22,6 @@
         var renderedElement = crel('div');
         
         this.views.groups.element = renderedElement;
-        this.views.groups.property = this.groups;
         this.views.empty.element = renderedElement;
         
         this.renderedElement = renderedElement;
@@ -30,15 +29,20 @@
         this.__super__.render.apply(this, arguments);
     }
 
-
-    function createNewView(property, templateKey){
+    function createNewView(property, templateKey, addedItem){
         if(!property.templateCache){
             property.templateCache= {};
         }
-        return JSON.parse(
+        var view = JSON.parse(
             property.templateCache[templateKey] || 
             (property.templateCache[templateKey] = JSON.stringify(property[templateKey]))
         );
+
+        for(var key in addedItem){
+            view[key] = addedItem[key];
+        }
+
+        return property.gaffa.initialiseViewItem(view, property.gaffa, property.gaffa.views.constructors);
     }
            
     Group.prototype.groups = new Gaffa.Property(Gaffa.propertyUpdaters.group(
@@ -63,12 +67,14 @@
             }
 
             if(property.listTemplate){
-                newList = createNewView(property, 'listTemplate');
-
                 expression = '(filter [] {item (= (' + property.expression + ' item) "' + addedItem.group + '")})';
-                
-                newList.list = newList.list || {};
-                newList.list.binding = expression;
+                addedItem
+
+
+                addedItem.list = newList.list || {};
+                addedItem.list.binding = expression;
+
+                newList = createNewView(property, 'listTemplate', addedItem);
 
                 groupContainer.views.content.add(newList);
             }
@@ -90,11 +96,11 @@
             
             if(insert){
                 if(!emptyViews.length){
-                    viewModel.gaffa.views.add(createNewView(property, 'emptyTemplate'), viewModel, emptyViews);
+                    emptyViews.add(createNewView(property, 'emptyTemplate'));
                 }
             }else{
                 while(emptyViews.length){
-                    viewModel.renderedElement.removeChild(emptyViews.pop().renderedElement);
+                    emptyViews[0].remove();
                 }
             }
         }

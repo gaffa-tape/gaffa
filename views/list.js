@@ -24,23 +24,26 @@
         var renderedElement = crel(this.tagName || 'div');
         
         this.views.list.element = renderedElement;
-        this.views.list.property = this.list;
-		this.views.empty.element = renderedElement;
-        this.views.empty.property = this.list;
-        
+		this.views.empty.element = renderedElement;        
         this.renderedElement = renderedElement;
         
         this.__super__.render.apply(this, arguments);
     };
 
-    function createNewView(property, templateKey){
+    function createNewView(property, templateKey, addedItem){
         if(!property.templateCache){
             property.templateCache= {};
         }
-        return JSON.parse(
+        var view = JSON.parse(
             property.templateCache[templateKey] || 
             (property.templateCache[templateKey] = JSON.stringify(property[templateKey]))
         );
+
+        for(var key in addedItem){
+            view[key] = addedItem[key];
+        }
+
+        return property.gaffa.initialiseViewItem(view, property.gaffa, property.gaffa.views.constructors);
     }
     
     List.prototype.list = new Gaffa.Property({
@@ -49,14 +52,10 @@
             //increment
             function(viewModel, list, addedItem, insertIndex){
                 var listViews = viewModel.views.list,
-                    property = viewModel.list,
-                    newView = createNewView(property, 'template');
+                    property = viewModel.list;
 
-                for(var key in addedItem){
-                    newView[key] = addedItem[key];
-                }
 
-                listViews.add(newView, insertIndex);
+                listViews.add(createNewView(property, 'template', addedItem), insertIndex);
             },
             //decrement
             function(viewModel, list, removedItem){
@@ -77,7 +76,7 @@
                     }
                 }else{
                     while(emptyViews.length){
-                        emptyViews.pop().remove();
+                        emptyViews[0].remove();
                     }
                 }
             }

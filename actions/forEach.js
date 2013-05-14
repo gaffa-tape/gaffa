@@ -35,7 +35,7 @@
             var actions = JSON.parse(JSON.stringify(this.actions['forEach']));
 
             psudoParent.actions.all = actions;
-            psudoParent = this.gaffa.initialiseViewItem(psudoParent, null, null, Gaffa.Action);
+            psudoParent = this.gaffa.initialiseViewItem(psudoParent, psudoParent.gaffa, psudoParent.actions.constructors);
 
             this.gaffa.actions.trigger(psudoParent.actions.all, psudoParent, scope, event);
         }

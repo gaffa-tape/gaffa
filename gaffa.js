@@ -377,8 +377,7 @@
     //***********************************************
 
     function triggerAction(action, parent, scope, event) {
-        action.parent = parent || action.parent;
-        action.trigger(parent, scope, event);
+        action.trigger(parent || action.parent, scope, event);
     }
 
     //***********************************************
@@ -570,24 +569,11 @@
     //
     //***********************************************
     
-    function initialiseViewItem(viewItem, parentViewItem, viewContainer, spec) {
-        //if the viewModel is an array, recurse.
-        var specCollection,
-            gaffa = viewItem.gaffa;
-        
-        if (spec === Action){
-           specCollection = gaffa.actions.constructors;
-        }else if(spec === View){
-           specCollection = gaffa.views.constructors;
-        }else if(spec === Behaviour){
-           specCollection = gaffa.behaviours.constructors;
-        }
-        
-        if(!(viewItem instanceof spec)){
+    function initialiseViewItem(viewItem, gaffa, specCollection) {
+        if(!(viewItem instanceof ViewItem)){
             if (!specCollection[viewItem.type]) {
-                console.error("No action is loaded to handle view of type " + viewItem.type);
-            }
-            
+                throw "No constructor is loaded to handle view of type " + viewItem.type;
+            }            
             viewItem = new specCollection[viewItem.type](viewItem);
         }
 
@@ -596,28 +582,21 @@
                 viewItem.views[key] = new ViewContainer(viewItem.views[key]);
             }
             fastEach(viewItem.views[key], function(view, index, views){
-                views[index].gaffa = gaffa;
-                views[index] = initialiseView(view, viewItem, viewItem.views[key]);
+                views[index] = initialiseView(view, gaffa, viewItem.views[key]);
             });
         }
             
         for(var key in viewItem.actions){
             fastEach(viewItem.actions[key], function(action, index, actions){
-                actions[index].gaffa = gaffa;
-                actions[index] = initialiseAction(action, viewItem, viewItem.actions[key]);
+                actions[index] = initialiseAction(action, gaffa);
             });
         }
             
         if(viewItem.behaviours){
             fastEach(viewItem.behaviours, function(behaviour, index, behaviours){
-                behaviours[index].gaffa = gaffa;
-                behaviours[index] = initialiseBehaviour(behaviour, viewItem, viewItem.behaviours);
+                behaviours[index] = initialiseBehaviour(behaviour, gaffa);
             });
         }
-        
-        viewItem.viewContainer = viewContainer;
-        
-        viewItem.parent = parentViewItem;
         
         return viewItem;
     }
@@ -628,11 +607,8 @@
     //
     //***********************************************
     
-    function initialiseView(viewItem, parentView, viewContainer) {                
-        if(viewItem.name){
-            viewItem.gaffa.namedViews[viewItem.name] = viewItem;
-        }
-        return initialiseViewItem(viewItem, parentView, viewContainer, View);
+    function initialiseView(viewItem, gaffa) {
+        return initialiseViewItem(viewItem, gaffa, gaffa.views.constructors);
     }
         
     //***********************************************
@@ -641,8 +617,8 @@
     //
     //***********************************************
     
-    function initialiseAction(viewItem, parentView) { 
-        return initialiseViewItem(viewItem, parentView, null, Action);
+    function initialiseAction(viewItem, gaffa) { 
+        return initialiseViewItem(viewItem, gaffa, gaffa.actions.constructors);
     }
 
         
@@ -652,55 +628,9 @@
     //
     //***********************************************
     
-    function initialiseBehaviour(viewItem, parentView) { 
-        return initialiseViewItem(viewItem, parentView, null, Behaviour);
+    function initialiseBehaviour(viewItem, gaffa) { 
+        return initialiseViewItem(viewItem, gaffa, gaffa.behaviours.constructors);
     }    
-    
-    
-    //***********************************************
-    //
-    //      Add View
-    //
-    //***********************************************
-    
-    function addView(viewModel, parentViewChildArray, insertIndex, internalViewItems, insertInPlace) {
-
-        var parent = parentViewChildArray && parentViewChildArray.parent;
-
-        //if the viewModel is an array, recurse.
-        if (viewModel instanceof Array) {
-            fastEach(viewModel, function (viewModel, insertIndex, viewModels) {
-                if(viewModels instanceof ViewContainer){
-                    addView(viewModel, viewModels, insertIndex, internalViewItems, true);
-                }else{
-                    addView(viewModel);
-                }
-            });
-            return;
-        }
-        
-        viewModel = initialiseView(viewModel, parent, parentViewChildArray);
-        
-        viewModel.parentContainer = parentViewChildArray;
-            
-        if (parentViewChildArray) {
-            if(insertInPlace){
-                parentViewChildArray[insertIndex] = viewModel;
-            }else if(insertIndex != null){
-                parentViewChildArray.splice(insertIndex, 0, viewModel);
-            }else{
-                parentViewChildArray.push(viewModel);
-            }
-        } else {
-            internalViewItems.push(viewModel);
-        }
-        
-        viewModel.render();
-        viewModel.bind();
-        viewModel.insert(parentViewChildArray, insertIndex);
-                
-        return viewModel;
-    }
     
     
     //***********************************************
@@ -800,25 +730,22 @@
     //
     //***********************************************
 
-    function bindProperty(viewItem) {
-
-        var gaffa = this.gaffa = viewItem.gaffa;
-
-        this.parent = viewItem;
+    function bindProperty(parent) {
+        this.parent = parent;
     
         // Shortcut for properties that have no binding.
         // This has a significant impact on performance.
         if(this.binding == null){
             if(this.update){
-                this.update(viewItem, this.value);
+                this.update(parent, this.value);
             }
             return;
         }
                 
         var updateProperty = createPropertyCallback(this);
             
-        this.binding = new gaffa.Expression(this.binding);
-        gaffa.model.bind(this.binding, updateProperty, this);
+        this.binding = new this.gaffa.Expression(this.binding);
+        this.gaffa.model.bind(this.binding, updateProperty, this);
         updateProperty(true);
     }
     
@@ -861,7 +788,7 @@
         );
     }
     Property.prototype.bind = bindProperty;
-    Property.prototype.unbind = function(){
+    Property.prototype.debind = function(){
         gaffa.model.debind(this);
     };
     Property.prototype.getPath = function(){
@@ -904,13 +831,36 @@
     ViewContainer.prototype.bind = function(parent){
         this.parent = parent;
         this.gaffa = parent.gaffa;
+
+        if(this.bound){
+            return;
+        }
+
+        this.bound = true;
+        
+        for(var propertyKey in this){
+            if(this[propertyKey] instanceof Property){
+                this[propertyKey].bind(this);
+            }
+        }
+
         return this;
+    };
+    ViewContainer.prototype.debind = function(){
+        if(!this.bound){
+            return;
+        }
+
+        this.bound = false;
+
+        fastEach(this, function(viewModel){
+            viewModel.debind();
+        });
     };
     ViewContainer.prototype.getPath = function(){
         return getItemPath(this);
     };
     ViewContainer.prototype.add = function(viewModel, insertIndex){
-
         // If passed an array
         if(Array.isArray(viewModel)){
             var viewContainer = this;
@@ -920,23 +870,17 @@
             return this;
         }
 
-        if(this.gaffa){
-            viewModel.gaffa = this.gaffa;
+        this.splice(insertIndex != null ? insertIndex : this.length, 0, viewModel);
+        viewModel.parentContainer = this;
+
+        if(this.bound){
+            this.render.update(this, this.render.value);
         }
-    
-        // If this has a parent (it has been bound)
-        // call addView, which binds and renderes the
-        // inserted views.
-        if(this.parent){
-            addView(viewModel, this, insertIndex);
-        }else{
-        
-        // Otherwise, just push the viewModel into the
-        // ViewContainer, to be bound when the parent
-        // ViewItem is bound.
-            this.splice(insertIndex != null ? insertIndex : this.length, 0, viewModel);
-        }
+
         return this;
+    };
+    ViewContainer.prototype.remove = function(viewModel){
+        viewModel.remove();
     };
     ViewContainer.prototype.empty = function(){
         removeViews(this);
@@ -944,6 +888,33 @@
     ViewContainer.prototype.toJSON = function(){
         return jsonConverter(this, ['element']);
     };
+    ViewContainer.prototype.render = new Property({
+        update: function(viewContainer, value){
+            if(value){
+                fastEach(viewContainer, function(viewModel, index){
+                    viewModel.gaffa = viewContainer.gaffa;
+
+                    if(viewModel.renderedElement){
+                        return;
+                    }
+
+                    if(viewModel.name){
+                        viewContainer.gaffa.namedViews[viewModel.name] = viewModel;
+                    }
+
+
+                    viewModel.render();
+                    viewModel.bind(viewContainer.parent);
+                    viewModel.insert(viewContainer, index);
+                })
+            }else{
+                fastEach(viewContainer, function(viewModel, index){
+                    viewModel.debind();
+                });
+            }
+        },
+        value: true
+    });
 
     function copyProperties(source, target){
         if(
@@ -988,39 +959,50 @@
         }
     }
     ViewItem = createSpec(ViewItem);
-    ViewItem.prototype.bind = function(){
+    ViewItem.prototype.bind = function(parent){
         this.path = this.path ? new this.gaffa.Path(this.path) : new this.gaffa.Path('[]');
+        var viewItem = this;
+
+        this.parent = parent;
 
         for(var eventKey in this.actions){
-            var viewModel = this;
             fastEach(this.actions[eventKey], function(action, index, actions){
                 var action = actions[index];
-                
-                action.bind();
+                action.gaffa = viewItem.gaffa;
+                action.bind(viewItem);
             });
         }
         
         for(var propertyKey in this){
             if(this[propertyKey] instanceof Property){
-                this[propertyKey].bind(this);
+                var property = this[propertyKey];
+                property.gaffa = viewItem.gaffa;
+                property.bind(this);
             }
+        }
+    };
+    ViewItem.prototype.debind = function(){
+        for(var key in this){
+            if(this[key] instanceof Property){
+                this[key].debind();
+            }
+        }
+
+        for(var key in this.actions){
+            fastEach(this.actions[key].slice(), function(action){
+                action.debind();
+            });
         }
     };
     ViewItem.prototype.detach = function(){
         this.renderedElement.parentNode.removeChild(this.renderedElement);
     };
     ViewItem.prototype.remove = function(){
-
-        for(var key in this){
-            if(this[key] instanceof Property){
-                this[key].unbind();
-            }
-        }
-
+        this.debind();
         for(var key in this.actions){
-            fastEach(this.actions[key].slice(), function(action){
-                action.remove();
-            });
+            while(this.actions[key].length){
+                this.actions[key].pop().remove();
+            }
         }
     };
     ViewItem.prototype.getPath = function(){
@@ -1081,7 +1063,7 @@
     }
 
     function bindViewEvent(view, eventName){
-        gaffa.doc.on(eventName, view.renderedElement, function (event) {
+        return gaffa.doc.on(eventName, view.renderedElement, function (event) {
             triggerActions(view.actions[eventName], view, createEventedActionScope(view, event), event);
         });
     }
@@ -1089,22 +1071,20 @@
     function View(viewDescription){
         var view = this;
 
+        view.viewEvents = [];
         view.behaviours = view.behaviours || [];        
     }
     View = createSpec(View, ViewItem);
-    View.prototype.bind = function(){
+    View.prototype.bind = function(parent){
         var view = this,
             gaffa = this.gaffa;
 
         fastEach(view.behaviours, function(behaviour){
-            behaviour.bind();
+            behaviour.gaffa = view.gaffa;
+            behaviour.bind(view);
         });
 
         ViewItem.prototype.bind.apply(this, arguments);
-
-        this.forEachChild(function(child){
-            child.bind();
-        });
 
         for(var key in this.actions){
             var actions = this.actions[key];
@@ -1115,45 +1095,40 @@
             
             actions._bound = true;
 
-            bindViewEvent(view, key);
+            this.viewEvents.push(bindViewEvent(view, key));
         }
     };
+    View.prototype.debind = function () {        
+        fastEach(this.behaviours, function(behaviour){
+            behaviour.debind();
+        });
+        while(this.viewEvents.length){
+            this.viewEvents.pop()();
+        }
+        this.renderedElement && this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
+    };
     View.prototype.remove = function(){
+        if(this.removed == true){
+            return;
+        }
+
         ViewItem.prototype.remove.call(this);
 
-        fastEach(this.behaviours, function(behaviour){
-            behaviour.remove();
-        });
+        this.removed = true;
+        var viewIndex = this.parentContainer.indexOf(this);
 
-        for(var key in this.views){
-            fastEach(this.views[key].slice(), function(view){
-                view.remove();
-            });
+        if(viewIndex >= 0){
+            this.parentContainer.splice(viewIndex, 1);              
         }
 
-        if(this.parentContainer){
-            var index = this.parentContainer.indexOf(this);
-            if(index>=0){
-                this.parentContainer.splice(index, 1);
-            }
-        }
-        
-        this.renderedElement && this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
+        this.parentContainer = null;
     };
     View.prototype.render = function(){
         this.renderedElement.viewModel = this;
-        this.forEachChild(function(child){
-            child.render();
-        });
     };    
     View.prototype.insert = function(viewContainer, insertIndex){
         var view = this,
             gaffa = view.gaffa;
-
-        // Insert children first, for speed.
-        this.forEachChild(function(child, viewContainer){
-            child.insert(viewContainer);
-        });
 
         var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
         this.insertFunction(this.insertSelector || renderTarget, this.renderedElement, insertIndex);
@@ -1175,14 +1150,6 @@
         
         viewModel.renderedElement.className = classes ? classes : null;
     });
-    View.prototype.forEachChild = function(callback){
-        for(var key in this.views){
-            var parentView = this;
-            fastEach(this.views[key], function(view){
-                callback(view, parentView.views[key]);
-            });
-        }
-    };
     View.prototype.visible = new Property(function(viewModel, value) {
         viewModel.renderedElement.style.display = value === false ? 'none' : null;
     });
@@ -1200,15 +1167,25 @@
         this.views.content = new ViewContainer(this.views.content);
     }
     ContainerView = createSpec(ContainerView, View);
-    ContainerView.prototype.bind = function(){
+    ContainerView.prototype.bind = function(parent){
+        View.prototype.bind.apply(this, arguments);
         for(var key in this.views){
             var viewContainer = this.views[key];
             
             if(viewContainer instanceof ViewContainer){
                 viewContainer.bind(this);
             }
-        };
-        View.prototype.bind.apply(this, arguments);
+        }
+    };
+    ContainerView.prototype.debind = function(){
+        View.prototype.debind.apply(this, arguments);
+        for(var key in this.views){
+            var viewContainer = this.views[key];
+            
+            if(viewContainer instanceof ViewContainer){
+                viewContainer.debind();
+            }
+        }
     };
     
     
@@ -1463,21 +1440,17 @@
         //
         //*********************************************** 
         
-        function addBehaviour(behaviours) {
+        function addBehaviour(behaviour) {
             //if the views isnt an array, make it one.
-            if (!Array.isArray(behaviours)) {
-                behaviours = [behaviours];
+            if (Array.isArray(behaviour)) {
+                fastEach(behaviour, addBehaviour);
             }
 
-            fastEach(behaviours, function (behaviour, index, behaviours) {
-                behaviour.gaffa = gaffa;
-                
-                behaviour = initialiseViewItem(behaviour, null, null, Behaviour);  
-                
-                behaviour.bind();
-                
-                internalBehaviours.push(behaviour);
-            });
+            behaviour.gaffa = gaffa;
+            
+            behaviour.bind();
+            
+            internalBehaviours.push(behaviour);
         }
 
         
@@ -1567,9 +1540,15 @@
                 gaffa.model.set(app.model, null, null, false);
             }
             if (app.views) {
+                fastEach(app.views, function(view, index){
+                    app.views[index] = initialiseView(view, gaffa);
+                });
                 targetView.add(app.views);
             }
             if (app.behaviours) {
+                fastEach(app.behaviours, function(behaviour, index){
+                    app.behaviours[index] = initialiseBehaviour(behaviour, gaffa);
+                });
                 gaffa.behaviours.add(app.behaviours);
             }
             
@@ -1755,9 +1734,20 @@
                 
                 //Add a view or viewModels to another view, or the root list of viewModels if a parent isnt passed.
                 //Set up the viewModels bindings as they are added.
-                add: function(viewModel, parentViewChildArray, insertIndex){
+                add: function(viewModel, insertIndex){
+                    if(Array.isArray(viewModel)){
+                        fastEach(viewModel, gaffa.add);
+                    }
+
+                    if(this.name){
+                        gaffa.namedViews[viewItem.name] = viewItem;
+                    }
+
                     viewModel.gaffa = gaffa;
-                    addView(viewModel, parentViewChildArray, insertIndex, internalViewItems);
+                    viewModel.parentContainer = internalViewItems;
+                    viewModel.render();
+                    viewModel.bind();
+                    viewModel.insert(internalViewItems, insertIndex);
                 },
                 
                 remove: removeViews,
