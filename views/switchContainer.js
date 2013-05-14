@@ -50,7 +50,10 @@
         template = this.templates[value] || this.emptyTemplate;
 
         if(!template){
-            content.add(createNewView(this, this.emptyTemplate, 'emptyTemplate'));
+            if(this.emptyTemplate){
+                content.add(createNewView(this, this.emptyTemplate, 'emptyTemplate'));
+            }
+            return;
         }
 
         content.add(createNewView(this, template, 'templates-' + value));
