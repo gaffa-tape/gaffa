@@ -661,7 +661,7 @@
 
     function jsonConverter(object, exclude, include){
         var tempObject = Array.isArray(object) || object instanceof Array && [] || {},
-        excludeProps = ["gaffa", "parent", "viewContainer", "renderedElement"],
+        excludeProps = ["gaffa", "parent", "parentContainer", "renderedElement"],
         includeProps = ["type"];
                     
         if(exclude){
