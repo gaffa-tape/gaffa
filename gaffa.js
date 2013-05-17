@@ -377,7 +377,7 @@
     //***********************************************
 
     function triggerAction(action, parent, scope, event) {
-        action.trigger(parent || action.parent, scope, event);
+        action.trigger(parent, scope, event);
     }
 
     //***********************************************
