@@ -408,8 +408,11 @@
         if(target && target.childNodes){
             referenceSibling = target.childNodes[insertIndex];
         }
-
-        target.insertBefore(renderedElement, referenceSibling);
+        if (referenceSibling){
+            target.insertBefore(renderedElement, referenceSibling);
+        }  else {
+            target.appendChild(renderedElement);
+        }
     }
     
     //***********************************************
@@ -1559,7 +1562,11 @@
         //
         //***********************************************
 
-        function navigate(url, target, pushState) {
+        function navigate(url, target, pushState, data) {
+
+            // Data will be passed to the route as a querystring
+            // but will not be displayed visually in the address bar.
+            // This is to help resolve caching issues.
             
             gaffa.notifications.notify("navigation.begin");
             gaffa.ajax({
@@ -1569,7 +1576,7 @@
                 cache: navigator.appName !== 'Microsoft Internet Explorer',
                 url: url,
                 type: "get",
-                data: "gaffaNavigate=1", // This is to avoid the cached HTML version of a page if you are bootstrapping.
+                data: data, // This is to avoid the cached HTML version of a page if you are bootstrapping.
                 dataType: "json",
                 success: function (data) {
                     var title;
