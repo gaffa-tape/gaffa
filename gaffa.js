@@ -586,18 +586,21 @@
             }
             fastEach(viewItem.views[key], function(view, index, views){
                 views[index] = initialiseView(view, gaffa, viewItem.views[key]);
+                views[index].parentContainer = views;
             });
         }
             
         for(var key in viewItem.actions){
             fastEach(viewItem.actions[key], function(action, index, actions){
                 actions[index] = initialiseAction(action, gaffa);
+                actions[index].parentContainer = actions;
             });
         }
             
         if(viewItem.behaviours){
             fastEach(viewItem.behaviours, function(behaviour, index, behaviours){
                 behaviours[index] = initialiseBehaviour(behaviour, gaffa);
+                behaviours[index].parentContainer = behaviours;
             });
         }
         
@@ -968,6 +971,8 @@
 
         this.parent = parent;
 
+        this.bound = true;
+
         for(var eventKey in this.actions){
             fastEach(this.actions[eventKey], function(action, index, actions){
                 var action = actions[index];
@@ -996,17 +1001,23 @@
                 action.debind();
             });
         }
+
+        this.bound = false;
     };
-    ViewItem.prototype.detach = function(){
-        this.renderedElement.parentNode.removeChild(this.renderedElement);
-    };
-    ViewItem.prototype.remove = function(){
-        this.debind();
-        for(var key in this.actions){
-            while(this.actions[key].length){
-                this.actions[key].pop().remove();
-            }
+    ViewItem.prototype.remove = function(){        
+        if(!this.parentContainer){
+            return;
         }
+
+        var viewIndex = this.parentContainer.indexOf(this);
+
+        if(viewIndex >= 0){
+            this.parentContainer.splice(viewIndex, 1);              
+        }
+
+        this.debind();
+
+        this.parentContainer = null;
     };
     ViewItem.prototype.getPath = function(){
         return getItemPath(this);
@@ -1101,6 +1112,9 @@
             this.viewEvents.push(bindViewEvent(view, key));
         }
     };
+    View.prototype.detach = function(){
+        this.renderedElement.parentNode.removeChild(this.renderedElement);
+    };
     View.prototype.debind = function () {        
         fastEach(this.behaviours, function(behaviour){
             behaviour.debind();
@@ -1109,22 +1123,7 @@
             this.viewEvents.pop()();
         }
         this.renderedElement && this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
-    };
-    View.prototype.remove = function(){
-        if(this.removed == true){
-            return;
-        }
-
-        ViewItem.prototype.remove.call(this);
-
-        this.removed = true;
-        var viewIndex = this.parentContainer.indexOf(this);
-
-        if(viewIndex >= 0){
-            this.parentContainer.splice(viewIndex, 1);              
-        }
-
-        this.parentContainer = null;
+        ViewItem.prototype.debind.apply(this, arguments);
     };
     View.prototype.render = function(){
         this.renderedElement.viewModel = this;
@@ -1190,6 +1189,16 @@
             }
         }
     };
+    ContainerView.prototype.remove = function(){
+        View.prototype.remove.apply(this, arguments);
+        for(var key in this.views){
+            var viewContainer = this.views[key];
+            
+            if(viewContainer instanceof ViewContainer){
+                viewContainer.empty();
+            }
+        }
+    };
     
     
     //***********************************************
@@ -1230,15 +1239,8 @@
     Behaviour = createSpec(Behaviour, ViewItem);
     Behaviour.prototype.bind = function(parent){   
         ViewItem.prototype.bind.apply(this, arguments);
-    };
-    Behaviour.prototype.remove = function(){
-        var thisBehaviour = this;
 
-        this.removed = true;
-
-        this.gaffa.behaviours.remove(this);
-
-        ViewItem.prototype.remove.call(this);
+        this.bound = true;
     };
     Behaviour.prototype.toJSON = function(){
         return jsonConverter(this);
@@ -1448,6 +1450,7 @@
             }
 
             behaviour.gaffa = gaffa;
+            behaviour.parentContainer = internalBehaviours;
             
             behaviour.bind();
             
@@ -1606,33 +1609,6 @@
                 }
             });
         }
-
-        
-        //***********************************************
-        //
-        //      Remove Behaviour
-        //
-        //***********************************************
-        
-        function removeBehaviour(behaviour){
-            if(!behaviour){
-                for(var key in internalBehaviours){
-                    internalBehaviours[key].remove();
-                }
-                return;
-            }
-
-            for(var i = 0; i < internalBehaviours.length; i++){
-                if(behaviour === internalBehaviours[i]){
-                    internalBehaviours.splice(i, 1);
-                    i--;
-                }
-            }
-            
-            if(!behaviour.removed){
-                behaviour.remove();
-            }
-        }
         
         //***********************************************
         //
@@ -1767,13 +1743,6 @@
             namedViews: {},
 
             actions: {
-                add: function(key, actions){
-                    if(!Array.isArray(actions)){
-                        actions = [actions];
-                    }
-                    
-                    internalActions[key] = actions;
-                },
                 trigger: triggerActions,
 
                 constructors: {}
@@ -1781,8 +1750,6 @@
 
             behaviours: {
                 add: addBehaviour,
-                
-                remove: removeBehaviour,
 
                 constructors: {}
             },
