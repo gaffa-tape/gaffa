@@ -696,14 +696,27 @@
         return tempObject;
     }
 
+    function createModelScope(parent, trackKeys){
+        var possibleGroup = parent,
+            groupKey;
+
+        while(possibleGroup && !groupKey){
+            groupKey = possibleGroup.group;
+            possibleGroup = possibleGroup.parent;
+        }
+
+        return {
+            __trackKeys__: trackKeys,
+            viewItem: parent,
+            groupKey: groupKey
+        };
+    }
+
     function createPropertyCallback(property){
         return function (event) {
             if(event){                    
                 var value,                        
-                    scope = { // Scope passed to the property when evaluated.
-                        __trackKeys__: property.trackKeys,
-                        viewItem: property.parent
-                    };
+                    scope = createModelScope(property.parent, property.trackKeys);
 
                 
                 if(event === true){ // Initial update.
@@ -1068,12 +1081,13 @@
     //***********************************************
 
     function createEventedActionScope(view, event){
+        var scope = createModelScope(view);
 
-        return {
-            targetItem: getClosestItem(event.target),
-            preventDefault: langify(event.preventDefault, event),
-            stopPropagation: langify(event.stopPropagation, event)
-        };
+        scope.targetItem = getClosestItem(event.target);
+        scope.preventDefault = langify(event.preventDefault, event);
+        scope.stopPropagation = langify(event.stopPropagation, event);
+
+        return scope;
     }
 
     function bindViewEvent(view, eventName){

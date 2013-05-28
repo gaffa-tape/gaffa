@@ -45,66 +45,60 @@
         return property.gaffa.initialiseViewItem(view, property.gaffa, property.gaffa.views.constructors);
     }
            
-    Group.prototype.groups = new Gaffa.Property(Gaffa.propertyUpdaters.group(
-        "groups",                     
-        //increment
-        function(viewModel, groups, addedItem){
-            var listViews = viewModel.views.groups,
-                property = viewModel.groups,
-                groupContainer = new gaffa.views.container(),
-                expression,
-                newHeader,
-                newList;
+    Group.prototype.groups = new Gaffa.Property({
+        update: Gaffa.propertyUpdaters.group(
+            "groups",                     
+            //increment
+            function(viewModel, groups, addedItem){
+                var listViews = viewModel.views.groups,
+                    property = viewModel.groups,
+                    groupContainer = createNewView(property, 'groupTemplate'),
+                    expression,
+                    newHeader,
+                    newList;
 
-            for(var key in addedItem){
-                groupContainer[key] = addedItem[key];
-            }
+                for(var key in addedItem){
+                    groupContainer[key] = addedItem[key];
+                }
 
-            if(property.headerTemplate){
-                newHeader = JSON.parse(JSON.stringify(property.headerTemplate));
+                if(property.listTemplate){
+                    expression = '({items ' + property.listTemplate.list.binding + '}(filter [] {item (= (' + property.expression + ' item) "' + addedItem.group + '")}))';
 
-                groupContainer.views.content.push(newHeader);
-            }
+                    newList = createNewView(property, 'listTemplate', addedItem);
 
-            if(property.listTemplate){
-                expression = '(filter [] {item (= (' + property.expression + ' item) "' + addedItem.group + '")})';
-                addedItem
+                    newList.list.binding = expression;
 
+                    groupContainer.views.content.add(newList);
+                }
 
-                addedItem.list = newList.list || {};
-                addedItem.list.binding = expression;
-
-                newList = createNewView(property, 'listTemplate', addedItem);
-
-                groupContainer.views.content.add(newList);
-            }
-
-            listViews.add(groupContainer);
-        },
-        //decrement
-        function(viewModel, groups, removedItem){
-            removedItem.remove();
-        },
-        //empty
-        function(viewModel, insert){
-            var emptyViews = viewModel.views.empty,
-                property = viewModel.groups;
+                listViews.add(groupContainer);
+            },
+            //decrement
+            function(viewModel, groups, removedItem){
+                removedItem.remove();
+            },
+            //empty
+            function(viewModel, insert){
+                var emptyViews = viewModel.views.empty,
+                    property = viewModel.groups;
+                    
+                if(!property.emptyTemplate){
+                    return;
+                }
                 
-            if(!property.emptyTemplate){
-                return;
-            }
-            
-            if(insert){
-                if(!emptyViews.length){
-                    emptyViews.add(createNewView(property, 'emptyTemplate'));
-                }
-            }else{
-                while(emptyViews.length){
-                    emptyViews[0].remove();
+                if(insert){
+                    if(!emptyViews.length){
+                        emptyViews.add(createNewView(property, 'emptyTemplate'));
+                    }
+                }else{
+                    while(emptyViews.length){
+                        emptyViews[0].remove();
+                    }
                 }
             }
-        }
-    ));
+        ),
+        trackKeys: true
+    });
 
     return Group;
     
