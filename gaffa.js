@@ -667,7 +667,7 @@
 
     function jsonConverter(object, exclude, include){
         var tempObject = Array.isArray(object) || object instanceof Array && [] || {},
-        excludeProps = ["gaffa", "parent", "parentContainer", "renderedElement"],
+        excludeProps = ["gaffa", "parent", "parentContainer", "renderedElement", "viewEvents", "gediCallbacks"],
         includeProps = ["type"];
                     
         if(exclude){
@@ -712,6 +712,22 @@
         };
     }
 
+    function updateProperty(property, value, firstUpdate){
+        if(firstUpdate){
+            property.update(property.parent, value);
+            property.previousValue = value;
+            return;
+        }
+        if(property.nextUpdate){
+            clearTimeout(property.nextUpdate);
+            property.nextUpdate = null;
+        }
+        property.nextUpdate = setTimeout(function(){
+            property.update(property.parent, value);
+            property.previousValue = value;
+        }, 1);
+    }
+
     function createPropertyCallback(property){
         return function (event) {
             if(event){                    
@@ -735,8 +751,7 @@
             // Only call if the changed value is an object, or if it actually changed.
             if(property.update){
                 if(! 'previousValue' in property || (value && typeof value === 'object') || value !== property.previousValue){
-                    property.update(property.parent, value);
-                    property.previousValue = value;
+                    updateProperty(property, value, event === true);
                 }
             }
         }
@@ -1038,7 +1053,8 @@
     ViewItem.prototype.toJSON = function(){
         var tempObject = jsonConverter(this),
             noViews = true,
-            noActions = true;
+            noActions = true,
+            noBehaviours = this.behaviours ? !this.behaviours.length : true;
             
         if(tempObject.views){
             for(var key in tempObject.views){
@@ -1065,6 +1081,10 @@
 
         if(noActions){
             delete tempObject.actions;
+        }
+
+        if(noBehaviours){
+            delete tempObject.behaviours;
         }
 
         if(tempObject.eventHandlers && !tempObject.eventHandlers.length){
@@ -1149,11 +1169,12 @@
         var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
         this.insertFunction(this.insertSelector || renderTarget, this.renderedElement, insertIndex);
 
-        // Lazy. Call after current callstack. 
         if(view.afterInsert){
-            setTimeout(function () {
-                view.afterInsert();
-            },50);
+            doc.on('DOMNodeInserted', document, function (event) {
+                if(doc.closest(view.renderedElement, event.target)){
+                    view.afterInsert();
+                }
+            });
         }
     };    
     View.prototype.classes = new Property(function(viewModel, value){
@@ -1251,7 +1272,7 @@
     
     function Behaviour(behaviourDescription){}
     Behaviour = createSpec(Behaviour, ViewItem);
-    Behaviour.prototype.bind = function(parent){   
+    Behaviour.prototype.bind = function(parent){
         ViewItem.prototype.bind.apply(this, arguments);
 
         this.bound = true;
@@ -1579,13 +1600,53 @@
         //
         //***********************************************
 
+        var pageCache = {};
+
         function navigate(url, target, pushState, data) {
 
             // Data will be passed to the route as a querystring
             // but will not be displayed visually in the address bar.
             // This is to help resolve caching issues.
+
+            function success (data) {
+                var title;
+
+                data.target = target;
+                        
+                if(data !== undefined && data !== null && data.title){
+                    title = data.title;
+                }
+                
+                // Always use pushstate unless triggered by onpopstate
+                if(pushState !== false) {
+                    gaffa.pushState(data, title, url);
+                }
+
+                pageCache[url] = JSON.stringify(data);
+                
+                load(data, target);
+                
+                gaffa.notifications.notify("navigation.success");
+                
+                window.scrollTo(0,0);
+            }
+
+            function error(error){
+                gaffa.notifications.notify("navigation.error", error);
+            }
+
+            function complete(){
+                gaffa.notifications.notify("navigation.complete");
+            }
             
             gaffa.notifications.notify("navigation.begin");
+
+            if(gaffa.cacheNavigates !== false && pageCache[url]){
+                success(JSON.parse(pageCache[url]));
+                complete();
+                return;
+            }
+
             gaffa.ajax({
                 headers:{
                     'x-gaffa': 'navigate'
@@ -1595,32 +1656,9 @@
                 type: "get",
                 data: data, // This is to avoid the cached HTML version of a page if you are bootstrapping.
                 dataType: "json",
-                success: function (data) {
-                    var title;
-
-                    data.target = target;
-                            
-                    if(data !== undefined && data !== null && data.title){
-                        title = data.title;
-                    }
-                    
-                    // Always use pushstate unless triggered by onpopstate
-                    if(pushState !== false) {
-                        gaffa.pushState(data, title, url);
-                    }
-                    
-                    load(data, target);
-                    
-                    gaffa.notifications.notify("navigation.success");
-                    
-                    window.scrollTo(0,0);
-                },
-                error: function(error){
-                    gaffa.notifications.notify("navigation.error", error);
-                },
-                complete: function(){
-                    gaffa.notifications.notify("navigation.complete");
-                }
+                success: success,
+                error: error,
+                complete: complete
             });
         }
         
