@@ -11,6 +11,7 @@
         crel = require('crel'),
         viewType = "textbox",
         fastEach = require('fasteach'),
+        doc = require('doc-js'),
 		cachedElement;
     
     function matchFail(element, failed){
@@ -116,9 +117,7 @@
         var renderedElement = crel('input'),
             updateEventNames = (this.updateEventName || "change").split(' ');
                 
-        fastEach(updateEventNames, function (eventName) {
-            renderedElement.addEventListener(eventName, setValue);            
-        });
+        doc.on(this.updateEventName || "change", renderedElement, setValue);
         
         this.renderedElement = renderedElement;
         

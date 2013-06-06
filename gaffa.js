@@ -233,10 +233,11 @@
         }
 
         if(settings.cache === false){
-            settings['_'] = new Date().getTime();
+            settings.data = settings.data || {};
+            settings.data['_'] = new Date().getTime();
         }
 
-        if(settings.type === 'get' && typeof settings.data === 'object'){
+        if(settings.type.toLowerCase() === 'get' && typeof settings.data === 'object'){
             queryStringData = parseQueryString(settings.url);
             for(var key in settings.data){
                 if(settings.data.hasOwnProperty(key)){
@@ -278,6 +279,10 @@
         // Set custom headers
         for(var key in settings.headers){
             request.setRequestHeader(key, settings.headers[key]);            
+        }
+
+        if(settings.processData !== false && settings.dataType === 'json'){
+            settings.data = JSON.stringify(settings.data);
         }
 
         request.send(settings.data && settings.data);
@@ -816,8 +821,8 @@
         var gaffa = this.gaffa;
 
         gaffa.model.set(
-            this.set.binding || this.binding,
-            this.set.binding ? gaffa.model.get(this.set.binding, this, {value: value}) : value,
+            this.binding,
+            this.setTransform ? gaffa.model.get(this.setTransform, this, {value: value}) : value,
             this
         );
     }
@@ -1760,6 +1765,32 @@
                     while(item.gediCallbacks && item.gediCallbacks.length){
                         item.gediCallbacks.pop()();
                     }
+                },
+                isDirty: function(path, parent) {
+                    var parentPath;
+
+                    if(path == null){
+                        return;
+                    }
+                    
+                    if(parent && parent.getPath){
+                        parentPath = parent.getPath();
+                    }
+                    
+                    return gedi.isDirty(path, parentPath);
+                },
+                setDirtyState: function(path, value, parent) {
+                    var parentPath;
+
+                    if(path == null){
+                        return;
+                    }
+
+                    if(parent && parent.getPath){
+                        parentPath = parent.getPath();
+                    }
+                    
+                    gedi.setDirtyState(path, value, parentPath);
                 }
             },
             views: {
