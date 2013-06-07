@@ -717,10 +717,10 @@
         };
     }
 
-    function updateProperty(property, value, firstUpdate){
+    function updateProperty(property, firstUpdate){
         if(firstUpdate){
-            property.update(property.parent, value);
-            property.previousValue = value;
+            property.update(property.parent, property.value);
+            property.previousValue = property.value;
             return;
         }
         if(property.nextUpdate){
@@ -728,8 +728,8 @@
             property.nextUpdate = null;
         }
         property.nextUpdate = setTimeout(function(){
-            property.update(property.parent, value);
-            property.previousValue = value;
+            property.update(property.parent, property.value);
+            property.previousValue = property.value;
         }, 1);
     }
 
@@ -756,7 +756,7 @@
             // Only call if the changed value is an object, or if it actually changed.
             if(property.update){
                 if(! 'previousValue' in property || (value && typeof value === 'object') || value !== property.previousValue){
-                    updateProperty(property, value, event === true);
+                    updateProperty(property, event === true);
                 }
             }
         }
