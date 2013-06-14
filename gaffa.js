@@ -1805,7 +1805,7 @@
                 //Set up the viewModels bindings as they are added.
                 add: function(viewModel, insertIndex){
                     if(Array.isArray(viewModel)){
-                        fastEach(viewModel, gaffa.add);
+                        fastEach(viewModel, gaffa.views.add);
                     }
 
                     if(this.name){
