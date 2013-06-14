@@ -1108,9 +1108,14 @@
     function createEventedActionScope(view, event){
         var scope = createModelScope(view);
 
-        scope.targetItem = getClosestItem(event.target);
-        scope.preventDefault = langify(event.preventDefault, event);
-        scope.stopPropagation = langify(event.stopPropagation, event);
+        scope.event = {
+            shiftKey: event.shiftKey,
+            altKey: event.altKey,
+            which: event.which,
+            target: event.target,
+            preventDefault: langify(event.preventDefault, event),
+            stopPropagation: langify(event.stopPropagation, event)
+        };
 
         return scope;
     }
