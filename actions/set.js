@@ -18,9 +18,9 @@
         
         var fromObj = this.source.value;
         if(!(this.clone && this.clone.value === false)){
-            fromObj = gaffa.clone(fromObj);
+            fromObj = this.gaffa.clone(fromObj);
         }
-        this.target.set(fromObj, !this.cleans.value); 
+        this.target.set(fromObj, this.cleans.value === false); 
     };
     Set.prototype.target = new Gaffa.Property();
     Set.prototype.source = new Gaffa.Property();

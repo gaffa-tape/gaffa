@@ -13,7 +13,9 @@
     function ForEach(){}
     ForEach = Gaffa.createSpec(ForEach, Gaffa.Action);
     ForEach.prototype.type = actionType;
-    ForEach.prototype.target = new Gaffa.Property();
+    ForEach.prototype.target = new Gaffa.Property({
+        trackKeys:true
+    });
 
     ForEach.prototype.trigger = function(parent, scope, event) {
         this.__super__.trigger.apply(this, arguments);

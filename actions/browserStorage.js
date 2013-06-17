@@ -22,11 +22,12 @@
 
         switch(action.method.value){
             case "get":
-                action.target.set(JSON.parse(window[action.kind.value + 'Storage'].getItem(action.source.value)));
+                data = window[action.storageType.value + 'Storage'].getItem(action.source.value);
+                action.target.set(data ? JSON.parse(data) : undefined);
                 break;
 
             case "set":
-                JSON.parse(window[action.kind.value + 'Storage'].setItem(action.target.value, action.source.value));
+                window[action.storageType.value + 'Storage'].setItem(action.target.value, JSON.stringify(data));
                 break;
         }
         
@@ -39,7 +40,6 @@
     });
     BrowserStorage.prototype.target = new Gaffa.Property();
     BrowserStorage.prototype.source = new Gaffa.Property();
-    BrowserStorage.prototype.dirty = new Gaffa.Property();
 
     return BrowserStorage;
 

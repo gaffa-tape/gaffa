@@ -12,7 +12,7 @@
     
         
     function executeBehaviour(behaviour, value){
-        gaffa.actions.trigger(behaviour.actions.change, behaviour);
+        behaviour.gaffa.actions.trigger(behaviour.actions.change, behaviour);
     }
 
     function ModelChangeBehaviour(){}

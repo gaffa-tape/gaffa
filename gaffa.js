@@ -741,7 +741,7 @@
 
                 
                 if(event === true){ // Initial update.
-                    value = gaffa.model.get(property.binding, property, scope);
+                    value = property.gaffa.model.get(property.binding, property, scope);
 
                 } else if(property.binding){ // Model change update.
                     value = event.getValue(scope);
@@ -828,7 +828,7 @@
     }
     Property.prototype.bind = bindProperty;
     Property.prototype.debind = function(){
-        gaffa.model.debind(this);
+        this.gaffa && this.gaffa.model.debind(this);
     };
     Property.prototype.getPath = function(){
         return getItemPath(this);
@@ -1005,14 +1005,6 @@
         this.parent = parent;
 
         this.bound = true;
-
-        for(var eventKey in this.actions){
-            fastEach(this.actions[eventKey], function(action, index, actions){
-                var action = actions[index];
-                action.gaffa = viewItem.gaffa;
-                action.bind(viewItem);
-            });
-        }
         
         for(var propertyKey in this){
             if(this[propertyKey] instanceof Property){
@@ -1121,7 +1113,7 @@
     }
 
     function bindViewEvent(view, eventName){
-        return gaffa.doc.on(eventName, view.renderedElement, function (event) {
+        return view.gaffa.doc.on(eventName, view.renderedElement, function (event) {
             triggerActions(view.actions[eventName], view, createEventedActionScope(view, event), event);
         });
     }
@@ -1261,7 +1253,11 @@
     Action.prototype.trigger = function(parent, scope, event){
         this.parent = parent;
 
-        var gaffa = this.gaffa = parent.gaffa;
+        scope = scope || {};
+
+        var gaffa = this.gaffa = parent.gaffa,
+            outerTrackKeys = scope.__trackKeys__;
+
 
         for(var propertyKey in this){
             var property = this[propertyKey];
@@ -1269,9 +1265,14 @@
             if(property instanceof Property && property.binding){
                 property.gaffa = gaffa;
                 property.parent = this;
+                scope.__trackKeys__ = property.trackKeys;
                 property.value = gaffa.model.get(property.binding, this, scope);
             }
-        }        
+        }
+
+        scope.__trackKeys__ = outerTrackKeys;
+
+        this.debind();
     };
     
     //***********************************************
@@ -1492,6 +1493,7 @@
             //if the views isnt an array, make it one.
             if (Array.isArray(behaviour)) {
                 fastEach(behaviour, addBehaviour);
+                return;
             }
 
             behaviour.gaffa = gaffa;
