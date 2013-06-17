@@ -1803,20 +1803,21 @@
                 
                 //Add a view or viewModels to another view, or the root list of viewModels if a parent isnt passed.
                 //Set up the viewModels bindings as they are added.
-                add: function(viewModel, insertIndex){
-                    if(Array.isArray(viewModel)){
-                        fastEach(viewModel, gaffa.views.add);
+                add: function(view, insertIndex){
+                    if(Array.isArray(view)){
+                        fastEach(view, gaffa.views.add);
+                        return;
                     }
 
-                    if(this.name){
-                        gaffa.namedViews[viewItem.name] = viewItem;
+                    if(view.name){
+                        gaffa.namedViews[view.name] = viewItem;
                     }
 
-                    viewModel.gaffa = gaffa;
-                    viewModel.parentContainer = internalViewItems;
-                    viewModel.render();
-                    viewModel.bind();
-                    viewModel.insert(internalViewItems, insertIndex);
+                    view.gaffa = gaffa;
+                    view.parentContainer = internalViewItems;
+                    view.render();
+                    view.bind();
+                    view.insert(internalViewItems, insertIndex);
                 },
                 
                 remove: removeViews,

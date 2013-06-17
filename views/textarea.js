@@ -9,30 +9,21 @@
 }(this, function(){
     var Gaffa = require('gaffa'),
         crel = require('crel'),
+        doc = require('doc-js'),
         viewType = "textarea",
 		cachedElement;
-        
-    function setValue(event){
-        var textArea = this;
-        
-        var matchFail = function(){
-            $(textArea).addClass('error');
-        }
-        
-        Gaffa.propertyUpdaters.string(textArea.viewModel, textArea.viewModel.value, $(textArea).val(), matchFail); 
-    }
         
     function Textarea(){}
     Textarea = Gaffa.createSpec(Textarea, Gaffa.View);
     Textarea.prototype.type = viewType;
     
-    Textarea.prototype.render = function(){
-        var classes = viewType;
+    Textarea.prototype.render = function(){        
+        var view = this,
+            renderedElement = crel('textarea');
         
-        var renderedElement = document.createElement('textarea');
-        renderedElement.className = classes;        
-        
-        $(renderedElement).on(this.updateEventName || "change", setValue);
+        doc.on(this.updateEventName || "change", renderedElement, function(){
+            view.value.set(renderedElement.value);
+        });
         
         this.renderedElement = renderedElement;
         
@@ -40,19 +31,16 @@
     };
     
     Textarea.prototype.value = new Gaffa.Property(Gaffa.propertyUpdaters.string(function(viewModel, value){
-        $(viewModel.renderedElement).val(value);
+        viewModel.renderedElement.value = value;
     }));
     
     Textarea.prototype.placeholder = new Gaffa.Property(Gaffa.propertyUpdaters.string(function(viewModel, value){
-        $(viewModel.renderedElement).attr('placeholder', value);
+        viewModel.renderedElement[value ? 'setAttribute' : 'removeAttribute']('placeholder', value);
+
     }));
     
     Textarea.prototype.disabled = new Gaffa.Property(Gaffa.propertyUpdaters.bool(function(viewModel, value){
-        if (value){
-            viewModel.renderedElement.setAttribute('disabled', 'disabled');
-        }else{
-            viewModel.renderedElement.removeAttribute('disabled');
-        }
+        viewModel.renderedElement[value ? 'setAttribute' : 'removeAttribute']('disabled', value);
     }));
 
     return Textarea;
