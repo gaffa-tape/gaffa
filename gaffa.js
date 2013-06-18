@@ -820,11 +820,13 @@
     Property.prototype.set = function(value){
         var gaffa = this.gaffa;
 
-        gaffa.model.set(
-            this.binding,
-            this.setTransform ? gaffa.model.get(this.setTransform, this, {value: value}) : value,
-            this
-        );
+        if(this.binding){
+            gaffa.model.set(
+                this.binding,
+                this.setTransform ? gaffa.model.get(this.setTransform, this, {value: value}) : value,
+                this
+            );
+        }
     }
     Property.prototype.bind = bindProperty;
     Property.prototype.debind = function(){
