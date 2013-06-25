@@ -808,9 +808,7 @@
             this.update = propertyDescription;
         }else{
             for(var key in propertyDescription){
-                if(propertyDescription.hasOwnProperty(key)){
-                    this[key] = propertyDescription[key];
-                }
+                this[key] = propertyDescription[key];
             }
         }
 
@@ -971,7 +969,33 @@
             }
         }
     }
+
+    function debindViewItem(viewItem){
+        for(var key in viewItem){
+            if(viewItem[key] instanceof Property){
+                viewItem[key].debind();
+            }
+        }
+
+        viewItem.bound = false;
+    }
     
+    function removeViewItem(viewItem){
+        if(!viewItem.parentContainer){
+            return;
+        }
+
+        var viewIndex = viewItem.parentContainer.indexOf(viewItem);
+
+        if(viewIndex >= 0){
+            viewItem.parentContainer.splice(viewIndex, 1);              
+        }
+
+        viewItem.debind();
+
+        viewItem.parentContainer = null;
+    }
+
     //***********************************************
     //
     //      ViewItem Object
@@ -989,13 +1013,11 @@
         this.actions = {};
 
         for(var key in viewItemDescription){
-            if(viewItemDescription.hasOwnProperty(key)){
-                var prop = this[key];
-                if(prop instanceof Property || prop instanceof ViewContainer){
-                    copyProperties(viewItemDescription[key], prop);
-                }else{
-                    this[key] = viewItemDescription[key];
-                }
+            var prop = this[key];
+            if(prop instanceof Property || prop instanceof ViewContainer){
+                copyProperties(viewItemDescription[key], prop);
+            }else{
+                this[key] = viewItemDescription[key];
             }
         }
     }
@@ -1017,34 +1039,10 @@
         }
     };
     ViewItem.prototype.debind = function(){
-        for(var key in this){
-            if(this[key] instanceof Property){
-                this[key].debind();
-            }
-        }
-
-        for(var key in this.actions){
-            fastEach(this.actions[key].slice(), function(action){
-                action.debind();
-            });
-        }
-
-        this.bound = false;
+        debindViewItem(this);
     };
     ViewItem.prototype.remove = function(){        
-        if(!this.parentContainer){
-            return;
-        }
-
-        var viewIndex = this.parentContainer.indexOf(this);
-
-        if(viewIndex >= 0){
-            this.parentContainer.splice(viewIndex, 1);              
-        }
-
-        this.debind();
-
-        this.parentContainer = null;
+        removeViewItem(this);
     };
     ViewItem.prototype.getPath = function(){
         return getItemPath(this);
@@ -1151,8 +1149,12 @@
         }
     };
     View.prototype.detach = function(){
-        this.renderedElement.parentNode.removeChild(this.renderedElement);
+        this.renderedElement && this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
     };
+    View.prototype.remove = function(){        
+        this.detach();
+        removeViewItem(this);
+    }
     View.prototype.debind = function () {        
         fastEach(this.behaviours, function(behaviour){
             behaviour.debind();
@@ -1160,8 +1162,7 @@
         while(this.viewEvents.length){
             this.viewEvents.pop()();
         }
-        this.renderedElement && this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
-        ViewItem.prototype.debind.apply(this, arguments);
+        debindViewItem(this);
     };
     View.prototype.render = function(){
         this.renderedElement.viewModel = this;
@@ -1194,6 +1195,13 @@
     View.prototype.visible = new Property(function(viewModel, value) {
         viewModel.renderedElement.style.display = value === false ? 'none' : null;
     });
+    View.prototype.renderChildren = new Property(function(viewModel, value) {
+        if('value' in this){
+            for(var key in viewModel.views){
+                viewModel.views[key].render.value = value;
+            }
+        }
+    });
     View.prototype.insertFunction = insertFunction;
     
     
@@ -1219,7 +1227,7 @@
         }
     };
     ContainerView.prototype.debind = function(){
-        View.prototype.debind.apply(this, arguments);
+        debindViewItem(this);
         for(var key in this.views){
             var viewContainer = this.views[key];
             
@@ -1285,11 +1293,6 @@
     
     function Behaviour(behaviourDescription){}
     Behaviour = createSpec(Behaviour, ViewItem);
-    Behaviour.prototype.bind = function(parent){
-        ViewItem.prototype.bind.apply(this, arguments);
-
-        this.bound = true;
-    };
     Behaviour.prototype.toJSON = function(){
         return jsonConverter(this);
     };
@@ -1297,9 +1300,16 @@
 
     function Gaffa(){
 
+
         var gedi,
             // Create gaffa global.
             gaffa = {};
+
+            
+        // Dom accessible instance
+        window.addEventListener('DOMContentLoaded', function(){
+            document.body.gaffa = gaffa;
+        });
         
         // internal varaibles
         
@@ -1946,67 +1956,7 @@
     Gaffa.addDefaultStyle = addDefaultStyle;
 
     Gaffa.propertyUpdaters = {
-
-        string: function (callback) {
-            if (typeof callback !== "function") {
-                //passed a property object, doing a set.
-                var property = arguments[1],
-                    viewModel = callback,
-                    value = arguments[2];
-                
-                property.gaffa.model.set(property.binding, value, viewModel);
-            } else {
-                return function (viewModel, value) {
-                    var property = this,
-                        element = viewModel.renderedElement,
-                        convertDateToString = function (date){
-                            if(date && date instanceof Date && typeof viewModel.gaffa.dateFormatter === "function"){
-                                return viewModel.gaffa.dateFormatter(date);
-                            }else{
-                                return date;
-                            }
-                        };
-                        
-                    if (value !==  property.previousValue) {
-                        if(value == null){
-                            property.value = "";
-                        }
-                        property.value = convertDateToString(property.value).toString();
-                        if (element) {
-                            callback(viewModel, property.value);
-                        }
-                    }
-                    property.previousValue = property.value;
-                };
-            }
-        },
-        
-        number: function (callback) {
-            if (typeof callback !== "function") {
-                //passed a property object, doing a set.
-                var property = this,
-                    viewModel = property.parent,
-                    number = callback;
-
-                property.gaffa.model.set(property.binding, number, viewModel);
-                
-            } else {
-                return function (viewModel, value) {
-                    var property = this,
-                        element = viewModel.renderedElement;
-                    
-                    if (property.previousValue !== value) {
-                        property.previousValue = value;
-                        if (element) {
-                            callback(viewModel, value);
-                        }
-                    }
-                };
-            }
-        },
-        
         collection: function (viewsName, insert, remove, empty) {
-            var propertyName;
             return function (viewModel, value) {
                 var property = this,
                     valueLength = 0,
@@ -2019,16 +1969,6 @@
                             return Object.keys(value).length;
                         }
                     };
-                    
-                // This feels bad..
-                if(!propertyName){
-                    for(var key in viewModel){
-                        if(viewModel[key] === property){
-                            propertyName = key;
-                            break;
-                        }
-                    }
-                }
                     
                 if (value && typeof value === "object"){
 
@@ -2047,11 +1987,11 @@
                                     (valueKeys && !(valueKeys.indexOf(existingKey)>=0)) ||
                                     !value[childView.key]
                                 ) &&
-                                childView.parentProperty === propertyName
+                                childView.containerName === viewsName
                             ){
-                                childViews.splice(i, 1);
                                 i--;
                                 remove(viewModel, value, childView);
+                                childView.remove();
                             }
                         }
 
@@ -2084,7 +2024,7 @@
                                 if(valueKeys){
                                     newViewKey = valueKeys[key];
                                 }
-                                newView = {key: newViewKey, parentProperty: propertyName};
+                                newView = {key: newViewKey, containerName: viewsName};
                                 insert(viewModel, value, newView, itemIndex);
                             }
 
@@ -2096,10 +2036,10 @@
                 }else{
                     for(var i = 0; i < childViews.length; i++){
                         var childView = childViews[i];
-                        if(childView.parentProperty === propertyName){
-                            childViews.splice(i, 1);
+                        if(childView.containerName === viewsName){
                             i--;
-                            remove(viewModel, value, childView);                            
+                            remove(viewModel, value, childView); 
+                            childView.remove();                           
                         }
                     }
                     empty(viewModel, true);
@@ -2170,35 +2110,6 @@
                         remove(viewModel, property.value, childView);
                     });
                 }
-            };
-        },
-
-        bool: function (callback) {
-            if (typeof callback !== "function") {
-                //passed a property object, doing a set.
-                var property = arguments[1],
-                    viewModel = callback,
-                    value = arguments[2];
-
-                property.gaffa.model.set(property.binding, value, viewModel);
-                
-            } else {
-                return function (viewModel, value) {
-                    var property = this;
-                        
-                    if (property.previousValue !== value) {
-                        property.previousValue = value;
-                        callback(viewModel, property.value);
-                    }
-                };
-            }
-        },
-        
-        // ToDo: I dont like this...
-        object: function (callback) {
-            return function (viewModel, value) {
-                var property = this;
-                callback(viewModel, property.value);
             };
         }
     };

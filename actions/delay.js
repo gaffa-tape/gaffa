@@ -1,29 +1,19 @@
-(function (root, factory) {
-    if (typeof exports === 'object') {
-        module.exports = factory();
-    } else if (typeof define === 'function' && define.amd) {
-        define(factory);
-    } else {
-        throw "Gaffa must be compiled with browserify";
-    }
-}(this, function(){
-    var Gaffa = require('gaffa'),
-        actionType = "delay";
-    
-    function Delay(){}
-    Delay = Gaffa.createSpec(Delay, Gaffa.Action);
-    Delay.prototype.type = actionType;
-    Delay.prototype.delay = new Gaffa.Property();
+var Gaffa = require('gaffa'),
+    actionType = "delay";
 
-    Delay.prototype.trigger = function(parent, scope, event) {
-        this.__super__.trigger.apply(this, arguments);
+function Delay(){}
+Delay = Gaffa.createSpec(Delay, Gaffa.Action);
+Delay.prototype.type = actionType;
+Delay.prototype.delay = new Gaffa.Property();
 
-        var action = this;
+Delay.prototype.trigger = function(parent, scope, event) {
+    this.__super__.trigger.apply(this, arguments);
 
-        setTimeout(function(){
-            action.gaffa.actions.trigger(action.actions['trigger'], action, scope, event);
-        }, this.delay.value);
-    };
-    
-    return Delay;    
-}));
+    var action = this;
+
+    setTimeout(function(){
+        action.gaffa.actions.trigger(action.actions['trigger'], action, scope, event);
+    }, this.delay.value);
+};
+
+module.exports =  Delay;

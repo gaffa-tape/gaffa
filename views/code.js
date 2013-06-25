@@ -1,32 +1,21 @@
-(function (root, factory) {
-    if (typeof exports === 'object') {
-        module.exports = factory();
-    } else if (typeof define === 'function' && define.amd) {
-        define(factory);
-    } else {
-        throw "Gaffa must be compiled with browserify";
-    }
-}(this, function(){
-    var Gaffa = require('gaffa'),
-        crel = require('crel'),
-        viewType = "code";
-        
-    function Code(){}
-    Code = Gaffa.createSpec(Code, Gaffa.View);
-    Code.prototype.type = viewType;
+var Gaffa = require('gaffa'),
+    crel = require('crel'),
+    viewType = "code";
     
-    Code.prototype.render = function(){        
-        var renderedElement = crel('code', {'tabindex':0});
-        
-        this.renderedElement = renderedElement;
-        
-        this.__super__.render.apply(this, arguments);
-    };
-    
-    Code.prototype.code = new Gaffa.Property(function(viewModel, value){
-        viewModel.renderedElement.innerText = value;
-    });
+function Code(){}
+Code = Gaffa.createSpec(Code, Gaffa.View);
+Code.prototype.type = viewType;
 
-    return Code
+Code.prototype.render = function(){        
+    var renderedElement = crel('code', {'tabindex':0});
     
-}));
+    this.renderedElement = renderedElement;
+    
+    this.__super__.render.apply(this, arguments);
+};
+
+Code.prototype.code = new Gaffa.Property(function(viewModel, value){
+    viewModel.renderedElement.innerText = value;
+});
+
+module.exports = Code;
