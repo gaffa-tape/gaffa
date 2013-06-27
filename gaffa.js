@@ -473,6 +473,8 @@ function extend(target, source){
                         internalExtend(item, value);
                         targetProperty.push(item);
                     });
+                }else if(sourceProperty instanceof Date){
+                    targetProperty = new Date(sourceProperty);
                 }else{
                     if(visited.indexOf(sourceProperty)>=0){
                         target[key] = sourceProperty;
