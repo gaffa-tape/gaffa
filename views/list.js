@@ -72,7 +72,26 @@ List.prototype.list = new Gaffa.Property({
             }
         }
     ),
-    trackKeys: true
+    trackKeys: true,
+    sameAsPrevious:function () {
+        var newKeys = this.value && this.value.__gaffaKeys__,
+            value = this.value;
+
+        if(value && newKeys && typeof newKeys === 'object'){
+            var keys = Object.keys(value);
+            if(keys.length !== newKeys.length){
+                return;
+            }
+            for (var i = 0; i < newKeys.length; i++) {
+                if(newKeys[i] !== keys[i]){
+                    return;
+                }
+            };
+            return true;
+        }
+
+        return value === newKeys;
+    }
 });
 
 module.exports = List;

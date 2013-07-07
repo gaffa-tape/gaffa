@@ -2,51 +2,96 @@
 
 ## Dependencies
 
-Gaffa depends on Gedi (https://github.com/gaffa-tape/gedi), which depends on Gel (https://github.com/gaffa-tape/gel).
+Gaffa must be compiled with browserify [browserify](https://github.com/substack/node-browserify)
+
+## Example app
+
+[Gaffa-ToDo](https://github.com/KoryNunn/gaffa-todo)
+
+[Live Example](https://rawgithub.com/KoryNunn/gaffa-todo/master/index.html)
+
 
 ## Overview
-Gaffa is a state management library that helps with highly data-dependant UIs. From a high level, you define how a UI should be layed out, how it should behave, and where in the model its data should come from, and Gaffa makes it all happen.
+Gaffa attempts to speed up the development of complicated UI's by providing a rich binding layer between abitrary data and your UI.
 
-### Core Principal
+Writing UI's using gaffa is unlike most other MVC/MVVM/etc frameworks for a number of different reasons. (Although, others share some of the below points)
 
-Gaffa's core principle is that EVERYTHING is data driven. The UI is there to represent the data nicely, and allow the user to modify the data. If something changes in the UI it was caused by the following reasons:
+* ASAP databinding - model change events are instantaneous
+* Extremely powerful model bindings - use complex expressions to bind to data
+* UI by transform  - Use transforms over data to affect how data is displated, rather than modifying the data to suite the UI.
+* NO HTML! - Javascript to DOM, no pointless middleman.
+* Serialise to JSON - An entire application can be serialised to JSON, by design.
+* No lock-in - Push your views to the edge of Gaffa's capabilities, and break out whenever you need.
 
-1. The model changed
+### Minimal usage
 
-Thats it.
+	var Gaffa = require('gaffa'),
+		gaffa = new Gaffa();
 
-The model can change because the user made a change to the UI, which updated the model, or because the page has received new data from the server. A change to the DOM should only occur when the model changes. This ensures the state of the application is completely encapsulated in the model, making state management extremely easy.
+### The Bits..
 
-### The Goal
+A Gaffa application consists of 2 high-level bits:
 
-The end goal is that you should be able to create a complex data driven UI with no programming ability at all. As of right now, it is possible do this with no knowledge of javascript, by simply defining data structures and JSON definitions, assuming you have all the views you need.
+* Many ViewItems
+* One model
 
-### The Components
+### ViewItems
 
-A Gaffa application consists of 4 main components:
+ViewItems can be **Views**, **Actions**, or **Behaviours**.
 
-a Model, a collection of ViewModels, Behaviours, and Actions
+ViewItems represent and can affect the model, they are combined to create a UI.
 
-Model: "This is the data"  
-viewModels: "This is how the app should represent the data"  
-Behaviours: "Do an action when the data changes"  
-Actions: "Do something to the model"
+a View is a ViewItem that has a renderedElement, be it some DOM, or any other abstract UI element, such as a google maps pin object.
 
-These things are often combined into an app consisting of a single JSON object, eg:
+To use a view, you must first load the constructor for that view. For example, to use a label, and a textbox, the label.js and textbox.js files must be required(). Every viewItem must be added to its appropriate constructors object in gaffa, eg:
 
-	{
-		Model: {}, //some object
-		Views: [ {View 1}, {View 2}], //etc...
-		Behaviours:[ {Behaviour 1}] //etc...
-	}
+	// Add viewItem constructors to gaffa. Only use what you need.
 
-an app can be loaded by:
+	// Views
+	gaffa.views.constructors = {
+		label: require('gaffa/views/label'), 
+		textbox: require('gaffa/views/textbox'), 
+		button: require('gaffa/views/button')
+	};
 
-	gaffa.load(myApp);
+	// Actions
+	gaffa.actions.constructors = {
+		remove: require('gaffa/actions/remove')
+	};
 
-### Models
+	// Behaviours
+	gaffa.actions.constructors = {
+		pageLoad: require('gaffa/behaviours/pageLoad')
+	};
 
-The Model is just a Javascript object. If you can serialize it to JSON, it is a valid gaffa model, and it can be bound to. Unlike most similar frameworks, Gaffa focuses on keeping the model pure. If you add an object to the model, that exact object is used throughout the whole lifecycle, with no extra attributes like "Observable" etc. Its just a plain old object.
+For ease of development, the constructors are usually assigned to a variable:
+
+	// Cache the view constructors object to easy access later.
+	var views = gaffa.views.constructors;
+
+viewItems can then be instantiated:
+
+	// New up a label
+	var nameLabel = new views.label(),
+		firstNameBox = new views.textbox(),
+		surnameBox = new views.textbox(),
+		removeUserButton = new views.button();
+
+an Action is a non-visual entity which performs some action when executed. For example, an action could be assigned to be triggered when a button is clicked, and it could set a value into the model, or remove an item from an array.
+
+	var removeUser = new actions.remove();
+
+To assign actions to a view:
+
+	removeUserButton.actions.click = [removeUser];
+
+Gaffa will automatically use the actions.*whatever* propertyName as a DOM event name, and trigger any actions assigned when that event occurs.
+
+a Behaviour is a non-visual entity that triggers actions. For example, a modelChange behaviour could be created to watch a property in the model, and assigned actions to perform when the value of that property changes. 
+
+### The Model
+
+The Model is just a Javascript object. If you can serialize it to JSON, and it inherrits from Object, it is a valid gaffa model, and it can be bound to. Unlike most similar frameworks, Gaffa focuses on keeping the model pure. If you add an object to the model, that exact object is used throughout the whole lifecycle, with no extra attributes like "Observable" etc. It's just a plain old object.
 
 These are valid models:
 
@@ -54,82 +99,62 @@ These are valid models:
 
 	new Date();
 
-	"hello world";
+	[];
 
 However usually a model would look something like this:
 
-	{
-		Users:[
+	var model = {
+		users:[
 			{
-				Name: "John",
-				Age: 30,
-				LastVisit: (a date object)
+				firstName: "John",
+				surname: "Smith",
+				age: 30,
+				lastVisit: (a date object)
 			}
 		]
-	}
+	};
 
-### View Models
+This can be set as the applications model by:
 
-Gaffa view models represent and can affect the model. View models are combined to define a layout. This definition is a JSON object that defines a hierarchical structure of the page, similar to HTML. This definition also allows you to set bindings to the model, for example, you can tell a textbox to get and set its value on a property of the model.
+	gaffa.model.set(model);
 
-A simple layout definition for example:
+You can also set parts of the model using paths.
 
-	[
-		//This is a viewModel
-		{
-			type: "text",
-				properties: {
-						text:{
-							value: "Name"
-						}
-					}
-				},
-				//This is also a viewModel
-				{
-					type: "textbox",
-					properties: {
-					value:{
-					binding: "[Users/0/Name]"
-				}
-			}
-		}
-	]
+	gaffa.model.set('[users/0/firstName]', 'Bob');
 
-This defines that there should be a text element with the text of "Name", followed by a textbox element whose value is bound to the value in the model at users[0].Name
+This will cause properties bound to this value to update.
 
-Note that you can assign a value to a property or a binding. Assigning a value sets that property statically, whereas setting a binding tells gaffa to dynamically query the model for the value.
+You would very rarely use this syntax to affect the model, but rather use bound viewItem properties to change model data. This method of affecting the model is mostly used for debugging.
 
-A viewModel can have actions associated with them that are performed on certain user input.
+You can bind ViewItems properties to parts of the model using paths, eg:
 
-eg: on click of a button, perform these actions.
+	// Bind the firstName box to the users first name in the model
+	firstNameBox.value.binding = '[user/firstName]';
 
-### Behaviours
+	// Bind the surname box to the users surname in the model
+	surnameBox.value.binding = '[user/surname]';
 
-Gaffa behaviours allow you to define what to do when the model changes. For example a behaviour might watch for any changes to the model and kick off a Store action that is configured to store the model to the browser's local storage.
+	// Bind the nameLabel to an expression that joins both names together.
+	nameLabel.text.binding = '(join " " [user/firstName] [user/surname])';
 
-So far there are only 2 behaviours: ModelChange and PageLoad
+Once you have set up your viewItems, you can add them to the application.
+Calling gaffa.views.add(viewItem) on a viewItem binds and renders the view. No properties will be bound to the model untill this has occured.
 
-### Actions
+	// Add the views to gaffa
+	gaffa.views.add([
+		nameLabel,
+		firstNameBox,
+		surnameBox
+	]);
 
-Gaffa actions allow you to do something that affects the model. 
+### Expressions
 
-A list of some gaffa actions:
+Gaffa uses Gedi as its model, and as such, uses Gedi's expressions.
 
-Set: Sets a property on the model from that of a bindable source.
-	eg: Set model.name to "John", or Set model.name to model.newName
-	
-Toggle: Flip the boolean value at a model property
+Expressions in gaffa are used to address the model in some way.
 
-Store: Store the value of a property on the model to some persistable storage
-	eg: store the model to http://www.mySite.com/users/save
-	or store the model to local storage.
-	
-Fetch: Retrieve data from some persistable storage, and set a property on the model to that.
+For a more in-depth explanation of expressions, checkout the gedi readme: [Gedi](https://github.com/gaffa-tape/gedi)
 
-## Example
-
-An example app of a simple Todo list: http://gaffa-tape.github.com/  
-A highly contrived demo page: http://www.korynunn.com/intro.html
 
 ## License
 (The MIT License)

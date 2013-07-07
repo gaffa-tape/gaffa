@@ -249,7 +249,22 @@ function ajax(settings){
             return;
         }
         var data = event.target.responseText;
-        settings.success && settings.success(settings.dataType === 'json' ? data === '' ? undefined : JSON.parse(data) : data);
+
+
+        if(settings.dataType === 'json'){
+            if(data === ''){                
+                data = undefined;
+            }else{
+                try{
+                    data = JSON.parse(data);
+                }catch(error){
+                    settings.error && settings.error(event, error);
+                    return;
+                }
+            }
+        }
+
+        settings.success && settings.success(data, event);
     }, false);
     request.addEventListener("error", settings.error, false);
     request.addEventListener("abort", settings.abort, false);
@@ -714,7 +729,6 @@ function createModelScope(parent, trackKeys, gediEvent){
 function updateProperty(property, firstUpdate){
     if(firstUpdate){
         property.update(property.parent, property.value);
-        property.previousValue = property.value;
         return;
     }
     if(property.nextUpdate){
@@ -722,16 +736,20 @@ function updateProperty(property, firstUpdate){
         property.nextUpdate = null;
     }
     property.nextUpdate = setTimeout(function(){
+        if(property.sameAsPrevious()){
+            return;
+        }
         property.update(property.parent, property.value);
-        property.previousValue = property.value;
     }, 1);
 }
 
 function createPropertyCallback(property){
     return function (event) {
+        var value,                        
+            scope;
+
         if(event){                    
-            var value,                        
-                scope = createModelScope(property.parent, property.trackKeys, event);
+            scope = createModelScope(property.parent, property.trackKeys, event);
 
             
             if(event === true){ // Initial update.
@@ -739,7 +757,6 @@ function createPropertyCallback(property){
 
             } else if(property.binding){ // Model change update.
                 value = event.getValue(scope);
-
             }
 
             property.keys = value && value.__gaffaKeys__;
@@ -748,11 +765,11 @@ function createPropertyCallback(property){
         
         // Call the properties update function, if it has one.
         // Only call if the changed value is an object, or if it actually changed.
-        if(property.update){
-            if(! 'previousValue' in property || (value && typeof value === 'object') || value !== property.previousValue){
-                updateProperty(property, event === true);
-            }
+        if(!property.update){
+            return;
         }
+    
+        updateProperty(property, event === true);
     }
 }
 
@@ -775,11 +792,11 @@ function bindProperty(parent) {
         return;
     }
             
-    var updateProperty = createPropertyCallback(this);
+    var propertyCallback = createPropertyCallback(this);
         
     this.binding = new this.gaffa.Expression(this.binding);
-    this.gaffa.model.bind(this.binding, updateProperty, this);
-    updateProperty(true);
+    this.gaffa.model.bind(this.binding, propertyCallback, this);
+    propertyCallback(true);
 }
 
 
@@ -790,6 +807,31 @@ function bindProperty(parent) {
 //***********************************************
 
 //Public Objects ******************************************************************************
+
+function createValueHash(value){
+    if(value && typeof value === 'object'){
+        return Object.keys(value);
+    }
+
+    return value;
+}
+
+function compareToHash(value, hash){
+    if(value && hash && typeof hash === 'object'){
+        var keys = Object.keys(value);
+        if(keys.length !== hash.length){
+            return;
+        }
+        for (var i = 0; i < hash.length; i++) {
+            if(hash[i] !== keys[i]){
+                return;
+            }
+        };
+        return true;
+    }
+
+    return value === hash;
+}
 
 //***********************************************
 //
@@ -820,6 +862,12 @@ Property.prototype.set = function(value){
         );
     }
 }
+Property.prototype.sameAsPrevious = function () {
+    if(compareToHash(this.value, this.valueHash)){
+        return true;
+    }
+    this.valueHash = createValueHash(this.value);
+}
 Property.prototype.bind = bindProperty;
 Property.prototype.debind = function(){
     this.gaffa && this.gaffa.model.debind(this);
@@ -843,7 +891,7 @@ Property.prototype.toJSON = function(){
         delete tempObject.value;
     }
     
-    delete tempObject.previousValue;
+    delete tempObject.valueHash;
     
     return tempObject;
 };
@@ -1099,6 +1147,7 @@ function createEventedActionScope(view, event){
         altKey: event.altKey,
         which: event.which,
         target: event.target,
+        targetViewItem: getClosestItem(event.target),
         preventDefault: langify(event.preventDefault, event),
         stopPropagation: langify(event.stopPropagation, event)
     };

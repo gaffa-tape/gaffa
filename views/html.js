@@ -19,7 +19,7 @@ Html.prototype.render = function(){
 };
 
 Html.prototype.html = new Gaffa.Property(function(viewModel, value){
-    viewModel.renderedElement.innerHTML = (value && typeof value === 'string') ? value : null;
+    viewModel.renderedElement.innerHTML = (typeof value === 'string' || typeof value === 'number') ? value : null;
 });
 
 module.exports = Html;
