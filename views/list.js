@@ -74,23 +74,25 @@ List.prototype.list = new Gaffa.Property({
     ),
     trackKeys: true,
     sameAsPrevious:function () {
-        var newKeys = this.value && this.value.__gaffaKeys__,
-            value = this.value;
+        var oldKeys = this.getPreviousHash(),
+            value = this.value,
+            newKeys = value && (value.__gaffaKeys__ || Object.keys(value));
 
-        if(value && newKeys && typeof newKeys === 'object'){
-            var keys = Object.keys(value);
-            if(keys.length !== newKeys.length){
+        this.setPreviousHash(newKeys || value);
+
+        if(newKeys && oldKeys && oldKeys.length){
+            if(oldKeys.length !== newKeys.length){
                 return;
             }
             for (var i = 0; i < newKeys.length; i++) {
-                if(newKeys[i] !== keys[i]){
+                if(newKeys[i] !== oldKeys[i]){
                     return;
                 }
             };
             return true;
         }
 
-        return value === newKeys;
+        return value === oldKeys;
     }
 });
 

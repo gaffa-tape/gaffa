@@ -863,11 +863,17 @@ Property.prototype.set = function(value){
     }
 }
 Property.prototype.sameAsPrevious = function () {
-    if(compareToHash(this.value, this.valueHash)){
+    if(compareToHash(this.value, this._previousHash)){
         return true;
     }
-    this.valueHash = createValueHash(this.value);
+    this._previousHash = createValueHash(this.value);
 }
+Property.prototype.setPreviousHash = function(hash){
+    this._previousHash = hash;
+};
+Property.prototype.getPreviousHash = function(hash){
+    return this._previousHash;
+};
 Property.prototype.bind = bindProperty;
 Property.prototype.debind = function(){
     this.gaffa && this.gaffa.model.debind(this);
@@ -891,7 +897,7 @@ Property.prototype.toJSON = function(){
         delete tempObject.value;
     }
     
-    delete tempObject.valueHash;
+    delete tempObject._previousHash;
     
     return tempObject;
 };
