@@ -862,6 +862,8 @@ Property.prototype.set = function(value){
             this.setTransform ? gaffa.model.get(this.setTransform, this, {value: value}) : value,
             this
         );
+    }else{
+        this.update(this.parent, value);
     }
 }
 Property.prototype.sameAsPrevious = function () {
