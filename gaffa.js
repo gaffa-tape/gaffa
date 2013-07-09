@@ -862,7 +862,7 @@ Property.prototype.set = function(value){
             this.setTransform ? gaffa.model.get(this.setTransform, this, {value: value}) : value,
             this
         );
-    }else{
+    }else if(this.update){
         this.update(this.parent, value);
     }
 }
