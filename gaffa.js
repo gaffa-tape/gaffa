@@ -854,6 +854,8 @@ Property = createSpec(Property);
 Property.prototype.set = function(value){
     var gaffa = this.gaffa;
 
+    this.value = value;
+
     if(this.binding){
         gaffa.model.set(
             this.binding,
