@@ -1245,8 +1245,11 @@ View.prototype.classes = new Property(function(viewModel, value){
     
     viewModel.renderedElement.className = classes ? classes : null;
 });
-View.prototype.visible = new Property(function(viewModel, value) {
-    viewModel.renderedElement.style.display = value === false ? 'none' : null;
+View.prototype.visible = new Property({
+    update: function(viewModel, value) {
+        viewModel.renderedElement.style.display = value ? null : 'none';
+    },
+    value: true
 });
 View.prototype.renderChildren = new Property(function(viewModel, value) {
     if('value' in this){
