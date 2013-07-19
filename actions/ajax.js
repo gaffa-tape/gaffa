@@ -14,6 +14,7 @@ Ajax.prototype.trigger = function(parent, scope, event){
     this.__super__.trigger.apply(this, arguments);
 
     var action = this,
+        gaffa = this.gaffa,
         data = action.source.value,
         errorHandler = function (error) {
             gaffa.actions.trigger(action.actions.error, action, scope, event);
