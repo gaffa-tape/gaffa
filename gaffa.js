@@ -1119,7 +1119,7 @@ ViewItem.prototype.toJSON = function(){
     }
     
     for(var key in tempObject.actions){
-        if(tempObject.actions[key].length){
+        if(tempObject.actions[key] && tempObject.actions[key].length){
             noActions = false;
         }
     }
