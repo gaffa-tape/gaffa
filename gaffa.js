@@ -1166,9 +1166,11 @@ function createEventedActionScope(view, event){
 }
 
 function bindViewEvent(view, eventName){
-    return view.gaffa.doc.on(eventName, view.renderedElement, function (event) {
-        triggerActions(view.actions[eventName], view, createEventedActionScope(view, event), event);
-    });
+    if(eventName in view.renderedElement){
+        return view.gaffa.doc.on(eventName, view.renderedElement, function (event) {
+            triggerActions(view.actions[eventName], view, createEventedActionScope(view, event), event);
+        });
+    }
 }
 
 function View(viewDescription){
@@ -1190,7 +1192,8 @@ View.prototype.bind = function(parent){
     });
 
     for(var key in this.actions){
-        var actions = this.actions[key];
+        var actions = this.actions[key],
+            off;
 
         if(actions._bound){
             continue;
@@ -1198,7 +1201,11 @@ View.prototype.bind = function(parent){
         
         actions._bound = true;
 
-        this.viewEvents.push(bindViewEvent(view, key));
+        off = bindViewEvent(view, key);
+
+        if(off){
+            this.viewEvents.push(off);
+        }
     }
 };
 View.prototype.detach = function(){
@@ -1806,7 +1813,7 @@ function Gaffa(){
                 
                 gedi.set(path, value, parentPath, dirty);
             },
-            remove: function(path, parent) {
+            remove: function(path, parent, dirty) {
                 var parentPath;
 
                 if(path == null){
@@ -1817,7 +1824,7 @@ function Gaffa(){
                     parentPath = parent.getPath();
                 }
                 
-                gedi.remove(path, parentPath);
+                gedi.remove(path, parentPath, dirty);
             },
             bind: function(path, callback, parent) {
                 var parentPath;

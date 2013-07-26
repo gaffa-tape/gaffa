@@ -11,7 +11,7 @@ Set.prototype.trigger = function(){
     if(!(this.clone && this.clone.value === false)){
         fromObj = this.gaffa.clone(fromObj);
     }
-    this.target.set(fromObj, this.cleans.value === false); 
+    this.target.set(fromObj, this.cleans.value ? false : null); 
 };
 Set.prototype.target = new Gaffa.Property();
 Set.prototype.source = new Gaffa.Property();
