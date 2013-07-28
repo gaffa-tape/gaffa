@@ -1166,7 +1166,7 @@ function createEventedActionScope(view, event){
 }
 
 function bindViewEvent(view, eventName){
-    if(eventName in view.renderedElement){
+    if('on' + eventName.toLowerCase() in view.renderedElement){
         return view.gaffa.doc.on(eventName, view.renderedElement, function (event) {
             triggerActions(view.actions[eventName], view, createEventedActionScope(view, event), event);
         });
