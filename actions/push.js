@@ -18,13 +18,14 @@ Push.prototype.trigger = function(){
             fromObj = this.gaffa.clone(fromObj);
         }
         var pushToBinding = new this.gaffa.Path(this.target.binding).append(toObject.length.toString());
-        this.gaffa.model.set(pushToBinding, fromObj, this);
+        this.gaffa.model.set(pushToBinding, fromObj, this, this.cleans.value ? false : null);
     }else{
         throw "Attempted to push to model property that was not an array, null, or undefined";
     }
 };
 Push.prototype.target = new Gaffa.Property();
 Push.prototype.source = new Gaffa.Property();
+Push.prototype.cleans = new Gaffa.Property();
 
 
 

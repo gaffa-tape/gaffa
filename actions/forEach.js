@@ -32,8 +32,6 @@ ForEach.prototype.trigger = function(parent, scope, event) {
 
         this.gaffa.actions.trigger(psudoParent.actions.all, psudoParent, scope, event);
     }
-
-    this.key = null;
 };
 
 function EachPsudoParent(){}
