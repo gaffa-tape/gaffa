@@ -441,15 +441,15 @@ function getItemPath(item){
 
     while(referenceItem){
 
-        if(referenceItem.key != null){
-            pathParts.push(referenceItem.key);
-        }
-
         if(referenceItem.path != null){
             referencePath = new item.gaffa.Path(referenceItem.path);
             for(var i = referencePath.length - 1; i >= 0; i--){
                 pathParts.push(referencePath[i]);
             }
+        }
+
+        if(referenceItem.key != null){
+            pathParts.push(referenceItem.key);
         }
 
         if(referenceItem.parent){
