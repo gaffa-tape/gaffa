@@ -736,19 +736,14 @@ function createModelScope(parent, trackKeys, gediEvent){
 }
 
 function updateProperty(property, firstUpdate){
-    if(firstUpdate){
-        property.update(property.parent, property.value);
-        return;
-    }
     if(property.nextUpdate){
         clearTimeout(property.nextUpdate);
         property.nextUpdate = null;
     }
     property.nextUpdate = setTimeout(function(){
-        if(property.sameAsPrevious()){
-            return;
+        if(!property.sameAsPrevious() || firstUpdate){
+            property.update(property.parent, property.value);
         }
-        property.update(property.parent, property.value);
     }, 1);
 }
 
