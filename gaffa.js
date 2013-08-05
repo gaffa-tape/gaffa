@@ -11,7 +11,8 @@
 var Gedi = require('gedi'),
     doc = require('doc-js'),
     crel = require('crel'),
-    fastEach = require('fasteach');
+    fastEach = require('fasteach'),
+    deepEqual = require('deep-equal');
 
 
 
@@ -597,24 +598,29 @@ function initialiseViewItem(viewItem, gaffa, specCollection) {
         if(!(viewItem.views[key] instanceof ViewContainer)){
             viewItem.views[key] = new ViewContainer(viewItem.views[key]);
         }
-        fastEach(viewItem.views[key], function(view, index, views){
-            views[index] = initialiseView(view, gaffa, viewItem.views[key]);
-            views[index].parentContainer = views;
-        });
+        var views = viewItem.views[key];
+        for (var viewIndex = 0; viewIndex < views.length; viewIndex++) {
+            var view = initialiseView(views[viewIndex], gaffa);
+            views[viewIndex] = view;
+            view.parentContainer = views;
+        }
     }
         
     for(var key in viewItem.actions){
-        fastEach(viewItem.actions[key], function(action, index, actions){
-            actions[index] = initialiseAction(action, gaffa);
-            actions[index].parentContainer = actions;
-        });
+        var actions = viewItem.actions[key];
+        for (var actionIndex = 0; actionIndex < actions.length; actionIndex++) {
+            var action = initialiseAction(actions[actionIndex], gaffa);
+            actions[actionIndex] = action;
+            action.parentContainer = actions;
+        }
     }
         
     if(viewItem.behaviours){
-        fastEach(viewItem.behaviours, function(behaviour, index, behaviours){
-            behaviours[index] = initialiseBehaviour(behaviour, gaffa);
-            behaviours[index].parentContainer = behaviours;
-        });
+        for (var behaviourIndex = 0; behaviourIndex < viewItem.behaviours.length; behaviourIndex++) {
+            var behaviour = initialiseBehaviour(viewItem.behaviours[behaviourIndex], gaffa);
+            viewItem.behaviours[behaviourIndex] = behaviour;
+            behaviour.parentContainer = viewItem.behaviours;
+        }
     }
     
     return viewItem;
@@ -679,10 +685,13 @@ function removeViews(views){
 //***********************************************
 
 function jsonConverter(object, exclude, include){
-    var tempObject = Array.isArray(object) || object instanceof Array && [] || {},
-    excludeProps = ["gaffa", "parent", "parentContainer", "renderedElement", "viewEvents", "gediCallbacks"],
-    includeProps = ["type"];
+    var plainInstance = new object.constructor(),
+        tempObject = Array.isArray(object) || object instanceof Array && [] || {},
+        excludeProps = ["gaffa", "parent", "parentContainer", "renderedElement", "viewEvents", "gediCallbacks", "__super__"],
+        includeProps = ["type"];
                 
+    //console.log(object.constructor.name);
+    
     if(exclude){
         excludeProps = excludeProps.concat(exclude);
     }
@@ -690,20 +699,20 @@ function jsonConverter(object, exclude, include){
     if(include){
         includeProps = includeProps.concat(include);
     }
-
+    
     for(var key in object){
-        if(
-            object[key] == null ||
-            excludeProps.indexOf(key)>=0
-        ){
-            continue;
-        }
-        if(
-            object.hasOwnProperty(key) ||
-            includeProps.indexOf(key)>=0
+        if( 
+            includeProps.indexOf(key)>=0 ||
+            object.hasOwnProperty(key) &&
+            excludeProps.indexOf(key)<0 &&
+            !deepEqual(plainInstance[key], object[key])
         ){
             tempObject[key] = object[key];
         }
+    }
+
+    if(!Object.keys(tempObject).length){
+        return;
     }
     
     return tempObject;
@@ -886,22 +895,7 @@ Property.prototype.getPath = function(){
     return getItemPath(this);
 };
 Property.prototype.toJSON = function(){
-    var tempObject = jsonConverter(this),
-        gaffa = this.gaffa,
-        noTemplate = !tempObject.template,
-        noValue = tempObject.value === undefined,
-        noBinding = !(tempObject.binding  && tempObject.binding.length);
-
-    if(noBinding && noTemplate){
-        if(noValue){
-            return;
-        }
-        delete tempObject.binding;
-    }else{
-        delete tempObject.value;
-    }
-    
-    delete tempObject._previousHash;
+    var tempObject = jsonConverter(this, ['_previousHash']);
     
     return tempObject;
 };
@@ -914,9 +908,11 @@ Property.prototype.toJSON = function(){
 
 function ViewContainer(viewContainerDescription){
     var viewContainer = this;
-    viewContainerDescription instanceof Array && fastEach(viewContainerDescription, function(childView){
-        viewContainer.push(childView);
-    });
+    if(viewContainerDescription instanceof Array){
+        for (var i = 0; i < viewContainerDescription.length; i++) {
+            viewContainer.push(viewContainerDescription[i]);
+        }
+    }
 }
 ViewContainer = createSpec(ViewContainer, Array);
 ViewContainer.prototype.bind = function(parent){
@@ -944,9 +940,9 @@ ViewContainer.prototype.debind = function(){
 
     this.bound = false;
 
-    fastEach(this, function(viewModel){
-        viewModel.debind();
-    });
+    for (var i = 0; i < this.length; i++) {
+        this[i].debind();
+    }
 };
 ViewContainer.prototype.getPath = function(){
     return getItemPath(this);
@@ -954,10 +950,9 @@ ViewContainer.prototype.getPath = function(){
 ViewContainer.prototype.add = function(viewModel, insertIndex){
     // If passed an array
     if(Array.isArray(viewModel)){
-        var viewContainer = this;
-        fastEach(viewModel, function(viewModel){
-            viewContainer.add(viewModel);
-        });
+        for(var i = 0; i < viewModel.length; i++){
+            this.add(viewModel[i]);
+        }
         return this;
     }
 
@@ -981,12 +976,15 @@ ViewContainer.prototype.toJSON = function(){
 };
 ViewContainer.prototype.render = new Property({
     update: function(viewContainer, value){
+        var i = 0,
+            viewContainerLength = viewContainer.length;
         if(value){
-            fastEach(viewContainer, function(viewModel, index){
+            for(; i < viewContainerLength; i++){
+                var viewModel = viewContainer[i];
                 viewModel.gaffa = viewContainer.gaffa;
 
                 if(viewModel.renderedElement){
-                    return;
+                    continue;
                 }
 
                 if(viewModel.name){
@@ -996,12 +994,12 @@ ViewContainer.prototype.render = new Property({
 
                 viewModel.render();
                 viewModel.bind(viewContainer.parent);
-                viewModel.insert(viewContainer, index);
-            })
+                viewModel.insert(viewContainer, i);
+            }
         }else{
-            fastEach(viewContainer, function(viewModel, index){
-                viewModel.debind();
-            });
+            for(; i < viewContainerLength; i++){
+                viewContainer[i].debind();
+            }
         }
     },
     value: true
@@ -1074,8 +1072,8 @@ function ViewItem(viewItemDescription){
     }
 }
 ViewItem = createSpec(ViewItem);
+ViewItem.prototype.path = '[]';
 ViewItem.prototype.bind = function(parent){
-    this.path = this.path ? new this.gaffa.Path(this.path) : new this.gaffa.Path('[]');
     var viewItem = this;
 
     this.parent = parent;
@@ -1100,47 +1098,7 @@ ViewItem.prototype.getPath = function(){
     return getItemPath(this);
 };
 ViewItem.prototype.toJSON = function(){
-    var tempObject = jsonConverter(this),
-        noViews = true,
-        noActions = true,
-        noBehaviours = this.behaviours ? !this.behaviours.length : true;
-        
-    if(tempObject.views){
-        for(var key in tempObject.views){
-            if(tempObject[key] && tempObject[key].template){
-                delete tempObject.views[key];
-                continue;
-            }
-            
-            if(tempObject.views[key].length){
-                noViews = false;
-            }
-        }
-    }
-    
-    for(var key in tempObject.actions){
-        if(tempObject.actions[key] && tempObject.actions[key].length){
-            noActions = false;
-        }
-    }
-    
-    if(noViews){
-        delete tempObject.views;
-    }
-
-    if(noActions){
-        delete tempObject.actions;
-    }
-
-    if(noBehaviours){
-        delete tempObject.behaviours;
-    }
-
-    if(tempObject.eventHandlers && !tempObject.eventHandlers.length){
-        delete tempObject.eventHandlers;
-    }
-    
-    return tempObject;
+    return jsonConverter(this);
 };
 
 //***********************************************
@@ -1180,16 +1138,14 @@ function View(viewDescription){
     view.behaviours = view.behaviours || [];        
 }
 View = createSpec(View, ViewItem);
-View.prototype.bind = function(parent){
-    var view = this,
-        gaffa = this.gaffa;
 
+View.prototype.bind = function(parent){
     ViewItem.prototype.bind.apply(this, arguments);
 
-    fastEach(view.behaviours, function(behaviour){
-        behaviour.gaffa = view.gaffa;
-        behaviour.bind(view);
-    });
+    for(var i = 0; i < this.behaviours.length; i++){
+        this.behaviours[i].gaffa = this.gaffa;
+        this.behaviours[i].bind(this);
+    }
 
     for(var key in this.actions){
         var actions = this.actions[key],
@@ -1201,32 +1157,37 @@ View.prototype.bind = function(parent){
         
         actions._bound = true;
 
-        off = bindViewEvent(view, key);
+        off = bindViewEvent(this, key);
 
         if(off){
             this.viewEvents.push(off);
         }
     }
 };
+
 View.prototype.detach = function(){
     this.renderedElement && this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
 };
+
 View.prototype.remove = function(){        
     this.detach();
     removeViewItem(this);
 }
-View.prototype.debind = function () {        
-    fastEach(this.behaviours, function(behaviour){
-        behaviour.debind();
-    });
+
+View.prototype.debind = function () {
+    for(var i = 0; i < this.behaviours.length; i++){
+        this.behaviours[i].debind();
+    }
     while(this.viewEvents.length){
         this.viewEvents.pop()();
     }
     debindViewItem(this);
 };
+
 View.prototype.render = function(){
     this.renderedElement.viewModel = this;
 };    
+
 View.prototype.insert = function(viewContainer, insertIndex){
     var view = this,
         gaffa = view.gaffa;
@@ -1241,8 +1202,11 @@ View.prototype.insert = function(viewContainer, insertIndex){
             }
         });
     }
-};    
-View.prototype.classes = new Property(function(viewModel, value){
+};
+
+function Classes(){};
+Classes = createSpec(Classes, Property);
+Classes.prototype.update = function(viewModel, value){
     if(!('internalClassNames' in viewModel.classes)){
         viewModel.classes.internalClassNames = viewModel.renderedElement.className;
     }
@@ -1251,20 +1215,28 @@ View.prototype.classes = new Property(function(viewModel, value){
         classes = [internalClassNames, value].join(' ').trim();
     
     viewModel.renderedElement.className = classes ? classes : null;
-});
-View.prototype.visible = new Property({
-    update: function(viewModel, value) {
-        viewModel.renderedElement.style.display = value ? null : 'none';
-    },
-    value: true
-});
-View.prototype.renderChildren = new Property(function(viewModel, value) {
+};
+View.prototype.classes = new Classes();
+
+function Visible(){};
+Visible = createSpec(Visible, Property);
+Visible.prototype.value = true;
+Visible.prototype.update = function(viewModel, value) {
+    viewModel.renderedElement.style.display = value ? null : 'none';
+};
+View.prototype.visible = new Visible();
+
+function RenderChildren(){};
+RenderChildren = createSpec(RenderChildren, Property);
+RenderChildren.prototype.update = function(viewModel, value) {
     if('value' in this){
         for(var key in viewModel.views){
             viewModel.views[key].render.value = value;
         }
     }
-});
+};
+View.prototype.renderChildren = new RenderChildren();
+
 View.prototype.insertFunction = insertFunction;
 
 

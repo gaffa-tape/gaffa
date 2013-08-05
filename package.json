@@ -5,15 +5,15 @@
     "tags": [
         "DOM"
     ],
-    "version": "0.8.11",
+    "version": "0.8.12",
     "main": "gaffa.js",
     "dependencies": {
         "fasteach":">= 1.0.0",
         "gedi":">= 0.0.0",
         "doc-js":">= 0.0.0",
-        "crel": ">= 0.0.0"   
+        "crel": ">= 0.0.0",
+        "deep-equal": "x.x.x"
     },
-    "devDependencies": {},
     "repository": {
         "type": "git",
         "url": "git://github.com/KoryNunn/gaffa-js.git"
@@ -21,5 +21,16 @@
     "bugs": {
         "url": "http://github.com/KoryNunn/gaffa-js/issues"
     },
-    "contributors": []
+    "contributors": [],
+    "devDependencies": {
+        "tape": ">=0.0.4",
+        "mockery":"1.x.x"
+    },
+    "scripts":{
+        "test":"node ./test/test.js"
+    },
+    "testling": {
+        "files": "test/*.js",
+        "browsers": [ "ie8", "ie9", "ff/13", "chrome/20" ]
+    }
 }
