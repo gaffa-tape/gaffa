@@ -740,8 +740,14 @@ function updateProperty(property, firstUpdate){
         clearTimeout(property.nextUpdate);
         property.nextUpdate = null;
     }
+    if(firstUpdate){
+        //generate previous hash, ToDo: refactor
+        property.sameAsPrevious();
+
+        property.update(property.parent, property.value);
+    }
     property.nextUpdate = setTimeout(function(){
-        if(!property.sameAsPrevious() || firstUpdate){
+        if(!property.sameAsPrevious()){
             property.update(property.parent, property.value);
         }
     }, 1);
