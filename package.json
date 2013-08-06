@@ -12,7 +12,8 @@
         "gedi":">= 0.0.0",
         "doc-js":">= 0.0.0",
         "crel": ">= 0.0.0",
-        "deep-equal": "x.x.x"
+        "deep-equal": "x.x.x",
+        "weakmap":"x.x.x"
     },
     "repository": {
         "type": "git",

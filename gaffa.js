@@ -12,7 +12,8 @@ var Gedi = require('gedi'),
     doc = require('doc-js'),
     crel = require('crel'),
     fastEach = require('fasteach'),
-    deepEqual = require('deep-equal');
+    deepEqual = require('deep-equal'),
+    WeakMap = require('weakmap');
 
 
 
@@ -763,7 +764,7 @@ function createPropertyCallback(property){
                 value = event.getValue(scope);
             }
 
-            property.keys = value && value.__gaffaKeys__;
+            property._keysMap = scope._keysMap;
             property.value = value;
         }
         
@@ -986,7 +987,6 @@ ViewContainer.prototype.render = new Property({
                     viewContainer.gaffa.namedViews[viewModel.name] = viewModel;
                 }
 
-
                 viewModel.render();
                 viewModel.bind(viewContainer.parent);
                 viewModel.insert(viewContainer, i);
@@ -1181,22 +1181,27 @@ View.prototype.debind = function () {
 
 View.prototype.render = function(){
     this.renderedElement.viewModel = this;
-};    
+};
+
+function insert(view, viewContainer, insertIndex){
+    window.requestAnimationFrame(function(){
+        var gaffa = view.gaffa;
+
+        var renderTarget = view.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
+        view.insertFunction(view.insertSelector || renderTarget, view.renderedElement, insertIndex);
+
+        if(view.afterInsert){
+            doc.on('DOMNodeInserted', document, function (event) {
+                if(doc.closest(view.renderedElement, event.target)){
+                    view.afterInsert();
+                }
+            });
+        }
+    });
+}
 
 View.prototype.insert = function(viewContainer, insertIndex){
-    var view = this,
-        gaffa = view.gaffa;
-
-    var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
-    this.insertFunction(this.insertSelector || renderTarget, this.renderedElement, insertIndex);
-
-    if(view.afterInsert){
-        doc.on('DOMNodeInserted', document, function (event) {
-            if(doc.closest(view.renderedElement, event.target)){
-                view.afterInsert();
-            }
-        });
-    }
+    insert(this, viewContainer, insertIndex);
 };
 
 function Classes(){};
@@ -1369,160 +1374,36 @@ function Gaffa(){
     gaffa.gedi = gedi;
     
     // Gedi.Gel extensions
-    
-    function getSourceKeys(array){            
-        return array.__gaffaKeys__ || (function(){
-            var arr = [];
-            while(arr.length < array.length && arr.push(arr.length.toString()));
-            return arr;
-        })();
+
+    function createKeytracker(fn){
+        return function(scope, args){
+            if(!scope.get('__trackKeys__')){
+                return fn(scope, args);
+            }
+            var keysMap = scope.get('_keysMap'),
+                pathToken = args.getRaw(0),
+                target = args.get(0),
+                result = fn(scope, args),
+                sourceIsPath = pathToken.name === 'gediPathToken';
+
+            if(sourceIsPath){
+                for(var i = 0; i < result.length; i++){
+                    !keysMap.get(result[i]) && keysMap.set(result[i], [pathToken.original, target.indexOf(result[i]).toString()]);
+                }
+            }
+
+            return result;
+        };
     }
 
     var originalFilter = gedi.gel.scope.filter;
-    gedi.gel.scope.filter = function(scope, args) {
-        if(!scope.get('__trackKeys__')){
-            return originalFilter(scope, args);
-        }
-        var args = args.all(),
-            sourceArrayKeys,
-            filteredList = [];
-        
-        var array = args[0];
-        var functionToCompare = args[1];
-
-        if(!array){
-            return undefined;
-        }
-            
-        sourceArrayKeys = getSourceKeys(array);
-
-        filteredList.__gaffaKeys__ = [];
-            
-        if (args.length < 2) {
-            return args;
-        }
-        
-        if (Array.isArray(array)) {
-            
-            fastEach(array, function(item, index){
-                if(typeof functionToCompare === "function"){
-                    if(scope.callWith(functionToCompare, [item])){ 
-                        filteredList.push(item);
-                        filteredList.__gaffaKeys__.push(sourceArrayKeys[index]);
-                    }
-                }else{
-                    if(item === functionToCompare){ 
-                        filteredList.push(item);
-                        filteredList.__gaffaKeys__.push(sourceArrayKeys[index]);
-                    }
-                }
-            });
-            return filteredList;
-        
-        }else {
-            return;
-        }
-    };
+    gedi.gel.scope.filter = createKeytracker(originalFilter);
     
     var originalSlice = gedi.gel.scope.slice;
-    gedi.gel.scope.slice = function(scope, args) {
-        if(!scope.get('__trackKeys__')){
-            return originalSlice(scope, args);
-        }
-        var target = args.next(),
-            start,
-            end,
-            result,
-            sourceArrayKeys;
-
-        if(args.hasNext()){
-            start = target;
-            target = args.next();
-        }
-        if(args.hasNext()){
-            end = target;
-            target = args.next();
-        }
-
-        if(!Array.isArray(target)){
-            return;
-        }
-
-        sourceArrayKeys = getSourceKeys(target);
-
-        result = target.slice(start, end);
-
-        result.__gaffaKeys__ = sourceArrayKeys.slice(start, end);
-        
-        return result;
-    };
-
-    // This is pretty dirty..
-    function ksort(array, scope, sortFunction){
-
-        if(array.length < 2){
-            return array;
-        }
-
-        var sourceArrayKeys = getSourceKeys(array),
-            source = array.slice(),
-            sourceKeys = sourceArrayKeys.slice(),
-            left = [],
-            pivot = source.splice(source.length/2,1).pop(),
-            pivotKey = sourceKeys.splice(sourceKeys.length/2,1).pop(),
-            right = [],
-            result,
-            resultKeys;
-
-        left.__gaffaKeys__ = [];
-        right.__gaffaKeys__ = [];
-
-        for(var i = 0; i < source.length; i++){
-            var item = source[i];
-            if(scope.callWith(sortFunction, [item, pivot]) > 0){           
-                right.push(item);
-                right.__gaffaKeys__.push(sourceKeys[i]);
-            }else{
-                left.push(item);
-                left.__gaffaKeys__.push(sourceKeys[i]);
-            }
-        }
-
-        left = ksort(left, scope, sortFunction);
-
-        left.push(pivot);
-        left.__gaffaKeys__.push(pivotKey);
-
-        right = ksort(right, scope, sortFunction);
-
-        resultKeys = left.__gaffaKeys__.concat(right.__gaffaKeys__);
-
-        result = left.concat(right);
-        result.__gaffaKeys__ = resultKeys;
-
-        return result;
-    }
+    gedi.gel.scope.slice = createKeytracker(originalSlice);
     
     var originalSort = gedi.gel.scope.sort;
-    gedi.gel.scope.sort = function(scope, args) {
-        if(!scope.get('__trackKeys__')){
-            return originalSort(scope, args);
-        }
-
-        var target = args.next(),
-            sortFunction = args.next(),
-            result,
-            sourceArrayKeys,
-            sortValues = [];
-
-        if(!Array.isArray(target)){
-            return;
-        }
-
-        result = ksort(target, scope, sortFunction);
-        
-        return result;
-    };
+    gedi.gel.scope.sort = createKeytracker(originalSort);
 
     
     //***********************************************
@@ -1764,6 +1645,8 @@ function Gaffa(){
                 scope = scope || {};
 
                 addDefaultsToScope(scope);
+
+                scope._keysMap = new WeakMap();
                 
                 return gedi.get(path, parentPath, scope);
             },
@@ -1988,10 +1871,11 @@ Gaffa.addDefaultStyle = addDefaultStyle;
 Gaffa.propertyUpdaters = {
     collection: function (viewsName, insert, remove, empty) {
         return function (viewModel, value) {
-            var property = this,
+            var gaffa = viewModel.gaffa,
+                property = this,
                 valueLength = 0,
                 childViews = viewModel.views[viewsName],
-                valueKeys = property.keys,
+                keysMap = property._keysMap,
                 calculateValueLength = function(){
                     if(Array.isArray(value)){
                         return value.length;
@@ -2014,7 +1898,7 @@ Gaffa.propertyUpdaters = {
                             
                         if(
                             (
-                                (valueKeys && !(valueKeys.indexOf(existingKey)>=0)) ||
+                                (keysMap.get(value[i]) !== existingKey) ||
                                 !value[childView.key]
                             ) &&
                             childView.containerName === viewsName
@@ -2038,23 +1922,20 @@ Gaffa.propertyUpdaters = {
                         var existingChildView = false;
                         for(var i = 0; i < childViews.length; i++){
                             var child = childViews[i],
-                                valueKey = key;
+                                valueKey = keysMap.get(value[key]) || key;
                                 
-                            if(valueKeys){
-                                valueKey = valueKeys[key];
-                            }
-                                
-                            if(child.key === valueKey){
-                                existingChildView = child;
+                            if(child.path.toString() === new gaffa.Path(valueKey[0]).append(valueKey[1]).toString()){
+                                existingChildView = true;
                             }
                         }
                         
                         if (!existingChildView) {
-                            var newViewKey = key;
-                            if(valueKeys){
-                                newViewKey = valueKeys[key];
-                            }
-                            newView = {key: newViewKey, containerName: viewsName};
+                            var newViewKey = keysMap.get(value[key]) || key;
+
+                            newView = {
+                                path: new gaffa.Path(newViewKey[0]).append(newViewKey[1]),
+                                containerName: viewsName
+                            };
                             insert(viewModel, value, newView, itemIndex);
                         }
 
