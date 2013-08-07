@@ -827,7 +827,7 @@ function createValueHash(value){
 }
 
 function compareToHash(value, hash){
-    if(value && hash && typeof hash === 'object'){
+    if(value && hash && typeof value === 'object' && typeof hash === 'object'){
         var keys = Object.keys(value);
         if(keys.length !== hash.length){
             return;
