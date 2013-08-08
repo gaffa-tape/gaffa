@@ -12,9 +12,10 @@ var Gedi = require('gedi'),
     doc = require('doc-js'),
     crel = require('crel'),
     fastEach = require('fasteach'),
-    deepEqual = require('deep-equal');
-
-
+    deepEqual = require('deep-equal'),
+    animationFrame = require('./raf.js'),
+    requestAnimationFrame = animationFrame.requestAnimationFrame,
+    cancelAnimationFrame = animationFrame.cancelAnimationFrame;
 
 // Storage for applications default styles.
 var defaultViewStyles;
@@ -737,7 +738,7 @@ function createModelScope(parent, trackKeys, gediEvent){
 
 function updateProperty(property, firstUpdate){
     if(property.nextUpdate){
-        clearTimeout(property.nextUpdate);
+        cancelAnimationFrame(property.nextUpdate);
         property.nextUpdate = null;
     }
     if(firstUpdate){
@@ -746,11 +747,11 @@ function updateProperty(property, firstUpdate){
 
         property.update(property.parent, property.value);
     }
-    property.nextUpdate = setTimeout(function(){
+    property.nextUpdate = requestAnimationFrame(function(){
         if(!property.sameAsPrevious()){
             property.update(property.parent, property.value);
         }
-    }, 1);
+    });
 }
 
 function createPropertyCallback(property){
@@ -1187,7 +1188,7 @@ View.prototype.debind = function () {
 
 View.prototype.render = function(){
     this.renderedElement.viewModel = this;
-};    
+};
 
 View.prototype.insert = function(viewContainer, insertIndex){
     var view = this,
