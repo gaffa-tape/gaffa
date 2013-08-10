@@ -737,21 +737,15 @@ function createModelScope(parent, trackKeys, gediEvent){
 }
 
 function updateProperty(property, firstUpdate){
-    if(property.nextUpdate){
-        cancelAnimationFrame(property.nextUpdate);
-        property.nextUpdate = null;
-    }
-    if(firstUpdate){
-        //generate previous hash, ToDo: refactor
-        property.sameAsPrevious();
-
-        property.update(property.parent, property.value);
-    }
-    property.nextUpdate = requestAnimationFrame(function(){
-        if(!property.sameAsPrevious()){
-            property.update(property.parent, property.value);
+    if(!property.sameAsPrevious() || firstUpdate){
+        if(property.nextUpdate){
+            cancelAnimationFrame(property.nextUpdate);
+            property.nextUpdate = null;
         }
-    });
+        property.nextUpdate = requestAnimationFrame(function(){            
+            property.update(property.parent, property.value);
+        });
+    }
 }
 
 function createPropertyCallback(property){
@@ -868,6 +862,7 @@ Property.prototype.set = function(value){
     this.value = value;
 
     if(this.binding){
+        this._previousHash = createValueHash(value);
         gaffa.model.set(
             this.binding,
             this.setTransform ? gaffa.model.get(this.setTransform, this, {value: value}) : value,
