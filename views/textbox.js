@@ -22,9 +22,9 @@ function setValue(event){
         viewModel = input.viewModel;
             
     if (viewModel.subType.value === "number") {
-        viewModel.value.set(parseFloat(input.value));
+        viewModel.value.set(parseFloat(input.value), false);
     } else {
-        viewModel.value.set(input.value);
+        viewModel.value.set(input.value, false);
     } 
 }  
 

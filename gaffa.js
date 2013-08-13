@@ -856,8 +856,12 @@ function Property(propertyDescription){
     this.gediCallbacks = [];
 }
 Property = createSpec(Property);
-Property.prototype.set = function(value){
+Property.prototype.set = function(value, callUpdate){
     var gaffa = this.gaffa;
+
+    if(callUpdate == null){
+        callUpdate = true;
+    }
 
     this.value = value;
 
@@ -868,7 +872,8 @@ Property.prototype.set = function(value){
             this.setTransform ? gaffa.model.get(this.setTransform, this, {value: value}) : value,
             this
         );
-    }else if(this.update){
+    }
+    if(callUpdate && this.update){
         this.update(this.parent, value);
     }
 }
