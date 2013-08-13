@@ -688,7 +688,7 @@ function removeViews(views){
 function jsonConverter(object, exclude, include){
     var plainInstance = new object.constructor(),
         tempObject = Array.isArray(object) || object instanceof Array && [] || {},
-        excludeProps = ["gaffa", "parent", "parentContainer", "renderedElement", "viewEvents", "gediCallbacks", "__super__"],
+        excludeProps = ["gaffa", "parent", "parentContainer", "renderedElement", "_removeHandlers", "gediCallbacks", "__super__"],
         includeProps = ["type"];
                 
     //console.log(object.constructor.name);
@@ -761,6 +761,10 @@ function createPropertyCallback(property){
                 value = property.gaffa.model.get(property.binding, property, scope);
 
             } else if(property.binding){ // Model change update.
+
+                if(property.ignoreTargets && event.target.toString().match(property.ignoreTargets)){
+                    return;
+                }
                 value = event.getValue(scope);
             }
 
@@ -1126,17 +1130,15 @@ function createEventedActionScope(view, event){
 }
 
 function bindViewEvent(view, eventName){
-    if('on' + eventName.toLowerCase() in view.renderedElement){
-        return view.gaffa.doc.on(eventName, view.renderedElement, function (event) {
-            triggerActions(view.actions[eventName], view, createEventedActionScope(view, event), event);
-        });
-    }
+    return view.gaffa.events.on(eventName, view.renderedElement, function (event) {
+        triggerActions(view.actions[eventName], view, createEventedActionScope(view, event), event);
+    });
 }
 
 function View(viewDescription){
     var view = this;
 
-    view.viewEvents = [];
+    view._removeHandlers = [];
     view.behaviours = view.behaviours || [];        
 }
 View = createSpec(View, ViewItem);
@@ -1162,7 +1164,7 @@ View.prototype.bind = function(parent){
         off = bindViewEvent(this, key);
 
         if(off){
-            this.viewEvents.push(off);
+            this._removeHandlers.push(off);
         }
     }
 };
@@ -1180,8 +1182,8 @@ View.prototype.debind = function () {
     for(var i = 0; i < this.behaviours.length; i++){
         this.behaviours[i].debind();
     }
-    while(this.viewEvents.length){
-        this.viewEvents.pop()();
+    while(this._removeHandlers.length){
+        this._removeHandlers.pop()();
     }
     debindViewItem(this);
 };
@@ -1756,6 +1758,13 @@ function Gaffa(){
         Property: Property,
         ViewContainer: ViewContainer,
         initialiseViewItem: initialiseViewItem,
+        events:{
+            on: function(eventName, target, callback){
+                if('on' + eventName.toLowerCase() in target){
+                    return doc.on(eventName, target, callback);
+                }
+            }
+        },
         model: {
             get:function(path, parent, scope) {
                 if(!(parent instanceof ViewItem || parent instanceof Property)){
@@ -1802,6 +1811,7 @@ function Gaffa(){
             },
             bind: function(path, callback, parent) {
                 var parentPath;
+
                 if(parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
