@@ -1086,7 +1086,9 @@ ViewItem.prototype.bind = function(parent){
 
     this.bound = true;
     
-    for(var propertyKey in this){
+    // Only set up properties that were on the prototype.
+    // Faster and 'safer'
+    for(var propertyKey in this.constructor.prototype){
         if(this[propertyKey] instanceof Property){
             var property = this[propertyKey];
             property.gaffa = viewItem.gaffa;
@@ -1196,9 +1198,6 @@ View.prototype.insert = function(viewContainer, insertIndex){
     var view = this,
         gaffa = view.gaffa;
 
-    var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
-    this.insertFunction(this.insertSelector || renderTarget, this.renderedElement, insertIndex);
-
     if(view.afterInsert){
         doc.on('DOMNodeInserted', document, function (event) {
             if(doc.closest(view.renderedElement, event.target)){
@@ -1206,6 +1205,10 @@ View.prototype.insert = function(viewContainer, insertIndex){
             }
         });
     }
+
+    var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
+    this.insertFunction(this.insertSelector || renderTarget, this.renderedElement, insertIndex);
+
 };
 
 function Classes(){};
@@ -1308,7 +1311,7 @@ Action.prototype.trigger = function(parent, scope, event){
         outerTrackKeys = scope.__trackKeys__;
 
 
-    for(var propertyKey in this){
+    for(var propertyKey in this.constructor.prototype){
         var property = this[propertyKey];
 
         if(property instanceof Property && property.binding){
