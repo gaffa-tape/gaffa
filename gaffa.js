@@ -435,34 +435,25 @@ function insertFunction(selector, renderedElement, insertIndex){
 //***********************************************
 
 function getItemPath(item){
-    var path,
-        pathParts = [],
+    var gedi = item.gaffa.gedi,
+        paths = [],
         referencePath,
-        referenceItem = item;
-    
+        referenceItem = item;    
 
     while(referenceItem){
 
         if(referenceItem.path != null){
-            referencePath = new item.gaffa.Path(referenceItem.path);
-            for(var i = referencePath.length - 1; i >= 0; i--){
-                pathParts.push(referencePath[i]);
-            }
+            paths.push(referenceItem.path);
         }
 
         if(referenceItem.key != null){
-            pathParts.push(referenceItem.key);
+            paths.push(gedi.paths.create(referenceItem.key));
         }
 
-        if(referenceItem.parent){
-            referenceItem = referenceItem.parent;
-            continue;
-        }
-
-        referenceItem = null;
+        referenceItem = referenceItem.parent;
     }
     
-    return new item.gaffa.Path(pathParts.reverse());
+    return gedi.paths.resolve.apply(this, paths.reverse());
 }
 
 //***********************************************
@@ -742,7 +733,7 @@ function updateProperty(property, firstUpdate){
             cancelAnimationFrame(property.nextUpdate);
             property.nextUpdate = null;
         }
-        property.nextUpdate = requestAnimationFrame(function(){            
+        property.nextUpdate = requestAnimationFrame(function(){
             property.update(property.parent, property.value);
         });
     }
@@ -802,8 +793,7 @@ function bindProperty(parent) {
     }
             
     var propertyCallback = createPropertyCallback(this);
-        
-    this.binding = new this.gaffa.Expression(this.binding);
+
     this.gaffa.model.bind(this.binding, propertyCallback, this);
     propertyCallback(true);
 }
@@ -1749,7 +1739,6 @@ function Gaffa(){
         createSpec: createSpec,
         jsonConverter: jsonConverter,
         Path: gedi.Path,
-        Expression: gedi.Expression,
         ViewItem: ViewItem,
         View: View,
         ContainerView: ContainerView,
