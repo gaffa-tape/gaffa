@@ -1269,7 +1269,7 @@ ContainerView.prototype.bind = function(parent){
     }
 };
 ContainerView.prototype.debind = function(){
-    debindViewItem(this);
+    View.prototype.debind.apply(this, arguments);
     for(var key in this.views){
         var viewContainer = this.views[key];
         
