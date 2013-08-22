@@ -14,6 +14,7 @@ var Gedi = require('gedi'),
     fastEach = require('fasteach'),
     deepEqual = require('deep-equal'),
     animationFrame = require('./raf.js'),
+    weakmap = require('weakmap'),
     requestAnimationFrame = animationFrame.requestAnimationFrame,
     cancelAnimationFrame = animationFrame.cancelAnimationFrame;
 
@@ -989,16 +990,14 @@ ViewContainer.prototype.render = new Property({
                 var viewModel = viewContainer[i];
                 viewModel.gaffa = viewContainer.gaffa;
 
-                if(viewModel.renderedElement){
-                    continue;
+                if(!viewModel.renderedElement){
+                    viewModel.render();
                 }
 
                 if(viewModel.name){
                     viewContainer.gaffa.namedViews[viewModel.name] = viewModel;
                 }
-
-
-                viewModel.render();
+                
                 viewModel.bind(viewContainer.parent);
                 viewModel.insert(viewContainer, i);
             }
@@ -2005,97 +2004,117 @@ Gaffa.createSpec = createSpec;
 Gaffa.Behaviour = Behaviour;
 Gaffa.addDefaultStyle = addDefaultStyle;
 
-Gaffa.propertyUpdaters = {
-    collection: function (viewsName, insert, remove, empty) {
-        return function (viewModel, value) {
-            var property = this,
-                valueLength = 0,
-                childViews = viewModel.views[viewsName],
-                valueKeys = property.keys,
-                calculateValueLength = function(){
-                    if(Array.isArray(value)){
-                        return value.length;
-                    }else if(typeof value === "object"){
-                        return Object.keys(value).length;
-                    }
-                };
-                
-            if (value && typeof value === "object"){
 
-                var element = viewModel.renderedElement;
-                if (element && property.template) {
-                    var newView,
-                        isEmpty = true;
-                    
-                    //Remove any child nodes who no longer exist in the data
-                    for(var i = 0; i < childViews.length; i++){
-                        var childView = childViews[i],
-                            existingKey = childView.key;
-                            
-                        if(
-                            (
-                                (valueKeys && !(valueKeys.indexOf(existingKey)>=0)) ||
-                                !value[childView.key]
-                            ) &&
-                            childView.containerName === viewsName
-                        ){
-                            i--;
-                            remove(viewModel, value, childView);
-                            childView.remove();
-                        }
-                    }
+function isBadKey(key){
+    return key == null || typeof key !== 'object';
+}
+function superWeakMap(){
+    this._weakmap = new weakmap();
+    this._fakeStore = {};
+}
+superWeakMap.prototype.set = function(key, value){
+    if(isBadKey(key)){
+        this._fakeStore[key] = value;
+        return;
+    }
+    return this._weakmap.set.apply(this._weakmap, arguments);
+};
+superWeakMap.prototype.get = function(key){
+    if(isBadKey(key)){
+        return this._fakeStore[key];
+    }
+    return this._weakmap.get.apply(this._weakmap, arguments);
+};
+superWeakMap.prototype.has = function(key){
+    if(isBadKey(key)){
+        return key in this._fakeStore;
+    }
+    return this._weakmap.has.apply(this._weakmap, arguments);
+};
+superWeakMap.prototype.delete = function(key){
+    if(isBadKey(key)){
+        delete this._fakeStore[key];
+        return;
+    }
+    return this._weakmap.delete.apply(this._weakmap, arguments);
+};
+superWeakMap.prototype.clear = function(){
+    this._fakeStore = {};
+    return this._weakmap.clear();
+};
 
-                    var itemIndex = 0;
-                    
-                    //Add items which do not exist in the dom
-                    for (var key in value) {
-                        if(Array.isArray(value) && isNaN(key)){
-                            continue;
-                        }
-                        
-                        isEmpty = false;
-                        
-                        var existingChildView = false;
-                        for(var i = 0; i < childViews.length; i++){
-                            var child = childViews[i],
-                                valueKey = key;
-                                
-                            if(valueKeys){
-                                valueKey = valueKeys[key];
-                            }
-                                
-                            if(child.key === valueKey){
-                                existingChildView = child;
-                            }
-                        }
-                        
-                        if (!existingChildView) {
-                            var newViewKey = key;
-                            if(valueKeys){
-                                newViewKey = valueKeys[key];
-                            }
-                            newView = {key: newViewKey, containerName: viewsName};
-                            insert(viewModel, value, newView, itemIndex);
-                        }
-
-                        itemIndex++;
-                    }
-                    
-                    empty(viewModel, isEmpty);
-                }
-            }else{
-                for(var i = 0; i < childViews.length; i++){
-                    var childView = childViews[i];
-                    if(childView.containerName === viewsName){
-                        i--;
-                        remove(viewModel, value, childView); 
-                        childView.remove();                           
-                    }
-                }
-                empty(viewModel, true);
+function TemplaterProperty(){
+    this._childMap = new superWeakMap();
+}
+TemplaterProperty = createSpec(TemplaterProperty, Property);
+TemplaterProperty.prototype.update =function (viewModel, value) {
+    if(!this.template){
+        return;
+    }
+    this._templateCache = this._templateCache || JSON.stringify(this.template);
+    var viewsName = this.viewsName,
+        valueLength = 0,
+        childViews = viewModel.views[viewsName],
+        valueKeys = this.keys,
+        calculateValueLength = function(){
+            if(Array.isArray(value)){
+                return value.length;
+            }else if(typeof value === "object"){
+                return Object.keys(value).length;
             }
-        };
-    },
+        },
+        viewsToRemove = childViews.slice();
+
+        
+    if (value && typeof value === "object"){
+
+        var newView,
+            isEmpty = true,
+            itemIndex = 0;
+
+        for(var key in value){
+            if(Array.isArray(value) && isNaN(key)){
+                continue;
+            }
+            itemIndex++;
+            isEmpty = false;
+            var item = value[key];
+            if(!this._childMap.has(item)){
+                var newViewKey = key;
+                if(valueKeys){
+                    newViewKey = valueKeys[key];
+                }
+                newView = initialiseView(JSON.parse(this._templateCache), this.gaffa);
+                newView.key = newViewKey;
+                newView.containerName = viewsName;
+                childViews.add(newView, itemIndex);
+
+                this._childMap.set(item, newView);
+            }else{
+                var existingChild = this._childMap.get(item);
+                if(existingChild.key !== key){
+                    existingChild.remove();
+                    existingChild.key = key;
+                    childViews.add(existingChild, itemIndex);
+                    var oldViewIndex = viewsToRemove.indexOf(childViews);
+                    if(oldViewIndex>=0){
+                        viewsToRemove.splice(oldViewIndex,1);
+                    } 
+                }
+            }
+        }
+    }
+
+    for(var i = 0; i < viewsToRemove.length; i++){
+        var viewToRemove = viewsToRemove[i];
+        if(viewToRemove.containerName === viewsName){
+            viewsToRemove[i].remove();
+        }
+    }
+};
+
+Gaffa.propertyUpdaters = {
+    collection: TemplaterProperty,
     
     group: function (viewsName, insert, remove, empty) {
         return function (viewModel, value) {

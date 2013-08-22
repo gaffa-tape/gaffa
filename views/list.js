@@ -37,41 +37,8 @@ function createNewView(property, templateKey, addedItem){
     return property.gaffa.initialiseViewItem(view, property.gaffa, property.gaffa.views.constructors);
 }
 
-List.prototype.list = new Gaffa.Property({
-    update: Gaffa.propertyUpdaters.collection(
-        "list",                     
-        //increment
-        function(viewModel, list, addedItem, insertIndex){
-            var listViews = viewModel.views.list,
-                property = viewModel.list;
-
-
-            listViews.add(createNewView(property, 'template', addedItem), insertIndex);
-        },
-        //decrement
-        function(viewModel, list, removedItem){
-            removedItem.remove();
-        },
-        //empty
-        function(viewModel, insert){
-            var emptyViews = viewModel.views.empty,
-                property = viewModel.list;
-                
-            if(!property.emptyTemplate){
-                return;
-            }
-            
-            if(insert){
-                if(!emptyViews.length){
-                    emptyViews.add(createNewView(property, 'emptyTemplate'));
-                }
-            }else{
-                while(emptyViews.length){
-                    emptyViews[0].remove();
-                }
-            }
-        }
-    ),
+List.prototype.list = new Gaffa.propertyUpdaters.collection({
+    viewsName: 'list',
     trackKeys: true,
     sameAsPrevious:function () {
         var oldKeys = this.getPreviousHash(),
