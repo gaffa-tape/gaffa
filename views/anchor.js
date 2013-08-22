@@ -2,7 +2,6 @@
 
 var Gaffa = require('gaffa'),
     crel = require('crel'),
-    doc = require('doc-js'),
     viewType = "anchor",
 	cachedElement;
 
@@ -20,8 +19,10 @@ Anchor.prototype.render = function(){
     this.renderedElement = renderedElement;
 
     if(!this.external){
-        doc.on('click', renderedElement, function(event){
-            event.preventDefault();
+        // Prevent default click action reguardless of gaffa.event implementation
+        renderedElement.onclick = function(event){event.preventDefault()};
+
+        this.gaffa.events.on('click', renderedElement, function(event){
             viewModel.gaffa.navigate(viewModel.href.value, viewModel.target.value);
         });
     }
