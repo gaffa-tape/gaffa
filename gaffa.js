@@ -1213,32 +1213,50 @@ View.prototype.insert = function(viewContainer, insertIndex){
 
 function Classes(){};
 Classes = createSpec(Classes, Property);
-Classes.prototype.update = function(viewModel, value){
-    if(!('internalClassNames' in viewModel.classes)){
-        viewModel.classes.internalClassNames = viewModel.renderedElement.className;
+Classes.prototype.update = function(view, value){
+    if(!('internalClassNames' in view.classes)){
+        view.classes.internalClassNames = view.renderedElement.className;
     }
 
-    var internalClassNames = viewModel.classes.internalClassNames,
+    var internalClassNames = view.classes.internalClassNames,
         classes = [internalClassNames, value].join(' ').trim();
     
-    viewModel.renderedElement.className = classes ? classes : null;
+    view.renderedElement.className = classes ? classes : null;
 };
 View.prototype.classes = new Classes();
 
 function Visible(){};
 Visible = createSpec(Visible, Property);
 Visible.prototype.value = true;
-Visible.prototype.update = function(viewModel, value) {
-    viewModel.renderedElement.style.display = value ? null : 'none';
+Visible.prototype.update = function(view, value) {
+    view.renderedElement.style.display = value ? null : 'none';
 };
 View.prototype.visible = new Visible();
 
+function Enabled(){};
+Enabled = createSpec(Enabled, Property);
+Enabled.prototype.value = true;
+Enabled.prototype.update = function(view, value) {
+    if(!value === !!view.renderedElement.disabled){
+        return;
+    }
+    view.renderedElement[!value ? 'setAttribute' : 'removeAttribute']('disabled','disabled');
+};
+View.prototype.enabled = new Enabled();
+
+function Title(){};
+Title = createSpec(Title, Property);
+Title.prototype.update = function(view, value) {
+    view.renderedElement[value ? 'setAttribute' : 'removeAttribute']('title',value);
+};
+View.prototype.title = new Title();
+
 function RenderChildren(){};
 RenderChildren = createSpec(RenderChildren, Property);
-RenderChildren.prototype.update = function(viewModel, value) {
+RenderChildren.prototype.update = function(view, value) {
     if('value' in this){
-        for(var key in viewModel.views){
-            viewModel.views[key].render.value = value;
+        for(var key in view.views){
+            view.views[key].render.value = value;
         }
     }
 };
