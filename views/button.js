@@ -9,20 +9,23 @@ Button = Gaffa.createSpec(Button, Gaffa.ContainerView);
 Button.prototype.type = viewType;
 
 Button.prototype.render = function(){        
-    var renderedElement = crel('button');
+    var textNode = document.createTextNode(''),
+        renderedElement = crel('button', textNode);
             
     this.views.content.element = renderedElement;
+
+    this.text.textNode = textNode;
     
     this.renderedElement = renderedElement;
     
     this.__super__.render.apply(this, arguments);
 };
 
-Button.prototype.text = new Gaffa.Property(function(viewModel, value){
+Button.prototype.text = new Gaffa.Property(function(view, value){
     if(value !== null && value !== undefined){
-        viewModel.renderedElement.innerHTML = value;
+        this.textNode.textContent = value;
     }else{
-        viewModel.renderedElement.innerHTML = "";
+        this.textNode.textContent = '';
     }
 });
 

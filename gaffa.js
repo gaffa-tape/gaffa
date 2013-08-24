@@ -737,7 +737,17 @@ function createModelScope(parent, trackKeys, gediEvent){
 }
 
 function updateProperty(property, firstUpdate){
-    if(!property.sameAsPrevious() || firstUpdate){
+    // Update immediately, reduces reflows, 
+    // as things like classes are added before
+    //  the element is inserted into the DOM
+    if(firstUpdate){
+        property.update(property.parent, property.value);
+    }
+
+    // Still run the sameAsPrevious function,
+    // because it sets up the last value hash,
+    // and it will be false anyway.
+    if(!property.sameAsPrevious()){
         if(property.nextUpdate){
             cancelAnimationFrame(property.nextUpdate);
             property.nextUpdate = null;
@@ -853,7 +863,9 @@ function Property(propertyDescription){
         this.update = propertyDescription;
     }else{
         for(var key in propertyDescription){
-            this[key] = propertyDescription[key];
+            if(propertyDescription.hasOwnProperty(key)){
+                this[key] = propertyDescription[key];
+            }
         }
     }
 
@@ -1062,7 +1074,7 @@ function ViewItem(viewItemDescription){
     
     for(var key in this){
         if(this[key] instanceof Property){
-            this[key] = new Property(this[key]);
+            this[key] = new this[key].constructor(this[key]);
         }
     }
     
