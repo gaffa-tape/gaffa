@@ -728,7 +728,17 @@ function createModelScope(parent, trackKeys, gediEvent){
 }
 
 function updateProperty(property, firstUpdate){
-    if(!property.sameAsPrevious() || firstUpdate){
+    // Update immediately, reduces reflows, 
+    // as things like classes are added before
+    //  the element is inserted into the DOM
+    if(firstUpdate){
+        property.update(property.parent, property.value);
+    }
+
+    // Still run the sameAsPrevious function,
+    // because it sets up the last value hash,
+    // and it will be false anyway.
+    if(!property.sameAsPrevious()){
         if(property.nextUpdate){
             cancelAnimationFrame(property.nextUpdate);
             property.nextUpdate = null;
@@ -843,7 +853,9 @@ function Property(propertyDescription){
         this.update = propertyDescription;
     }else{
         for(var key in propertyDescription){
-            this[key] = propertyDescription[key];
+            if(propertyDescription.hasOwnProperty(key)){
+                this[key] = propertyDescription[key];
+            }
         }
     }
 
@@ -1052,7 +1064,7 @@ function ViewItem(viewItemDescription){
     
     for(var key in this){
         if(this[key] instanceof Property){
-            this[key] = new Property(this[key]);
+            this[key] = new this[key].constructor(this[key]);
         }
     }
     
@@ -1076,7 +1088,9 @@ ViewItem.prototype.bind = function(parent){
 
     this.bound = true;
     
-    for(var propertyKey in this){
+    // Only set up properties that were on the prototype.
+    // Faster and 'safer'
+    for(var propertyKey in this.constructor.prototype){
         if(this[propertyKey] instanceof Property){
             var property = this[propertyKey];
             property.gaffa = viewItem.gaffa;
@@ -1186,9 +1200,6 @@ View.prototype.insert = function(viewContainer, insertIndex){
     var view = this,
         gaffa = view.gaffa;
 
-    var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
-    this.insertFunction(this.insertSelector || renderTarget, this.renderedElement, insertIndex);
-
     if(view.afterInsert){
         doc.on('DOMNodeInserted', document, function (event) {
             if(doc.closest(view.renderedElement, event.target)){
@@ -1196,36 +1207,58 @@ View.prototype.insert = function(viewContainer, insertIndex){
             }
         });
     }
+
+    var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
+    this.insertFunction(this.insertSelector || renderTarget, this.renderedElement, insertIndex);
+
 };
 
 function Classes(){};
 Classes = createSpec(Classes, Property);
-Classes.prototype.update = function(viewModel, value){
-    if(!('internalClassNames' in viewModel.classes)){
-        viewModel.classes.internalClassNames = viewModel.renderedElement.className;
+Classes.prototype.update = function(view, value){
+    if(!('internalClassNames' in view.classes)){
+        view.classes.internalClassNames = view.renderedElement.className;
     }
 
-    var internalClassNames = viewModel.classes.internalClassNames,
+    var internalClassNames = view.classes.internalClassNames,
         classes = [internalClassNames, value].join(' ').trim();
     
-    viewModel.renderedElement.className = classes ? classes : null;
+    view.renderedElement.className = classes ? classes : null;
 };
 View.prototype.classes = new Classes();
 
 function Visible(){};
 Visible = createSpec(Visible, Property);
 Visible.prototype.value = true;
-Visible.prototype.update = function(viewModel, value) {
-    viewModel.renderedElement.style.display = value ? null : 'none';
+Visible.prototype.update = function(view, value) {
+    view.renderedElement.style.display = value ? null : 'none';
 };
 View.prototype.visible = new Visible();
 
+function Enabled(){};
+Enabled = createSpec(Enabled, Property);
+Enabled.prototype.value = true;
+Enabled.prototype.update = function(view, value) {
+    if(!value === !!view.renderedElement.disabled){
+        return;
+    }
+    view.renderedElement[!value ? 'setAttribute' : 'removeAttribute']('disabled','disabled');
+};
+View.prototype.enabled = new Enabled();
+
+function Title(){};
+Title = createSpec(Title, Property);
+Title.prototype.update = function(view, value) {
+    view.renderedElement[value ? 'setAttribute' : 'removeAttribute']('title',value);
+};
+View.prototype.title = new Title();
+
 function RenderChildren(){};
 RenderChildren = createSpec(RenderChildren, Property);
-RenderChildren.prototype.update = function(viewModel, value) {
+RenderChildren.prototype.update = function(view, value) {
     if('value' in this){
-        for(var key in viewModel.views){
-            viewModel.views[key].render.value = value;
+        for(var key in view.views){
+            view.views[key].render.value = value;
         }
     }
 };
@@ -1256,7 +1289,7 @@ ContainerView.prototype.bind = function(parent){
     }
 };
 ContainerView.prototype.debind = function(){
-    debindViewItem(this);
+    View.prototype.debind.apply(this, arguments);
     for(var key in this.views){
         var viewContainer = this.views[key];
         
@@ -1298,7 +1331,7 @@ Action.prototype.trigger = function(parent, scope, event){
         outerTrackKeys = scope.__trackKeys__;
 
 
-    for(var propertyKey in this){
+    for(var propertyKey in this.constructor.prototype){
         var property = this[propertyKey];
 
         if(property instanceof Property && property.binding){

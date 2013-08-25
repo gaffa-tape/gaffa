@@ -9,53 +9,44 @@
  * Licensed under the MIT license.
  */
 
- (function (root, factory) {
-    if (typeof module === 'object') {
-        var exports = {
-            requestAnimationFrame: this.requestAnimationFrame,
-            cancelAnimationFrame: this.cancelAnimationFrame
-        };
-        factory(exports);
-        module.exports = exports;
-    } else if (typeof define === 'function' && define.amd) {
-        define(['raf'], factory);
-    } else {
-        factory(this);
-  }
-}(this, function (exports) {
+var global = typeof window !== 'undefined' ? window : this;
 
-    var lastTime = 0,
-        vendors = ['webkit', 'moz'],
-        requestAnimationFrame = exports.requestAnimationFrame,
-        cancelAnimationFrame = exports.cancelRequestAnimationFrame,
-        i = vendors.length;
+var lastTime = 0,
+    vendors = ['webkit', 'moz'],
+    requestAnimationFrame = global.requestAnimationFrame,
+    cancelAnimationFrame = global.cancelAnimationFrame,
+    i = vendors.length;
 
-    // try to un-prefix existing raf
-    while (--i >= 0 && !requestAnimationFrame) {
-        requestAnimationFrame = exports[vendors[i] + 'RequestAnimationFrame'];
-        cancelAnimationFrame = exports[vendors[i] + 'CancelRequestAnimationFrame'];
-    }
+// try to un-prefix existing raf
+while (--i >= 0 && !requestAnimationFrame) {
+    requestAnimationFrame = global[vendors[i] + 'RequestAnimationFrame'];
+    cancelAnimationFrame = global[vendors[i] + 'CancelAnimationFrame'];
+}
 
-    // polyfill with setTimeout fallback
-    // heavily inspired from @darius gist mod: https://gist.github.com/paulirish/1579671#comment-837945
-    if (!requestAnimationFrame || !cancelAnimationFrame) {
-        requestAnimationFrame = function(callback) {
-            var now = +Date.now(),
-                nextTime = Math.max(lastTime + 16, now);
-            return setTimeout(function() {
-                callback(lastTime = nextTime);
-            }, nextTime - now);
-        };
+// polyfill with setTimeout fallback
+// heavily inspired from @darius gist mod: https://gist.github.com/paulirish/1579671#comment-837945
+if (!requestAnimationFrame || !cancelAnimationFrame) {
+    requestAnimationFrame = function(callback) {
+        var now = +Date.now(),
+            nextTime = Math.max(lastTime + 16, now);
+        return setTimeout(function() {
+            callback(lastTime = nextTime);
+        }, nextTime - now);
+    };
 
-        cancelAnimationFrame = clearTimeout;
-    }
+    cancelAnimationFrame = clearTimeout;
+}
 
-    if (!cancelAnimationFrame){
-        exports.cancelAnimationFrame = function(id) {
-            clearTimeout(id);
-        };
-    }
+if (!cancelAnimationFrame){
+    global.cancelAnimationFrame = function(id) {
+        clearTimeout(id);
+    };
+}
 
-    exports.requestAnimationFrame = requestAnimationFrame;
-    exports.cancelAnimationFrame = cancelAnimationFrame;
-}));
+global.requestAnimationFrame = requestAnimationFrame;
+global.cancelAnimationFrame = cancelAnimationFrame;
+
+module.exports = {
+    requestAnimationFrame: requestAnimationFrame,
+    cancelAnimationFrame: cancelAnimationFrame
+};
