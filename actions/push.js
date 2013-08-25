@@ -17,7 +17,7 @@ Push.prototype.trigger = function(){
         if(!(this.clone && this.clone.value === false)){
             fromObj = this.gaffa.clone(fromObj);
         }
-        var pushToBinding = this.gaffa.gedi.paths.append(this.target.binding, toObject.length.toString());
+        var pushToBinding = this.gaffa.gedi.paths.append(this.target.binding, this.gaffa.gedi.paths.create(toObject.length.toString()));
         this.gaffa.model.set(pushToBinding, fromObj, this, this.cleans.value ? false : null);
     }else{
         throw "Attempted to push to model property that was not an array, null, or undefined";
