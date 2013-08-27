@@ -9,15 +9,22 @@ Heading = Gaffa.createSpec(Heading, Gaffa.View);
 Heading.prototype.type = viewType;
 
 Heading.prototype.render = function(){        
-    var renderedElement = crel('h' + (parseInt(this.level) || 1));
+    var textNode = document.createTextNode(''),
+        renderedElement = crel('h' + (parseInt(this.level) || 1),textNode);
     
     this.renderedElement = renderedElement;
+    
+    this.text.textNode = textNode;
     
     this.__super__.render.apply(this, arguments);
 };
 
-Heading.prototype.text = new Gaffa.Property(function(viewModel, value){
-    viewModel.renderedElement.textContent = (value && typeof value === 'string') ? value : null;
+Heading.prototype.text = new Gaffa.Property(function(view, value){
+    if(value !== null && value !== undefined){
+        this.textNode.textContent = value;
+    }else{
+        this.textNode.textContent = '';
+    }
 });
 
 module.exports = Heading;

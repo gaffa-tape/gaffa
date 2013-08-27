@@ -9,15 +9,22 @@ Label = Gaffa.createSpec(Label, Gaffa.View);
 Label.prototype.type = viewType;
 
 Label.prototype.render = function(){        
-    var renderedElement = crel('label');
+    var textNode = document.createTextNode(''),
+        renderedElement = crel(this.tagName || 'label', textNode);
     
     this.renderedElement = renderedElement;
+
+    this.text.textNode = textNode;
     
     this.__super__.render.apply(this, arguments);
 };
 
-Label.prototype.text = new Gaffa.Property(function(viewModel, value){
-    viewModel.renderedElement.textContent = value || "";
+Label.prototype.text = new Gaffa.Property(function(view, value){
+    if(value !== null && value !== undefined){
+        this.textNode.textContent = value;
+    }else{
+        this.textNode.textContent = '';
+    }
 });
 
 Label.prototype.labelFor = new Gaffa.Property(function (viewModel, value) {

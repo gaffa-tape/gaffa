@@ -436,34 +436,25 @@ function insertFunction(selector, renderedElement, insertIndex){
 //***********************************************
 
 function getItemPath(item){
-    var path,
-        pathParts = [],
+    var gedi = item.gaffa.gedi,
+        paths = [],
         referencePath,
-        referenceItem = item;
-    
+        referenceItem = item;    
 
     while(referenceItem){
 
-        if(referenceItem.path != null){
-            referencePath = new item.gaffa.Path(referenceItem.path);
-            for(var i = referencePath.length - 1; i >= 0; i--){
-                pathParts.push(referencePath[i]);
-            }
-        }
-
         if(referenceItem.key != null){
-            pathParts.push(referenceItem.key);
+            paths.push(gedi.paths.create(referenceItem.key));
         }
 
-        if(referenceItem.parent){
-            referenceItem = referenceItem.parent;
-            continue;
+        if(referenceItem.path != null){
+            paths.push(referenceItem.path);
         }
 
-        referenceItem = null;
+        referenceItem = referenceItem.parent;
     }
     
-    return new item.gaffa.Path(pathParts.reverse());
+    return gedi.paths.resolve.apply(this, paths.reverse());
 }
 
 //***********************************************
@@ -738,12 +729,22 @@ function createModelScope(parent, trackKeys, gediEvent){
 }
 
 function updateProperty(property, firstUpdate){
-    if(!property.sameAsPrevious() || firstUpdate){
+    // Update immediately, reduces reflows, 
+    // as things like classes are added before
+    //  the element is inserted into the DOM
+    if(firstUpdate){
+        property.update(property.parent, property.value);
+    }
+
+    // Still run the sameAsPrevious function,
+    // because it sets up the last value hash,
+    // and it will be false anyway.
+    if(!property.sameAsPrevious()){
         if(property.nextUpdate){
             cancelAnimationFrame(property.nextUpdate);
             property.nextUpdate = null;
         }
-        property.nextUpdate = requestAnimationFrame(function(){            
+        property.nextUpdate = requestAnimationFrame(function(){
             property.update(property.parent, property.value);
         });
     }
@@ -803,8 +804,7 @@ function bindProperty(parent) {
     }
             
     var propertyCallback = createPropertyCallback(this);
-        
-    this.binding = new this.gaffa.Expression(this.binding);
+
     this.gaffa.model.bind(this.binding, propertyCallback, this);
     propertyCallback(true);
 }
@@ -854,7 +854,9 @@ function Property(propertyDescription){
         this.update = propertyDescription;
     }else{
         for(var key in propertyDescription){
-            this[key] = propertyDescription[key];
+            if(propertyDescription.hasOwnProperty(key)){
+                this[key] = propertyDescription[key];
+            }
         }
     }
 
@@ -1061,7 +1063,7 @@ function ViewItem(viewItemDescription){
     
     for(var key in this){
         if(this[key] instanceof Property){
-            this[key] = new Property(this[key]);
+            this[key] = new this[key].constructor(this[key]);
         }
     }
     
@@ -1212,32 +1214,50 @@ View.prototype.insert = function(viewContainer, insertIndex){
 
 function Classes(){};
 Classes = createSpec(Classes, Property);
-Classes.prototype.update = function(viewModel, value){
-    if(!('internalClassNames' in viewModel.classes)){
-        viewModel.classes.internalClassNames = viewModel.renderedElement.className;
+Classes.prototype.update = function(view, value){
+    if(!('internalClassNames' in view.classes)){
+        view.classes.internalClassNames = view.renderedElement.className;
     }
 
-    var internalClassNames = viewModel.classes.internalClassNames,
+    var internalClassNames = view.classes.internalClassNames,
         classes = [internalClassNames, value].join(' ').trim();
     
-    viewModel.renderedElement.className = classes ? classes : null;
+    view.renderedElement.className = classes ? classes : null;
 };
 View.prototype.classes = new Classes();
 
 function Visible(){};
 Visible = createSpec(Visible, Property);
 Visible.prototype.value = true;
-Visible.prototype.update = function(viewModel, value) {
-    viewModel.renderedElement.style.display = value ? null : 'none';
+Visible.prototype.update = function(view, value) {
+    view.renderedElement.style.display = value ? null : 'none';
 };
 View.prototype.visible = new Visible();
 
+function Enabled(){};
+Enabled = createSpec(Enabled, Property);
+Enabled.prototype.value = true;
+Enabled.prototype.update = function(view, value) {
+    if(!value === !!view.renderedElement.disabled){
+        return;
+    }
+    view.renderedElement[!value ? 'setAttribute' : 'removeAttribute']('disabled','disabled');
+};
+View.prototype.enabled = new Enabled();
+
+function Title(){};
+Title = createSpec(Title, Property);
+Title.prototype.update = function(view, value) {
+    view.renderedElement[value ? 'setAttribute' : 'removeAttribute']('title',value);
+};
+View.prototype.title = new Title();
+
 function RenderChildren(){};
 RenderChildren = createSpec(RenderChildren, Property);
-RenderChildren.prototype.update = function(viewModel, value) {
+RenderChildren.prototype.update = function(view, value) {
     if('value' in this){
-        for(var key in viewModel.views){
-            viewModel.views[key].render.value = value;
+        for(var key in view.views){
+            view.views[key].render.value = value;
         }
     }
 };
@@ -1751,7 +1771,6 @@ function Gaffa(){
         createSpec: createSpec,
         jsonConverter: jsonConverter,
         Path: gedi.Path,
-        Expression: gedi.Expression,
         ViewItem: ViewItem,
         View: View,
         ContainerView: ContainerView,
