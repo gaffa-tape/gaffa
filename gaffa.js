@@ -442,12 +442,12 @@ function getItemPath(item){
 
     while(referenceItem){
 
-        if(referenceItem.path != null){
-            paths.push(referenceItem.path);
-        }
-
         if(referenceItem.key != null){
             paths.push(gedi.paths.create(referenceItem.key));
+        }
+
+        if(referenceItem.path != null){
+            paths.push(referenceItem.path);
         }
 
         referenceItem = referenceItem.parent;
