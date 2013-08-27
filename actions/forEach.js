@@ -22,7 +22,7 @@ ForEach.prototype.trigger = function(parent, scope, event) {
     for(var i = 0; i < items.length; i++){
         var psudoParent = new EachPsudoParent();
         psudoParent.gaffa = this.gaffa;
-        psudoParent.path = this.getPath();
+        psudoParent.parent = this;
         psudoParent.key = keys ? keys[i] : '' + i;
 
         var actions = JSON.parse(JSON.stringify(this.actions['forEach']));

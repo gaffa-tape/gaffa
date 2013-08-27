@@ -442,12 +442,14 @@ function getItemPath(item){
 
     while(referenceItem){
 
-        if(referenceItem.key != null){
-            paths.push(gedi.paths.create(referenceItem.key));
-        }
-
+        // item.path should be a child ref after item.key
         if(referenceItem.path != null){
             paths.push(referenceItem.path);
+        }
+
+        // item.key is most root level path
+        if(referenceItem.key != null){
+            paths.push(gedi.paths.create(referenceItem.key));
         }
 
         referenceItem = referenceItem.parent;
