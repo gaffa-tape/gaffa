@@ -2095,7 +2095,6 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
             if(Array.isArray(value) && isNaN(key)){
                 continue;
             }
-            itemIndex++;
             isEmpty = false;
             var item = value[key];
             if(!this._childMap.has(item)){
@@ -2112,15 +2111,15 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
             }else{
                 var existingChild = this._childMap.get(item);
                 if(existingChild.key !== key){
-                    existingChild.remove();
                     existingChild.key = key;
                     childViews.add(existingChild, itemIndex);
-                    var oldViewIndex = viewsToRemove.indexOf(childViews);
+                    var oldViewIndex = viewsToRemove.indexOf(existingChild);
                     if(oldViewIndex>=0){
                         viewsToRemove.splice(oldViewIndex,1);
-                    } 
+                    }
                 }
             }
+            itemIndex++;
         }
     }
 
