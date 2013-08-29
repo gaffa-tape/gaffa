@@ -1188,6 +1188,9 @@ View.prototype.debind = function () {
     while(this._removeHandlers.length){
         this._removeHandlers.pop()();
     }
+    for(var key in this.actions){
+        this.actions[key]._bound = false;
+    }
     debindViewItem(this);
 };
 
@@ -2072,16 +2075,8 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
     }
     this._templateCache = this._templateCache || JSON.stringify(this.template);
     var viewsName = this.viewsName,
-        valueLength = 0,
         childViews = viewModel.views[viewsName],
         valueKeys = this.keys,
-        calculateValueLength = function(){
-            if(Array.isArray(value)){
-                return value.length;
-            }else if(typeof value === "object"){
-                return Object.keys(value).length;
-            }
-        },
         viewsToRemove = childViews.slice();
 
         
@@ -2095,15 +2090,12 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
             if(Array.isArray(value) && isNaN(key)){
                 continue;
             }
+            var itemKey = valueKeys ? valueKeys[key] : key;
             isEmpty = false;
             var item = value[key];
             if(!this._childMap.has(item)){
-                var newViewKey = key;
-                if(valueKeys){
-                    newViewKey = valueKeys[key];
-                }
                 newView = initialiseView(JSON.parse(this._templateCache), this.gaffa);
-                newView.key = newViewKey;
+                newView.key = itemKey;
                 newView.containerName = viewsName;
                 childViews.add(newView, itemIndex);
 
@@ -2111,8 +2103,10 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
             }else{
                 var existingChild = this._childMap.get(item);
                 if(existingChild.key !== key){
-                    existingChild.key = key;
-                    childViews.add(existingChild, itemIndex);
+                    existingChild.key = itemKey;
+                    existingChild.debind();
+                    existingChild.bind(viewModel);
+                    existingChild.insert(childViews, itemIndex);
                     var oldViewIndex = viewsToRemove.indexOf(existingChild);
                     if(oldViewIndex>=0){
                         viewsToRemove.splice(oldViewIndex,1);
