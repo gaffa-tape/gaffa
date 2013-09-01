@@ -1218,14 +1218,9 @@ View.prototype.insert = function(viewContainer, insertIndex){
 function Classes(){};
 Classes = createSpec(Classes, Property);
 Classes.prototype.update = function(view, value){
-    if(!('internalClassNames' in view.classes)){
-        view.classes.internalClassNames = view.renderedElement.className;
-    }
-
-    var internalClassNames = view.classes.internalClassNames,
-        classes = [internalClassNames, value].join(' ').trim();
-    
-    view.renderedElement.className = classes ? classes : null;
+    doc.removeClass(view.renderedElement, this._previousClasses);
+    this._previousClasses = value;
+    doc.addClass(view.renderedElement, value);
 };
 View.prototype.classes = new Classes();
 
