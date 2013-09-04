@@ -1112,6 +1112,9 @@ ViewItem.prototype.getPath = function(){
 ViewItem.prototype.toJSON = function(){
     return jsonConverter(this);
 };
+ViewItem.prototype.triggerActions = function(actionName, scope, event){
+    this.gaffa.actions.trigger(this.actions[actionName], this, scope, event);
+};
 
 //***********************************************
 //
@@ -1262,7 +1265,6 @@ RenderChildren.prototype.update = function(view, value) {
 View.prototype.renderChildren = new RenderChildren();
 
 View.prototype.insertFunction = insertFunction;
-
 
 //***********************************************
 //

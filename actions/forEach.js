@@ -30,7 +30,7 @@ ForEach.prototype.trigger = function(parent, scope, event) {
         psudoParent.actions.all = actions;
         psudoParent = this.gaffa.initialiseViewItem(psudoParent, psudoParent.gaffa, psudoParent.actions.constructors);
 
-        this.gaffa.actions.trigger(psudoParent.actions.all, psudoParent, scope, event);
+        psudoParent.triggerActions('all', scope, event);
     }
 };
 
