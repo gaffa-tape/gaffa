@@ -13,6 +13,7 @@ var Gedi = require('gedi'),
     crel = require('crel'),
     fastEach = require('fasteach'),
     deepEqual = require('deep-equal'),
+    EventEmitter = require('events').EventEmitter,
     animationFrame = require('./raf.js'),
     requestAnimationFrame = animationFrame.requestAnimationFrame,
     cancelAnimationFrame = animationFrame.cancelAnimationFrame;
@@ -1036,7 +1037,7 @@ function debindViewItem(viewItem){
             viewItem[key].debind();
         }
     }
-
+    viewItem.emit('debind');
     viewItem.bound = false;
 }
 
@@ -1053,6 +1054,8 @@ function removeViewItem(viewItem){
 
     viewItem.debind();
 
+    viewItem.emit('remove');
+
     viewItem.parentContainer = null;
 }
 
@@ -1063,7 +1066,7 @@ function removeViewItem(viewItem){
 //***********************************************
 
 function ViewItem(viewItemDescription){
-    
+
     for(var key in this){
         if(this[key] instanceof Property){
             this[key] = new this[key].constructor(this[key]);
@@ -1081,7 +1084,7 @@ function ViewItem(viewItemDescription){
         }
     }
 }
-ViewItem = createSpec(ViewItem);
+ViewItem = createSpec(ViewItem, EventEmitter);
 ViewItem.prototype.path = '[]';
 ViewItem.prototype.bind = function(parent){
     var viewItem = this;
