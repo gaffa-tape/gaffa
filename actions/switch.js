@@ -10,7 +10,7 @@ Switch.prototype.trigger = function(parent, scope, event) {
     this.__super__.trigger.apply(this, arguments);
 
     if(this['switch'].value != null){
-        this.gaffa.actions.trigger(this.actions[this['switch'].value], this, scope, event);
+        this.triggerActions(this['switch'].value, scope, event);
     }
 };
 

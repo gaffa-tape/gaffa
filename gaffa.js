@@ -13,6 +13,8 @@ var Gedi = require('gedi'),
     crel = require('crel'),
     fastEach = require('fasteach'),
     deepEqual = require('deep-equal'),
+    createSpec = require('spec-js'),
+    EventEmitter = require('events').EventEmitter,
     animationFrame = require('./raf.js'),
     weakmap = require('weakmap'),
     requestAnimationFrame = animationFrame.requestAnimationFrame,
@@ -38,39 +40,6 @@ Object.create = Object.create || function (o) {
     F.prototype = o;
     return new F();
 };
-
-
-//***********************************************
-//
-//      Create Spec
-//      https://github.com/KoryNunn/JavascriptInheritance/blob/master/spec.js
-//
-//***********************************************
-
-function createSpec(child, parent){
-    var parentPrototype;
-    
-    if(!parent) {
-        parent = Object;
-    }
-    
-    if(!parent.prototype) {
-        parent.prototype = {};
-    }
-    
-    parentPrototype = parent.prototype;
-    
-    child.prototype = Object.create(parent.prototype);
-    child.prototype.__super__ = parentPrototype;
-    
-    // Yes, This is 'bad'. However, it runs once per Spec creation.
-    var spec = new Function("child", "return function " + child.name + "(){child.prototype.__super__.constructor.apply(this, arguments);return child.apply(this, arguments);}")(child);
-    
-    spec.prototype = child.prototype;
-    spec.prototype.constructor = child.prototype.constructor = spec;
-    
-    return spec;
-}
 
 
 //***********************************************
@@ -443,12 +412,14 @@ function getItemPath(item){
 
     while(referenceItem){
 
-        if(referenceItem.key != null){
-            paths.push(gedi.paths.create(referenceItem.key));
-        }
-
+        // item.path should be a child ref after item.key
         if(referenceItem.path != null){
             paths.push(referenceItem.path);
+        }
+
+        // item.key is most root level path
+        if(referenceItem.key != null){
+            paths.push(gedi.paths.create(referenceItem.key));
         }
 
         referenceItem = referenceItem.parent;
@@ -1033,7 +1004,7 @@ function debindViewItem(viewItem){
             viewItem[key].debind();
         }
     }
-
+    viewItem.emit('debind');
     viewItem.bound = false;
 }
 
@@ -1050,6 +1021,8 @@ function removeViewItem(viewItem){
 
     viewItem.debind();
 
+    viewItem.emit('remove');
+
     viewItem.parentContainer = null;
 }
 
@@ -1060,7 +1033,7 @@ function removeViewItem(viewItem){
 //***********************************************
 
 function ViewItem(viewItemDescription){
-    
+
     for(var key in this){
         if(this[key] instanceof Property){
             this[key] = new this[key].constructor(this[key]);
@@ -1078,7 +1051,7 @@ function ViewItem(viewItemDescription){
         }
     }
 }
-ViewItem = createSpec(ViewItem);
+ViewItem = createSpec(ViewItem, EventEmitter);
 ViewItem.prototype.path = '[]';
 ViewItem.prototype.bind = function(parent){
     var viewItem = this;
@@ -1108,6 +1081,9 @@ ViewItem.prototype.getPath = function(){
 };
 ViewItem.prototype.toJSON = function(){
     return jsonConverter(this);
+};
+ViewItem.prototype.triggerActions = function(actionName, scope, event){
+    this.gaffa.actions.trigger(this.actions[actionName], this, scope, event);
 };
 
 //***********************************************
@@ -1218,14 +1194,9 @@ View.prototype.insert = function(viewContainer, insertIndex){
 function Classes(){};
 Classes = createSpec(Classes, Property);
 Classes.prototype.update = function(view, value){
-    if(!('internalClassNames' in view.classes)){
-        view.classes.internalClassNames = view.renderedElement.className;
-    }
-
-    var internalClassNames = view.classes.internalClassNames,
-        classes = [internalClassNames, value].join(' ').trim();
-    
-    view.renderedElement.className = classes ? classes : null;
+    doc.removeClass(view.renderedElement, this._previousClasses);
+    this._previousClasses = value;
+    doc.addClass(view.renderedElement, value);
 };
 View.prototype.classes = new Classes();
 
@@ -1267,7 +1238,6 @@ RenderChildren.prototype.update = function(view, value) {
 View.prototype.renderChildren = new RenderChildren();
 
 View.prototype.insertFunction = insertFunction;
-
 
 //***********************************************
 //
