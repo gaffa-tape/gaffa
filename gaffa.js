@@ -412,14 +412,14 @@ function getItemPath(item){
 
     while(referenceItem){
 
-        // item.path should be a child ref after item.key
+        // item.path should be a child ref after item.sourceKey
         if(referenceItem.path != null){
             paths.push(referenceItem.path);
         }
 
-        // item.key is most root level path
-        if(referenceItem.key != null){
-            paths.push(gedi.paths.create(referenceItem.key));
+        // item.sourceKey is most root level path
+        if(referenceItem.sourceKey != null){
+            paths.push(gedi.paths.create(referenceItem.sourceKey));
         }
 
         referenceItem = referenceItem.parent;
@@ -692,7 +692,7 @@ function createModelScope(parent, trackKeys, gediEvent){
     }
 
     return {
-        __trackKeys__: trackKeys,
+        _trackKeys: trackKeys,
         viewItem: parent,
         groupKey: groupKey,
         modelTarget: gediEvent && gediEvent.target
@@ -741,7 +741,7 @@ function createPropertyCallback(property){
                 value = event.getValue(scope);
             }
 
-            property.keys = value && value.__gaffaKeys__;
+            property._sourceKeys = scope._sourceKeys;
             property.value = value;
         }
         
@@ -1300,7 +1300,7 @@ Action.prototype.trigger = function(parent, scope, event){
     scope = scope || {};
 
     var gaffa = this.gaffa = parent.gaffa,
-        outerTrackKeys = scope.__trackKeys__;
+        outerSourceKeys = scope._sourceKeys;
 
 
     for(var propertyKey in this.constructor.prototype){
@@ -1309,12 +1309,12 @@ Action.prototype.trigger = function(parent, scope, event){
         if(property instanceof Property && property.binding){
             property.gaffa = gaffa;
             property.parent = this;
-            scope.__trackKeys__ = property.trackKeys;
+            scope._sourceKeys = property.trackKeys && {};
             property.value = gaffa.model.get(property.binding, this, scope);
         }
     }
 
-    scope.__trackKeys__ = outerTrackKeys;
+    scope._sourceKeys = outerSourceKeys;
 
     this.debind();
 };
@@ -1373,34 +1373,29 @@ function Gaffa(){
     gaffa.gedi = gedi;
     
     // Gedi.Gel extensions
-    
-    function getSourceKeys(array){            
-        return array.__gaffaKeys__ || (function(){
-            var arr = [];
-            while(arr.length < array.length && arr.push(arr.length.toString()));
-            return arr;
-        })();
-    }
 
     var originalFilter = gedi.gel.scope.filter;
     gedi.gel.scope.filter = function(scope, args) {
-        if(!scope.get('__trackKeys__')){
+        if(!scope.get('_trackKeys')){
             return originalFilter(scope, args);
         }
-        var args = args.all(),
-            sourceArrayKeys,
+        var tokenArg = args.getRaw(0),
+            sourcePath = '[]',
+            args = args.all(),
+            array = args[0],
+            sourceKeys = scope.get('_sourceKeys') || [],
+            resultKeys = [],
             filteredList = [];
-        
-        var array = args[0];
+
+        if(tokenArg && tokenArg instanceof Gedi.PathToken){
+            sourcePath = tokenArg.original;
+        }
+
         var functionToCompare = args[1];
 
         if(!array){
-            return undefined;
+            return;
         }
-            
-        sourceArrayKeys = getSourceKeys(array);
-
-        filteredList.__gaffaKeys__ = [];
             
         if (args.length < 2) {
             return args;
@@ -1412,15 +1407,16 @@ function Gaffa(){
                 if(typeof functionToCompare === "function"){
                     if(scope.callWith(functionToCompare, [item])){ 
                         filteredList.push(item);
-                        filteredList.__gaffaKeys__.push(sourceArrayKeys[index]);
+                        resultKeys.push(sourceKeys[index] || gedi.paths.append(sourcePath, gedi.paths.create(index)));
                     }
                 }else{
                     if(item === functionToCompare){ 
                         filteredList.push(item);
-                        filteredList.__gaffaKeys__.push(sourceArrayKeys[index]);
+                        resultKeys.push(sourceKeys[index] || gedi.paths.append(sourcePath, gedi.paths.create(index)));
                     }
                 }
             });
+            scope.set('_sourceKeys', resultKeys);
             return filteredList;
         
         }else {
@@ -1430,7 +1426,7 @@ function Gaffa(){
     
     var originalSlice = gedi.gel.scope.slice;
     gedi.gel.scope.slice = function(scope, args) {
-        if(!scope.get('__trackKeys__')){
+        if(!scope.get('_trackKeys')){
             return originalSlice(scope, args);
         }
         var target = args.next(),
@@ -1509,7 +1505,7 @@ function Gaffa(){
     
     var originalSort = gedi.gel.scope.sort;
     gedi.gel.scope.sort = function(scope, args) {
-        if(!scope.get('__trackKeys__')){
+        if(!scope.get('_trackKeys')){
             return originalSort(scope, args);
         }
 
@@ -2035,69 +2031,7 @@ superWeakMap.prototype.clear = function(){
     return this._weakmap.clear();
 };
 
-function TemplaterProperty(){
-    this._childMap = new superWeakMap();
-}
-TemplaterProperty = createSpec(TemplaterProperty, Property);
-TemplaterProperty.prototype.update =function (viewModel, value) {
-    if(!this.template){
-        return;
-    }
-    this._templateCache = this._templateCache || JSON.stringify(this.template);
-    var viewsName = this.viewsName,
-        childViews = viewModel.views[viewsName],
-        valueKeys = this.keys,
-        viewsToRemove = childViews.slice();
-
-        
-    if (value && typeof value === "object"){
-
-        var newView,
-            isEmpty = true,
-            itemIndex = 0;
-
-        for(var key in value){
-            if(Array.isArray(value) && isNaN(key)){
-                continue;
-            }
-            var itemKey = valueKeys ? valueKeys[key] : key;
-            isEmpty = false;
-            var item = value[key];
-            if(!this._childMap.has(item)){
-                newView = initialiseView(JSON.parse(this._templateCache), this.gaffa);
-                newView.key = itemKey;
-                newView.containerName = viewsName;
-                childViews.add(newView, itemIndex);
-
-                this._childMap.set(item, newView);
-            }else{
-                var existingChild = this._childMap.get(item);
-                if(existingChild.key !== key){
-                    existingChild.key = itemKey;
-                    existingChild.debind();
-                    existingChild.bind(viewModel);
-                    existingChild.insert(childViews, itemIndex);
-                    var oldViewIndex = viewsToRemove.indexOf(existingChild);
-                    if(oldViewIndex>=0){
-                        viewsToRemove.splice(oldViewIndex,1);
-                    }
-                }
-            }
-            itemIndex++;
-        }
-    }
-
-    for(var i = 0; i < viewsToRemove.length; i++){
-        var viewToRemove = viewsToRemove[i];
-        if(viewToRemove.containerName === viewsName){
-            viewsToRemove[i].remove();
-        }
-    }
-};
-
-Gaffa.propertyUpdaters = {
-    collection: TemplaterProperty,
-    
+Gaffa.propertyUpdaters = {    
     group: function (viewsName, insert, remove, empty) {
         return function (viewModel, value) {
             var property = this,

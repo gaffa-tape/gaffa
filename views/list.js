@@ -1,5 +1,6 @@
 var Gaffa = require('gaffa'),
     crel = require('crel'),
+    TemplaterProperty = require('gaffa/src/templaterProperty'),
     viewType = "list",
 	cachedElement;
     
@@ -37,9 +38,8 @@ function createNewView(property, templateKey, addedItem){
     return property.gaffa.initialiseViewItem(view, property.gaffa, property.gaffa.views.constructors);
 }
 
-List.prototype.list = new Gaffa.propertyUpdaters.collection({
+List.prototype.list = new TemplaterProperty({
     viewsName: 'list',
-    trackKeys: true,
     sameAsPrevious:function () {
         var oldKeys = this.getPreviousHash(),
             value = this.value,
