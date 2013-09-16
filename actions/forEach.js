@@ -17,6 +17,10 @@ ForEach.prototype.trigger = function(parent, scope, event) {
         return;
     }
 
+    if(!scope){
+        scope = {};
+    }
+
     var keys = items.__gaffaKeys__;
 
     for(var i = 0; i < items.length; i++){
