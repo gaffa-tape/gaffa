@@ -184,6 +184,26 @@ function toQueryString(data){
 
 //***********************************************
 //
+//      Clone
+//
+//***********************************************
+
+function clone(value){
+    if(value != null && typeof value === "object"){
+        if(Array.isArray(value)){
+            return value.slice();
+        }else if (value instanceof Date) {
+            return new Date(value);
+        }else{
+            return extend({}, value);
+        }
+    }
+    return value;
+}
+
+
+//***********************************************
+//
 //      Ajax
 //
 //***********************************************
@@ -1048,7 +1068,7 @@ function ViewItem(viewItemDescription){
         }
     }
 
-    this.actions = this.actions || {};
+    this.actions = this.actions ? clone(this.actions) : {};
 
     for(var key in viewItemDescription){
         var prop = this[key];
@@ -1961,18 +1981,7 @@ function Gaffa(){
         //This is here so i can remove it later and replace with a better verson.
         extend: extend,
 
-        clone: function(value){
-            if(value != null && typeof value === "object"){
-                if(Array.isArray(value)){
-                    return value.slice();
-                }else if (value instanceof Date) {
-                    return new Date(value);
-                }else{
-                    return extend({}, value);
-                }
-            }
-            return value;
-        },
+        clone: clone,
         ajax: ajax,
         crel: crel,
         doc: doc,
