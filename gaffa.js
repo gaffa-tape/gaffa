@@ -150,12 +150,12 @@ function parseQueryString(url){
     if(urlParts.length>1){
 
         var queryStringData = urlParts.pop().split("&");
-        
+
         fastEach(queryStringData, function(keyValue){
             var parts = keyValue.split("="),
                 key = window.unescape(parts[0]),
                 value = window.unescape(parts[1]);
-                
+
             result[key] = value;
         });
     }
@@ -185,11 +185,39 @@ function toQueryString(data){
 
 //***********************************************
 //
+//      Clone
+//
+//***********************************************
+
+function clone(value){
+    if(value != null && typeof value === "object"){
+        if(Array.isArray(value)){
+            return value.slice();
+        }else if (value instanceof Date) {
+            return new Date(value);
+        }else{
+            return extend({}, value);
+        }
+    }
+    return value;
+}
+
+
+//***********************************************
+//
 //      Ajax
 //
 //***********************************************
 
-function ajax(settings){    
+function tryParseJson(data){
+    try{
+        return JSON.parse(data);
+    }catch(error){
+        return error;
+    }
+}
+
+function ajax(settings){
     var queryStringData;
     if(typeof settings !== 'object'){
         settings = {};
@@ -216,27 +244,26 @@ function ajax(settings){
 
     request.addEventListener("progress", settings.progress, false);
     request.addEventListener("load", function(event){
-        if(event.target.status >= 400){
-            settings.error && settings.error(event);
-            return;
-        }
         var data = event.target.responseText;
 
-
         if(settings.dataType === 'json'){
-            if(data === ''){                
+            if(data === ''){
                 data = undefined;
             }else{
-                try{
-                    data = JSON.parse(data);
-                }catch(error){
-                    settings.error && settings.error(event, error);
-                    return;
-                }
+                data = tryParseJson(data);
             }
         }
 
-        settings.success && settings.success(data, event);
+        if(event.target.status >= 400){
+            settings.error && settings.error(event, data instanceof Error ? undefined : data);
+        }else{
+            if(data instanceof Error){
+                settings.error && settings.error(event, error);
+            }else{
+                settings.success && settings.success(data, event);
+            }
+        }
+
     }, false);
     request.addEventListener("error", settings.error, false);
     request.addEventListener("abort", settings.abort, false);
@@ -256,7 +283,7 @@ function ajax(settings){
 
     // Set custom headers
     for(var key in settings.headers){
-        request.setRequestHeader(key, settings.headers[key]);            
+        request.setRequestHeader(key, settings.headers[key]);
     }
 
     if(settings.processData !== false && settings.dataType === 'json'){
@@ -266,7 +293,7 @@ function ajax(settings){
     request.send(settings.data && settings.data);
 }
 
-   
+
 //***********************************************
 //
 //      Get Closest Item
@@ -287,7 +314,7 @@ function getClosestItem(target){
     return viewModel;
 }
 
-   
+
 //***********************************************
 //
 //      Get Closest Item
@@ -302,7 +329,7 @@ function langify(fn, context){
     }
 }
 
-   
+
 //***********************************************
 //
 //      Get Distinct Groups
@@ -312,7 +339,7 @@ function langify(fn, context){
 function getDistinctGroups(gaffa, collection, expression){
     var distinctValues = {},
         values = gaffa.model.get('(map items ' + expression + ')', {items: collection});
-    
+
     if(collection && typeof collection === "object"){
         if(Array.isArray(collection)){
             fastEach(values, function(value){
@@ -322,7 +349,7 @@ function getDistinctGroups(gaffa, collection, expression){
             throw "Object collections are not currently supported";
         }
     }
-    
+
     return Object.keys(distinctValues);
 }
 
@@ -335,15 +362,15 @@ function getDistinctGroups(gaffa, collection, expression){
 function deDom(node){
     var parent = node.parentNode,
         nextSibling;
-        
+
     if(!parent){
         return false;
     }
-    
+
     nextSibling = node.nextSibling;
-        
+
     parent.removeChild(node);
-    
+
     return function(){
         if(nextSibling){
             parent.insertBefore(node, nextSibling && nextSibling.parent && nextSibling);
@@ -408,7 +435,7 @@ function getItemPath(item){
     var gedi = item.gaffa.gedi,
         paths = [],
         referencePath,
-        referenceItem = item;    
+        referenceItem = item;
 
     while(referenceItem){
 
@@ -424,7 +451,7 @@ function getItemPath(item){
 
         referenceItem = referenceItem.parent;
     }
-    
+
     return gedi.paths.resolve.apply(this, paths.reverse());
 }
 
@@ -439,12 +466,12 @@ function extend(target, source){
         target = args[0] || {},
         source = args[1] || {},
         visited = [];
-    
+
     function internalExtend(target, source){
         for(var key in source){
             var sourceProperty = source[key],
                 targetProperty = target[key];
-                                                        
+
             if(typeof sourceProperty === "object" && sourceProperty != null){
                 if(sourceProperty instanceof Array){
                     targetProperty = new sourceProperty.constructor();
@@ -472,14 +499,14 @@ function extend(target, source){
             target[key] = targetProperty;
         }
     }
-    
+
     internalExtend(target, source);
-    
+
     if(args[2] !== undefined && args[2] !== null){
         args[0] = args.shift();
         extend.apply(this, args);
     }
-    
+
     return target;
 }
 
@@ -492,22 +519,22 @@ function extend(target, source){
 function sameAs(a,b){
     var typeofA = typeof a,
         typeofB = typeof b;
-        
+
     if(typeofA !== typeofB){
         return false;
     }
-        
+
     switch (typeof a){
         case 'string': return a === b;
-        
+
         case 'number':
             if(isNaN(a) && isNaN(b)){
                 return true;
             }
             return a === b;
-        
+
         case 'date': return +a === +b;
-                    
+
         default: return false;
     }
 }
@@ -521,7 +548,7 @@ function sameAs(a,b){
 function addDefaultStyle(style){
     defaultViewStyles = defaultViewStyles || (function(){
         defaultViewStyles = crel('style', {type: 'text/css', 'class':'dropdownDefaultStyle'});
-    
+
         //Prepend so it can be overriden easily.
         var addToHead = function(){
             if(window.document.head){
@@ -532,7 +559,7 @@ function addDefaultStyle(style){
         };
 
         addToHead();
-        
+
         return defaultViewStyles;
     })();
 
@@ -541,7 +568,7 @@ function addDefaultStyle(style){
     } else {                // others
         defaultViewStyles.innerHTML += style;
     }
-    
+
 }
 
 //***********************************************
@@ -554,7 +581,7 @@ function initialiseViewItem(viewItem, gaffa, specCollection) {
     if(!(viewItem instanceof ViewItem)){
         if (!specCollection[viewItem.type]) {
             throw "No constructor is loaded to handle view of type " + viewItem.type;
-        }            
+        }
         viewItem = new specCollection[viewItem.type](viewItem);
     }
 
@@ -569,7 +596,7 @@ function initialiseViewItem(viewItem, gaffa, specCollection) {
             view.parentContainer = views;
         }
     }
-        
+
     for(var key in viewItem.actions){
         var actions = viewItem.actions[key];
         for (var actionIndex = 0; actionIndex < actions.length; actionIndex++) {
@@ -578,7 +605,7 @@ function initialiseViewItem(viewItem, gaffa, specCollection) {
             action.parentContainer = actions;
         }
     }
-        
+
     if(viewItem.behaviours){
         for (var behaviourIndex = 0; behaviourIndex < viewItem.behaviours.length; behaviourIndex++) {
             var behaviour = initialiseBehaviour(viewItem.behaviours[behaviourIndex], gaffa);
@@ -586,10 +613,10 @@ function initialiseViewItem(viewItem, gaffa, specCollection) {
             behaviour.parentContainer = viewItem.behaviours;
         }
     }
-    
+
     return viewItem;
 }
-    
+
 //***********************************************
 //
 //      Initialise View
@@ -599,27 +626,27 @@ function initialiseViewItem(viewItem, gaffa, specCollection) {
 function initialiseView(viewItem, gaffa) {
     return initialiseViewItem(viewItem, gaffa, gaffa.views.constructors);
 }
-    
+
 //***********************************************
 //
 //      Initialise Action
 //
 //***********************************************
 
-function initialiseAction(viewItem, gaffa) { 
+function initialiseAction(viewItem, gaffa) {
     return initialiseViewItem(viewItem, gaffa, gaffa.actions.constructors);
 }
 
-    
+
 //***********************************************
 //
 //      Initialise Behaviour
 //
 //***********************************************
 
-function initialiseBehaviour(viewItem, gaffa) { 
+function initialiseBehaviour(viewItem, gaffa) {
     return initialiseViewItem(viewItem, gaffa, gaffa.behaviours.constructors);
-}    
+}
 
 
 //***********************************************
@@ -636,7 +663,7 @@ function removeViews(views){
     views = views instanceof Array ? views : [views];
 
     views = views.slice();
-    
+
     fastEach(views, function(viewModel){
         viewModel.remove();
     });
@@ -653,9 +680,9 @@ function jsonConverter(object, exclude, include){
         tempObject = Array.isArray(object) || object instanceof Array && [] || {},
         excludeProps = ["gaffa", "parent", "parentContainer", "renderedElement", "_removeHandlers", "gediCallbacks", "__super__"],
         includeProps = ["type"];
-                
+
     //console.log(object.constructor.name);
-    
+
     if(exclude){
         excludeProps = excludeProps.concat(exclude);
     }
@@ -663,9 +690,9 @@ function jsonConverter(object, exclude, include){
     if(include){
         includeProps = includeProps.concat(include);
     }
-    
+
     for(var key in object){
-        if( 
+        if(
             includeProps.indexOf(key)>=0 ||
             object.hasOwnProperty(key) &&
             excludeProps.indexOf(key)<0 &&
@@ -678,7 +705,7 @@ function jsonConverter(object, exclude, include){
     if(!Object.keys(tempObject).length){
         return;
     }
-    
+
     return tempObject;
 }
 
@@ -699,7 +726,7 @@ function createModelScope(parent, gediEvent){
 }
 
 function updateProperty(property, firstUpdate){
-    // Update immediately, reduces reflows, 
+    // Update immediately, reduces reflows,
     // as things like classes are added before
     //  the element is inserted into the DOM
     if(firstUpdate){
@@ -722,13 +749,12 @@ function updateProperty(property, firstUpdate){
 
 function createPropertyCallback(property){
     return function (event) {
-        var value,                        
+        var value,
             scope,
             valueTokens;
 
-        if(event){                    
+        if(event){
             scope = createModelScope(property.parent, event);
-            
             if(event === true){ // Initial update.
                 valueTokens = property.gaffa.model.get(property.binding, property, scope, true);
 
@@ -750,13 +776,12 @@ function createPropertyCallback(property){
             property.value = value;
         }
 
-        
         // Call the properties update function, if it has one.
         // Only call if the changed value is an object, or if it actually changed.
         if(!property.update){
             return;
         }
-    
+
         updateProperty(property, event === true);
     }
 }
@@ -779,7 +804,7 @@ function bindProperty(parent) {
         }
         return;
     }
-            
+
     var propertyCallback = createPropertyCallback(this);
 
     this.gaffa.model.bind(this.binding, propertyCallback, this);
@@ -882,7 +907,7 @@ Property.prototype.getPath = function(){
 };
 Property.prototype.toJSON = function(){
     var tempObject = jsonConverter(this, ['_previousHash']);
-    
+
     return tempObject;
 };
 
@@ -910,7 +935,7 @@ ViewContainer.prototype.bind = function(parent){
     }
 
     this.bound = true;
-    
+
     for(var propertyKey in this){
         if(this[propertyKey] instanceof Property){
             this[propertyKey].bind(this);
@@ -976,7 +1001,7 @@ ViewContainer.prototype.render = new Property({
                 if(viewModel.name){
                     viewContainer.gaffa.namedViews[viewModel.name] = viewModel;
                 }
-                
+
                 viewModel.bind(viewContainer.parent);
                 viewModel.insert(viewContainer, i);
             }
@@ -1022,7 +1047,7 @@ function removeViewItem(viewItem){
     var viewIndex = viewItem.parentContainer.indexOf(viewItem);
 
     if(viewIndex >= 0){
-        viewItem.parentContainer.splice(viewIndex, 1);              
+        viewItem.parentContainer.splice(viewIndex, 1);
     }
 
     viewItem.debind();
@@ -1045,8 +1070,8 @@ function ViewItem(viewItemDescription){
             this[key] = new this[key].constructor(this[key]);
         }
     }
-    
-    this.actions = {};
+
+    this.actions = this.actions ? clone(this.actions) : {};
 
     for(var key in viewItemDescription){
         var prop = this[key];
@@ -1065,7 +1090,7 @@ ViewItem.prototype.bind = function(parent){
     this.parent = parent;
 
     this.bound = true;
-    
+
     // Only set up properties that were on the prototype.
     // Faster and 'safer'
     for(var propertyKey in this.constructor.prototype){
@@ -1079,7 +1104,7 @@ ViewItem.prototype.bind = function(parent){
 ViewItem.prototype.debind = function(){
     debindViewItem(this);
 };
-ViewItem.prototype.remove = function(){        
+ViewItem.prototype.remove = function(){
     removeViewItem(this);
 };
 ViewItem.prototype.getPath = function(){
@@ -1124,7 +1149,7 @@ function View(viewDescription){
     var view = this;
 
     view._removeHandlers = [];
-    view.behaviours = view.behaviours || [];        
+    view.behaviours = view.behaviours || [];
 }
 View = createSpec(View, ViewItem);
 
@@ -1143,7 +1168,7 @@ View.prototype.bind = function(parent){
         if(actions._bound){
             continue;
         }
-        
+
         actions._bound = true;
 
         off = bindViewEvent(this, key);
@@ -1158,7 +1183,7 @@ View.prototype.detach = function(){
     this.renderedElement && this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
 };
 
-View.prototype.remove = function(){        
+View.prototype.remove = function(){
     this.detach();
     removeViewItem(this);
 }
@@ -1260,7 +1285,7 @@ ContainerView.prototype.bind = function(parent){
     View.prototype.bind.apply(this, arguments);
     for(var key in this.views){
         var viewContainer = this.views[key];
-        
+
         if(viewContainer instanceof ViewContainer){
             viewContainer.bind(this);
         }
@@ -1270,7 +1295,7 @@ ContainerView.prototype.debind = function(){
     View.prototype.debind.apply(this, arguments);
     for(var key in this.views){
         var viewContainer = this.views[key];
-        
+
         if(viewContainer instanceof ViewContainer){
             viewContainer.debind();
         }
@@ -1280,7 +1305,7 @@ ContainerView.prototype.remove = function(){
     View.prototype.remove.apply(this, arguments);
     for(var key in this.views){
         var viewContainer = this.views[key];
-        
+
         if(viewContainer instanceof ViewContainer){
             viewContainer.empty();
         }
@@ -1341,46 +1366,46 @@ function Gaffa(){
         // Create gaffa global.
         gaffa = {};
 
-        
+
     // Dom accessible instance
     window.addEventListener('DOMContentLoaded', function(){
         document.body.gaffa = gaffa;
     });
-    
+
     // internal varaibles
-    
+
         // Storage for the applications model.
     var internalModel = {},
-    
+
         // Storage for the applications view.
         internalViewItems = [],
-        
+
         // Storage for application actions.
         internalActions = {},
-        
+
         // Storage for application behaviours.
         internalBehaviours = [],
-        
+
         // Storage for application notifications.
         internalNotifications = {},
-        
+
         // Storage for interval based behaviours.
         internalIntervals = [];
-        
-        
+
+
     // Gedi initialisation
     gedi = new Gedi(internalModel);
 
     // Add gedi instance to gaffa.
     gaffa.gedi = gedi;
 
-    
+
     //***********************************************
     //
     //      add Behaviour
     //
-    //*********************************************** 
-    
+    //***********************************************
+
     function addBehaviour(behaviour) {
         //if the views isnt an array, make it one.
         if (Array.isArray(behaviour)) {
@@ -1390,37 +1415,37 @@ function Gaffa(){
 
         behaviour.gaffa = gaffa;
         behaviour.parentContainer = internalBehaviours;
-        
+
         behaviour.bind();
-        
+
         internalBehaviours.push(behaviour);
     }
 
-    
+
     //***********************************************
     //
     //      Add Notification
     //
     //***********************************************
-    
+
     function addNotification(kind, callback){
         internalNotifications[kind] = internalNotifications[kind] || [];
         internalNotifications[kind].push(callback);
     }
 
-    
+
     //***********************************************
     //
     //      Notify
     //
     //***********************************************
-    
+
     function notify(kind, data){
         var subKinds = kind.split(".");
-            
+
         fastEach(subKinds, function(subKind, index){
             var notificationKind = subKinds.slice(0, index + 1).join(".");
-            
+
             internalNotifications[notificationKind] && fastEach(internalNotifications[notificationKind], function(callback){
                 callback(data);
             });
@@ -1433,10 +1458,10 @@ function Gaffa(){
     //      QueryString To Model
     //
     //***********************************************
-    
+
     function queryStringToModel(){
         var queryStringData = parseQueryString(window.location.search);
-        
+
         for(var key in queryStringData){
             if(!queryStringData.hasOwnProperty(key)){
                 continue;
@@ -1455,7 +1480,7 @@ function Gaffa(){
     //      Load
     //
     //***********************************************
-    
+
     function load(app, target){
 
         var targetView = gaffa.views;
@@ -1467,7 +1492,7 @@ function Gaffa(){
 
             targetView = gaffa.namedViews[targetName].views[targetViewContainer];
         }
-    
+
         while(internalIntervals.length){
             clearInterval(internalIntervals.pop());
         }
@@ -1476,7 +1501,7 @@ function Gaffa(){
         if (app.views) {
             targetView.empty();
         }
-        
+
         //set up state
         if (app.model) {
             gedi.set({});
@@ -1494,7 +1519,7 @@ function Gaffa(){
             });
             gaffa.behaviours.add(app.behaviours);
         }
-        
+
         queryStringToModel();
     }
 
@@ -1516,22 +1541,22 @@ function Gaffa(){
             var title;
 
             data.target = target;
-                    
+
             if(data !== undefined && data !== null && data.title){
                 title = data.title;
             }
-            
+
             // Always use pushstate unless triggered by onpopstate
             if(pushState !== false) {
                 gaffa.pushState(data, title, url);
             }
 
             pageCache[url] = JSON.stringify(data);
-            
+
             load(data, target);
-            
+
             gaffa.notifications.notify("navigation.success");
-            
+
             window.scrollTo(0,0);
         }
 
@@ -1542,7 +1567,7 @@ function Gaffa(){
         function complete(){
             gaffa.notifications.notify("navigation.complete");
         }
-        
+
         gaffa.notifications.notify("navigation.begin");
 
         if(gaffa.cacheNavigates !== false && pageCache[url]){
@@ -1554,7 +1579,7 @@ function Gaffa(){
         gaffa.ajax({
             headers:{
                 'x-gaffa': 'navigate'
-            },         
+            },
             cache: navigator.appName !== 'Microsoft Internet Explorer',
             url: url,
             type: "get",
@@ -1565,7 +1590,7 @@ function Gaffa(){
             complete: complete
         });
     }
-    
+
     //***********************************************
     //
     //      Pop State
@@ -1616,11 +1641,11 @@ function Gaffa(){
                 if(parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
-        
+
                 scope = scope || {};
 
                 addDefaultsToScope(scope);
-                
+
                 return gedi.get(path, parentPath, scope, asTokens);
             },
             set:function(path, value, parent, dirty) {
@@ -1633,7 +1658,7 @@ function Gaffa(){
                 if(parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
-                
+
                 gedi.set(path, value, parentPath, dirty);
             },
             remove: function(path, parent, dirty) {
@@ -1642,11 +1667,11 @@ function Gaffa(){
                 if(path == null){
                     return;
                 }
-                
+
                 if(parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
-                
+
                 gedi.remove(path, parentPath, dirty);
             },
             bind: function(path, callback, parent) {
@@ -1659,12 +1684,12 @@ function Gaffa(){
                 if(!parent.gediCallbacks){
                     parent.gediCallbacks = [];
                 }
-                
+
                 // Add the callback to the list of handlers associated with the viewItem
                 parent.gediCallbacks.push(function(){
                     gedi.debind(callback);
                 });
-                
+
                 gedi.bind(path, callback, parentPath);
             },
             debind: function(item) {
@@ -1678,11 +1703,11 @@ function Gaffa(){
                 if(path == null){
                     return;
                 }
-                
+
                 if(parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
-                
+
                 return gedi.isDirty(path, parentPath);
             },
             setDirtyState: function(path, value, parent) {
@@ -1695,13 +1720,13 @@ function Gaffa(){
                 if(parent && parent.getPath){
                     parentPath = parent.getPath();
                 }
-                
+
                 gedi.setDirtyState(path, value, parentPath);
             }
         },
         views: {
             insertTarget: null,
-            
+
             //Add a view or viewModels to another view, or the root list of viewModels if a parent isnt passed.
             //Set up the viewModels bindings as they are added.
             add: function(view, insertIndex){
@@ -1711,7 +1736,7 @@ function Gaffa(){
                 }
 
                 if(view.name){
-                    gaffa.namedViews[view.name] = viewItem;
+                    gaffa.namedViews[view.name] = view;
                 }
 
                 view.gaffa = gaffa;
@@ -1720,7 +1745,7 @@ function Gaffa(){
                 view.bind();
                 view.insert(internalViewItems, insertIndex);
             },
-            
+
             remove: removeViews,
 
             empty: function(){
@@ -1775,16 +1800,16 @@ function Gaffa(){
         },
 
         navigate: navigate,
-        
-        notifications:{  
+
+        notifications:{
             add: addNotification,
             notify: notify
         },
-        
+
         load: function(app, pushPageState){
-                    
+
             var title;
-                    
+
             if(app !== undefined && app !== null && app.title){
                 title = app.title;
             }
@@ -1795,25 +1820,14 @@ function Gaffa(){
             }
             load(app);
         },
-        
+
         //If you want to load the values in query strings into the pages model.
         queryStringToModel: queryStringToModel,
-        
+
         //This is here so i can remove it later and replace with a better verson.
         extend: extend,
-        
-        clone: function(value){
-            if(value != null && typeof value === "object"){
-                if(Array.isArray(value)){
-                    return value.slice();
-                }else if (value instanceof Date) {
-                    return new Date(value);
-                }else{
-                    return extend({}, value);
-                }
-            }
-            return value;
-        },
+
+        clone: clone,
         ajax: ajax,
         crel: crel,
         doc: doc,
@@ -1828,7 +1842,7 @@ function Gaffa(){
 
 }
 
-        
+
 // "constants"
 Gaffa.pathSeparator = "/";
 
@@ -1842,7 +1856,7 @@ Gaffa.createSpec = createSpec;
 Gaffa.Behaviour = Behaviour;
 Gaffa.addDefaultStyle = addDefaultStyle;
 
-Gaffa.propertyUpdaters = {    
+Gaffa.propertyUpdaters = {
     group: function (viewsName, insert, remove, empty) {
         return function (viewModel, value) {
             var property = this,
@@ -1851,9 +1865,9 @@ Gaffa.propertyUpdaters = {
                 previousGroups = property.previousGroups,
                 newView,
                 isEmpty;
-            
+
             if (value && typeof value === "object"){
-                
+
                 viewModel.distinctGroups = getDistinctGroups(gaffa, property.value, property.expression);
 
                 if(previousGroups){
@@ -1873,7 +1887,7 @@ Gaffa.propertyUpdaters = {
 
                 property.previousGroups = viewModel.distinctGroups;
 
-                
+
                 for(var i = 0; i < childViews.length; i++){
                     var childView = childViews[i];
                     if(viewModel.distinctGroups.indexOf(childView.group)<0){
@@ -1882,7 +1896,7 @@ Gaffa.propertyUpdaters = {
                         remove(viewModel, value, childView);
                     }
                 }
-                
+
                 fastEach(viewModel.distinctGroups, function(group){
                     var exists = false;
                     fastEach(childViews, function(child){
@@ -1890,15 +1904,15 @@ Gaffa.propertyUpdaters = {
                             exists = true;
                         }
                     });
-                    
+
                     if (!exists) {
                         newView = {group: group};
                         insert(viewModel, value, newView);
                     }
                 });
-                                            
+
                 isEmpty = !childViews.length;
-                                            
+
                 empty(viewModel, isEmpty);
             }else{
                 fastEach(childViews, function(childView, index){

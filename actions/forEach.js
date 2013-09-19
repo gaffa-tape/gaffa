@@ -17,6 +17,10 @@ ForEach.prototype.trigger = function(parent, scope, event) {
         return;
     }
 
+    if(!scope){
+        scope = {};
+    }
+
     var keys = items.__gaffaKeys__;
 
     for(var i = 0; i < items.length; i++){
@@ -29,6 +33,8 @@ ForEach.prototype.trigger = function(parent, scope, event) {
 
         psudoParent.actions.all = actions;
         psudoParent = this.gaffa.initialiseViewItem(psudoParent, psudoParent.gaffa, psudoParent.actions.constructors);
+
+        scope.item = items[i];
 
         psudoParent.triggerActions('all', scope, event);
     }
