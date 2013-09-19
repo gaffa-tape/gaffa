@@ -22,7 +22,7 @@ Textarea.prototype.render = function(){
 };
 
 Textarea.prototype.value = new Gaffa.Property(function(view, value){
-    view.renderedElement.value = value;
+    view.renderedElement.value = value || '';
 });
 
 Textarea.prototype.placeholder = new Gaffa.Property(function(view, value){
