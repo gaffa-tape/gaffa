@@ -1890,7 +1890,7 @@ function Gaffa(){
                 }
 
                 if(view.name){
-                    gaffa.namedViews[view.name] = viewItem;
+                    gaffa.namedViews[view.name] = view;
                 }
 
                 view.gaffa = gaffa;
