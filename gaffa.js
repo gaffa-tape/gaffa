@@ -770,7 +770,7 @@ function createPropertyCallback(property){
             if(valueTokens){
                 var valueToken = valueTokens[valueTokens.length - 1];
                 value = valueToken.result;
-                property._sourcePath = valueToken.path;
+                property._sourcePathInfo = valueToken.sourcePathInfo;
             }
 
             property.value = value;

@@ -5,24 +5,16 @@ function TemplaterProperty(){}
 TemplaterProperty = createSpec(TemplaterProperty, Gaffa.Property);
 TemplaterProperty.prototype.trackKeys = true;
 
-function buildKeyMap(values, source){
-    var map = {};
-
-    for(var key in values){
-        if(Array.isArray(values) && isNaN(key)){
+function findValueIn(value, source){
+    var isArray = Array.isArray(source);
+    for(var key in source){
+        if(isArray && isNaN(key)){
             continue;
         }
-
-        for(var sourceKey in source){
-            if(sourceKey in map || Array.isArray(source) && isNaN(sourceKey)){
-                continue;
-            }
-            if(values[key] === source[sourceKey]){
-                map[sourceKey] = key;
-            }
+        if(source[key] === value){
+            return key;
         }
     }
-    return map;
 }
 
 TemplaterProperty.prototype.update =function (viewModel, value) {
@@ -35,25 +27,31 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
         paths = gaffa.gedi.paths,
         viewsName = this.viewsName,
         childViews = viewModel.views[viewsName],
-        sourcePath = this._sourcePath || '[]',
+        sourcePathInfo = this._sourcePathInfo,
         viewsToRemove = childViews.slice();
-        
-    if (value && typeof value === "object"){
+
+    if (value && typeof value === "object" && sourcePathInfo){
+
+        if(!sourcePathInfo || !sourcePathInfo.subPaths){
+            sourcePathInfo.subPaths = new value.constructor();
+
+            for(var key in value){
+                if(Array.isArray(value) && isNaN(key)){
+                    continue;
+                }
+                sourcePathInfo.subPaths[key] = paths.append(sourcePathInfo.path, paths.create(key));
+            }
+        }
 
         var newView,
             isEmpty = true,
             itemIndex = 0;
 
-        // build key map
-
-        var keyMap = buildKeyMap(value, gaffa.model.get(sourcePath, this));
-
         for(var i = 0; i < childViews.length; i++){
 
-            var childSourcePathParts = paths.toParts(childViews[i].sourcePath),
-                childSourceKey = childSourcePathParts && childSourcePathParts.pop();
+            var childSourcePath = childViews[i].sourcePath;
 
-            if(!(childSourceKey in keyMap)){
+            if(!findValueIn(childSourcePath, sourcePathInfo.subPaths)){
                 if(childViews[i].containerName === viewsName){
                     childViews[i].remove();
                     i--;
@@ -61,15 +59,18 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
             }
         }
 
-        for(var key in keyMap){
+        for(var key in sourcePathInfo.subPaths){
+            if(Array.isArray(sourcePathInfo.subPaths) && isNaN(key)){
+                continue;
+            }
             isEmpty = false;
             var exists = false,
-                valueKey = paths.append(sourcePath, paths.create(key));
+                sourcePath = sourcePathInfo.subPaths[key];
 
             for(var i = 0; i < childViews.length; i++){
                 var child = childViews[i];
-                    
-                if(child.sourcePath === valueKey){
+
+                if(child.sourcePath === sourcePath){
                     exists = true;
                     break;
                 }
@@ -77,7 +78,7 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
 
             if(!exists){
                 newView = gaffa.initialiseViewItem(JSON.parse(this._templateCache), this.gaffa, this.gaffa.views.constructors);
-                newView.sourcePath = valueKey;
+                newView.sourcePath = sourcePath;
                 newView.containerName = viewsName;
                 childViews.add(newView, itemIndex);
             }
@@ -90,6 +91,19 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
             newView.containerName = viewsName;
             childViews.add(newView, itemIndex);
         }
+    }else{
+        for(var i = 0; i < childViews.length; i++){
+            if(childViews[i].containerName === viewsName){
+                childViews[i].remove();
+                i--;
+            }
+        }
+        if(this._emptyTemplateCache){
+            newView = gaffa.initialiseViewItem(JSON.parse(this._emptyTemplateCache), this.gaffa, this.gaffa.views.constructors);
+            newView.containerName = viewsName;
+            childViews.add(newView, itemIndex);
+        }
+        return;
     }
 };
 
