@@ -16,6 +16,7 @@ var Gedi = require('gedi'),
     createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
     animationFrame = require('./raf.js'),
+    weakmap = require('weakmap'),
     requestAnimationFrame = animationFrame.requestAnimationFrame,
     cancelAnimationFrame = animationFrame.cancelAnimationFrame;
 
@@ -438,14 +439,14 @@ function getItemPath(item){
 
     while(referenceItem){
 
-        // item.path should be a child ref after item.key
+        // item.path should be a child ref after item.sourcePath
         if(referenceItem.path != null){
             paths.push(referenceItem.path);
         }
 
-        // item.key is most root level path
-        if(referenceItem.key != null){
-            paths.push(gedi.paths.create(referenceItem.key));
+        // item.sourcePath is most root level path
+        if(referenceItem.sourcePath != null){
+            paths.push(gedi.paths.create(referenceItem.sourcePath));
         }
 
         referenceItem = referenceItem.parent;
@@ -708,7 +709,7 @@ function jsonConverter(object, exclude, include){
     return tempObject;
 }
 
-function createModelScope(parent, trackKeys, gediEvent){
+function createModelScope(parent, gediEvent){
     var possibleGroup = parent,
         groupKey;
 
@@ -718,7 +719,6 @@ function createModelScope(parent, trackKeys, gediEvent){
     }
 
     return {
-        __trackKeys__: trackKeys,
         viewItem: parent,
         groupKey: groupKey,
         modelTarget: gediEvent && gediEvent.target
@@ -750,24 +750,29 @@ function updateProperty(property, firstUpdate){
 function createPropertyCallback(property){
     return function (event) {
         var value,
-            scope;
+            scope,
+            valueTokens;
 
         if(event){
-            scope = createModelScope(property.parent, property.trackKeys, event);
-
-
+            scope = createModelScope(property.parent, event);
             if(event === true){ // Initial update.
-                value = property.gaffa.model.get(property.binding, property, scope);
+                valueTokens = property.gaffa.model.get(property.binding, property, scope, true);
 
             } else if(property.binding){ // Model change update.
 
                 if(property.ignoreTargets && event.target.toString().match(property.ignoreTargets)){
                     return;
                 }
-                value = event.getValue(scope);
+
+                valueTokens = event.getValue(scope, true);
             }
 
-            property.keys = value && value.__gaffaKeys__;
+            if(valueTokens){
+                var valueToken = valueTokens[valueTokens.length - 1];
+                value = valueToken.result;
+                property._sourcePathInfo = valueToken.sourcePathInfo;
+            }
+
             property.value = value;
         }
 
@@ -989,16 +994,14 @@ ViewContainer.prototype.render = new Property({
                 var viewModel = viewContainer[i];
                 viewModel.gaffa = viewContainer.gaffa;
 
-                if(viewModel.renderedElement){
-                    continue;
+                if(!viewModel.renderedElement){
+                    viewModel.render();
                 }
 
                 if(viewModel.name){
                     viewContainer.gaffa.namedViews[viewModel.name] = viewModel;
                 }
 
-
-                viewModel.render();
                 viewModel.bind(viewContainer.parent);
                 viewModel.insert(viewContainer, i);
             }
@@ -1192,6 +1195,9 @@ View.prototype.debind = function () {
     while(this._removeHandlers.length){
         this._removeHandlers.pop()();
     }
+    for(var key in this.actions){
+        this.actions[key]._bound = false;
+    }
     debindViewItem(this);
 };
 
@@ -1324,8 +1330,7 @@ Action.prototype.trigger = function(parent, scope, event){
 
     scope = scope || {};
 
-    var gaffa = this.gaffa = parent.gaffa,
-        outerTrackKeys = scope.__trackKeys__;
+    var gaffa = this.gaffa = parent.gaffa;
 
 
     for(var propertyKey in this.constructor.prototype){
@@ -1334,12 +1339,9 @@ Action.prototype.trigger = function(parent, scope, event){
         if(property instanceof Property && property.binding){
             property.gaffa = gaffa;
             property.parent = this;
-            scope.__trackKeys__ = property.trackKeys;
             property.value = gaffa.model.get(property.binding, this, scope);
         }
     }
-
-    scope.__trackKeys__ = outerTrackKeys;
 
     this.debind();
 };
@@ -1396,162 +1398,6 @@ function Gaffa(){
 
     // Add gedi instance to gaffa.
     gaffa.gedi = gedi;
-
-    // Gedi.Gel extensions
-
-    function getSourceKeys(array){
-        return array.__gaffaKeys__ || (function(){
-            var arr = [];
-            while(arr.length < array.length && arr.push(arr.length.toString()));
-            return arr;
-        })();
-    }
-
-    var originalFilter = gedi.gel.scope.filter;
-    gedi.gel.scope.filter = function(scope, args) {
-        if(!scope.get('__trackKeys__')){
-            return originalFilter(scope, args);
-        }
-        var args = args.all(),
-            sourceArrayKeys,
-            filteredList = [];
-
-        var array = args[0];
-        var functionToCompare = args[1];
-
-        if(!array){
-            return undefined;
-        }
-
-        sourceArrayKeys = getSourceKeys(array);
-
-        filteredList.__gaffaKeys__ = [];
-
-        if (args.length < 2) {
-            return args;
-        }
-
-        if (Array.isArray(array)) {
-
-            fastEach(array, function(item, index){
-                if(typeof functionToCompare === "function"){
-                    if(scope.callWith(functionToCompare, [item])){
-                        filteredList.push(item);
-                        filteredList.__gaffaKeys__.push(sourceArrayKeys[index]);
-                    }
-                }else{
-                    if(item === functionToCompare){
-                        filteredList.push(item);
-                        filteredList.__gaffaKeys__.push(sourceArrayKeys[index]);
-                    }
-                }
-            });
-            return filteredList;
-
-        }else {
-            return;
-        }
-    };
-
-    var originalSlice = gedi.gel.scope.slice;
-    gedi.gel.scope.slice = function(scope, args) {
-        if(!scope.get('__trackKeys__')){
-            return originalSlice(scope, args);
-        }
-        var target = args.next(),
-            start,
-            end,
-            result,
-            sourceArrayKeys;
-
-        if(args.hasNext()){
-            start = target;
-            target = args.next();
-        }
-        if(args.hasNext()){
-            end = target;
-            target = args.next();
-        }
-
-        if(!Array.isArray(target)){
-            return;
-        }
-
-        sourceArrayKeys = getSourceKeys(target);
-
-        result = target.slice(start, end);
-
-        result.__gaffaKeys__ = sourceArrayKeys.slice(start, end);
-
-        return result;
-    };
-
-    // This is pretty dirty..
-    function ksort(array, scope, sortFunction){
-
-        if(array.length < 2){
-            return array;
-        }
-
-        var sourceArrayKeys = getSourceKeys(array),
-            source = array.slice(),
-            sourceKeys = sourceArrayKeys.slice(),
-            left = [],
-            pivot = source.splice(source.length/2,1).pop(),
-            pivotKey = sourceKeys.splice(sourceKeys.length/2,1).pop(),
-            right = [],
-            result,
-            resultKeys;
-
-        left.__gaffaKeys__ = [];
-        right.__gaffaKeys__ = [];
-
-        for(var i = 0; i < source.length; i++){
-            var item = source[i];
-            if(scope.callWith(sortFunction, [item, pivot]) > 0){
-                right.push(item);
-                right.__gaffaKeys__.push(sourceKeys[i]);
-            }else{
-                left.push(item);
-                left.__gaffaKeys__.push(sourceKeys[i]);
-            }
-        }
-
-        left = ksort(left, scope, sortFunction);
-
-        left.push(pivot);
-        left.__gaffaKeys__.push(pivotKey);
-
-        right = ksort(right, scope, sortFunction);
-
-        resultKeys = left.__gaffaKeys__.concat(right.__gaffaKeys__);
-
-        result = left.concat(right);
-        result.__gaffaKeys__ = resultKeys;
-
-        return result;
-    }
-
-    var originalSort = gedi.gel.scope.sort;
-    gedi.gel.scope.sort = function(scope, args) {
-        if(!scope.get('__trackKeys__')){
-            return originalSort(scope, args);
-        }
-
-        var target = args.next(),
-            sortFunction = args.next(),
-            result,
-            sourceArrayKeys,
-            sortValues = [];
-
-        if(!Array.isArray(target)){
-            return;
-        }
-
-        result = ksort(target, scope, sortFunction);
-
-        return result;
-    };
 
 
     //***********************************************
@@ -1785,7 +1631,7 @@ function Gaffa(){
             }
         },
         model: {
-            get:function(path, parent, scope) {
+            get:function(path, parent, scope, asTokens) {
                 if(!(parent instanceof ViewItem || parent instanceof Property)){
                     scope = parent;
                     parent = undefined;
@@ -1800,7 +1646,7 @@ function Gaffa(){
 
                 addDefaultsToScope(scope);
 
-                return gedi.get(path, parentPath, scope);
+                return gedi.get(path, parentPath, scope, asTokens);
             },
             set:function(path, value, parent, dirty) {
                 var parentPath;
@@ -2011,97 +1857,6 @@ Gaffa.Behaviour = Behaviour;
 Gaffa.addDefaultStyle = addDefaultStyle;
 
 Gaffa.propertyUpdaters = {
-    collection: function (viewsName, insert, remove, empty) {
-        return function (viewModel, value) {
-            var property = this,
-                valueLength = 0,
-                childViews = viewModel.views[viewsName],
-                valueKeys = property.keys,
-                calculateValueLength = function(){
-                    if(Array.isArray(value)){
-                        return value.length;
-                    }else if(typeof value === "object"){
-                        return Object.keys(value).length;
-                    }
-                };
-
-            if (value && typeof value === "object"){
-
-                var element = viewModel.renderedElement;
-                if (element && property.template) {
-                    var newView,
-                        isEmpty = true;
-
-                    //Remove any child nodes who no longer exist in the data
-                    for(var i = 0; i < childViews.length; i++){
-                        var childView = childViews[i],
-                            existingKey = childView.key;
-
-                        if(
-                            (
-                                (valueKeys && !(valueKeys.indexOf(existingKey)>=0)) ||
-                                !value[childView.key]
-                            ) &&
-                            childView.containerName === viewsName
-                        ){
-                            i--;
-                            remove(viewModel, value, childView);
-                            childView.remove();
-                        }
-                    }
-
-                    var itemIndex = 0;
-
-                    //Add items which do not exist in the dom
-                    for (var key in value) {
-                        if(Array.isArray(value) && isNaN(key)){
-                            continue;
-                        }
-
-                        isEmpty = false;
-
-                        var existingChildView = false;
-                        for(var i = 0; i < childViews.length; i++){
-                            var child = childViews[i],
-                                valueKey = key;
-
-                            if(valueKeys){
-                                valueKey = valueKeys[key];
-                            }
-
-                            if(child.key === valueKey){
-                                existingChildView = child;
-                            }
-                        }
-
-                        if (!existingChildView) {
-                            var newViewKey = key;
-                            if(valueKeys){
-                                newViewKey = valueKeys[key];
-                            }
-                            newView = {key: newViewKey, containerName: viewsName};
-                            insert(viewModel, value, newView, itemIndex);
-                        }
-
-                        itemIndex++;
-                    }
-
-                    empty(viewModel, isEmpty);
-                }
-            }else{
-                for(var i = 0; i < childViews.length; i++){
-                    var childView = childViews[i];
-                    if(childView.containerName === viewsName){
-                        i--;
-                        remove(viewModel, value, childView);
-                        childView.remove();
-                    }
-                }
-                empty(viewModel, true);
-            }
-        };
-    },
-
     group: function (viewsName, insert, remove, empty) {
         return function (viewModel, value) {
             var property = this,
