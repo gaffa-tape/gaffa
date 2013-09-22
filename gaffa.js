@@ -1205,21 +1205,25 @@ View.prototype.render = function(){
     this.renderedElement.viewModel = this;
 };
 
+function insert(view, viewContainer, insertIndex){
+    window.requestAnimationFrame(function(){
+        var gaffa = view.gaffa;
+
+        if(view.afterInsert){
+            doc.on('DOMNodeInserted', document, function (event) {
+                if(doc.closest(view.renderedElement, event.target)){
+                    view.afterInsert();
+                }
+            });
+        }
+
+        var renderTarget = view.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
+        view.insertFunction(view.insertSelector || renderTarget, view.renderedElement, insertIndex);
+    });
+}
+
 View.prototype.insert = function(viewContainer, insertIndex){
-    var view = this,
-        gaffa = view.gaffa;
-
-    if(view.afterInsert){
-        doc.on('DOMNodeInserted', document, function (event) {
-            if(doc.closest(view.renderedElement, event.target)){
-                view.afterInsert();
-            }
-        });
-    }
-
-    var renderTarget = this.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
-    this.insertFunction(this.insertSelector || renderTarget, this.renderedElement, insertIndex);
-
+    insert(this, viewContainer, insertIndex);
 };
 
 function Classes(){};
@@ -1398,7 +1402,6 @@ function Gaffa(){
 
     // Add gedi instance to gaffa.
     gaffa.gedi = gedi;
-
 
     //***********************************************
     //
@@ -1645,7 +1648,6 @@ function Gaffa(){
                 scope = scope || {};
 
                 addDefaultsToScope(scope);
-
                 return gedi.get(path, parentPath, scope, asTokens);
             },
             set:function(path, value, parent, dirty) {
