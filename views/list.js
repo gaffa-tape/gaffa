@@ -3,7 +3,7 @@ var Gaffa = require('gaffa'),
     TemplaterProperty = require('gaffa/src/templaterProperty'),
     viewType = "list",
 	cachedElement;
-    
+
 function List(){
     this.views.list = new Gaffa.ViewContainer(this.views.list);
     this.views.empty = new Gaffa.ViewContainer(this.views.empty);
@@ -12,13 +12,13 @@ List = Gaffa.createSpec(List, Gaffa.ContainerView);
 List.prototype.type = viewType;
 
 List.prototype.render = function(){
-    
+
     var renderedElement = crel(this.tagName || 'div');
-    
+
     this.views.list.element = renderedElement;
-	this.views.empty.element = renderedElement;        
+	this.views.empty.element = renderedElement;
     this.renderedElement = renderedElement;
-    
+
     this.__super__.render.apply(this, arguments);
 };
 
@@ -27,7 +27,7 @@ function createNewView(property, templateKey, addedItem){
         property.templateCache= {};
     }
     var view = JSON.parse(
-        property.templateCache[templateKey] || 
+        property.templateCache[templateKey] ||
         (property.templateCache[templateKey] = JSON.stringify(property[templateKey]))
     );
 
@@ -43,7 +43,7 @@ List.prototype.list = new TemplaterProperty({
     sameAsPrevious:function () {
         var oldKeys = this.getPreviousHash(),
             value = this.value,
-            newKeys = value && (value.__gaffaKeys__ || Object.keys(value));
+            newKeys = value && (this._sourcePathInfo && this._sourcePathInfo.subPaths || Object.keys(value));
 
         this.setPreviousHash(newKeys || value);
 

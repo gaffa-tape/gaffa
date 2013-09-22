@@ -11,7 +11,8 @@ ForEach.prototype.target = new Gaffa.Property({
 ForEach.prototype.trigger = function(parent, scope, event) {
     this.__super__.trigger.apply(this, arguments);
 
-    var items = this.target.value;
+    var items = this.target.value,
+        keys = this.target._sourcePathInfo && this.target._sourcePathInfo.subPaths;
 
     if(!items){
         return;
@@ -20,8 +21,6 @@ ForEach.prototype.trigger = function(parent, scope, event) {
     if(!scope){
         scope = {};
     }
-
-    var keys = items.__gaffaKeys__;
 
     for(var i = 0; i < items.length; i++){
         var psudoParent = new EachPsudoParent();
