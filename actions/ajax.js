@@ -16,12 +16,13 @@ Ajax.prototype.trigger = function(parent, scope, event){
     var action = this,
         gaffa = this.gaffa,
         data = action.source.value,
-        errorHandler = function (error) {
-            gaffa.actions.trigger(action.actions.error, action, scope, event);
-            gaffa.notifications.notify("store.error." + action.kind, error);
+        errorHandler = function (error, data) {
+            scope.data = data;
+            action.triggerActions('error', scope, event);
+            gaffa.notifications.notify("ajax.error." + action.kind, error);
         };
 
-    gaffa.notifications.notify("store.begin." + action.kind);
+    gaffa.notifications.notify("ajax.begin." + action.kind);
 
     if(action.dataType === 'formData'){
         var formData = new FormData();
@@ -32,7 +33,9 @@ Ajax.prototype.trigger = function(parent, scope, event){
         }
         data = formData;
     }
-    
+
+    scope = scope || {};
+
     var ajaxSettings = {
         cache: action.cache,
         type: action.method.value,
@@ -46,40 +49,38 @@ Ajax.prototype.trigger = function(parent, scope, event){
                 errorHandler(data);
                 return;
             }
-                            
+
             action.target.set(data);
-            
-            // Mark a portion of the model as clean after a successful store.
+
+            // Mark a portion of the model as clean after a successful request.
             if(action.cleans !== false && action.target.binding){
                 gaffa.model.setDirtyState(action.target.binding, false, action);
             }
 
-            scope = scope || {};
-
             scope.data = data;
-            
-            gaffa.actions.trigger(action.actions.success, action, scope, event);
-            
-            gaffa.notifications.notify("store.success." + action.kind);
+
+            action.triggerActions('success', scope, event);
+
+            gaffa.notifications.notify("ajax.success." + action.kind);
         },
         error: errorHandler,
         complete:function(){
-            gaffa.actions.trigger(action.actions.complete, action, scope, event);
-            gaffa.notifications.notify("store.complete." + action.kind);
+            action.triggerActions('complete', scope, event);
+            gaffa.notifications.notify("ajax.complete." + action.kind);
         }
     };
-    
+
     if(action.dataType === 'file'){
         data = new FormData();
         data.append("file", action.source.value);
         ajaxSettings.contentType = false;
         ajaxSettings.processData = false;
         ajaxSettings.data = data;
-        dataType = false;                
+        dataType = false;
     }
-    
+
     gaffa.ajax(ajaxSettings);
-    
+
 };
 Ajax.prototype.target = new Gaffa.Property();
 Ajax.prototype.source = new Gaffa.Property();

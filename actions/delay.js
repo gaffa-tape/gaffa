@@ -12,7 +12,7 @@ Delay.prototype.trigger = function(parent, scope, event) {
     var action = this;
 
     setTimeout(function(){
-        action.gaffa.actions.trigger(action.actions['trigger'], action, scope, event);
+        action.triggerActions('trigger', scope, event);
     }, this.delay.value);
 };
 

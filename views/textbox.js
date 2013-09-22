@@ -4,29 +4,17 @@ var Gaffa = require('gaffa'),
     fastEach = require('fasteach'),
     doc = require('doc-js'),
 	cachedElement;
-
-function matchFail(element, failed){
-    if(failed){
-        if(element.className.indexOf('error') >= 0){
-            return;
-        }
-        element.className += ' error'
-        element.className.trim();
-    }else{
-        element.className.indexOf('error') >= 0 && element.className.replace(/error/g,'');
-    }
-}
     
-function setValue(event){    
-    var input = this,
+function setValue(event){
+    var input = event.target,
         viewModel = input.viewModel;
             
     if (viewModel.subType.value === "number") {
-        viewModel.value.set(parseFloat(input.value));
+        viewModel.value.set(parseFloat(input.value), false);
     } else {
-        viewModel.value.set(input.value);
+        viewModel.value.set(input.value, false);
     } 
-}  
+}
 
 function updateValue(viewModel, value){
 
@@ -108,7 +96,7 @@ Textbox.prototype.render = function(){
     var renderedElement = crel('input'),
         updateEventNames = (this.updateEventName || "change").split(' ');
             
-    doc.on(this.updateEventName || "change", renderedElement, setValue);
+    this._removeHandlers.push(this.gaffa.events.on(this.updateEventName || "change", renderedElement, setValue));
     
     this.renderedElement = renderedElement;
     

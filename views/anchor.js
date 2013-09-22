@@ -2,7 +2,6 @@
 
 var Gaffa = require('gaffa'),
     crel = require('crel'),
-    doc = require('doc-js'),
     viewType = "anchor",
 	cachedElement;
 
@@ -12,16 +11,21 @@ Anchor = Gaffa.createSpec(Anchor, Gaffa.ContainerView);
 Anchor.prototype.type = viewType;
 
 Anchor.prototype.render = function(){
-    var renderedElement = crel('a'),
+    var textNode = document.createTextNode(''),
+        renderedElement = crel('a',textNode),
         viewModel = this;
 
     this.views.content.element = renderedElement;
     
     this.renderedElement = renderedElement;
 
+    this.text.textNode = textNode;
+
     if(!this.external){
-        doc.on('click', renderedElement, function(event){
-            event.preventDefault();
+        // Prevent default click action reguardless of gaffa.event implementation
+        renderedElement.onclick = function(event){event.preventDefault()};
+
+        this.gaffa.events.on('click', renderedElement, function(event){
             viewModel.gaffa.navigate(viewModel.href.value, viewModel.target.value);
         });
     }
@@ -29,8 +33,12 @@ Anchor.prototype.render = function(){
     this.__super__.render.apply(this, arguments);
 };
 
-Anchor.prototype.text = new Gaffa.Property(function(viewModel, value){
-    viewModel.renderedElement.textContent = (value && typeof value === 'string') ? value : null;
+Anchor.prototype.text = new Gaffa.Property(function(view, value){
+    if(value !== null && value !== undefined){
+        this.textNode.textContent = value;
+    }else{
+        this.textNode.textContent = '';
+    }
 });
 
 Anchor.prototype.target = new Gaffa.Property(function(viewModel, value){

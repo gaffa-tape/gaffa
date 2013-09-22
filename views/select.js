@@ -3,12 +3,12 @@ var Gaffa = require('gaffa'),
     doc = require('doc-js'),
     viewType = "select",
     cachedElement;
-    
+
 function Select(){}
 Select = Gaffa.createSpec(Select, Gaffa.View);
 Select.prototype.type = viewType;
 
-Select.prototype.render = function(){        
+Select.prototype.render = function(){
     var viewModel = this,
         select,
         renderedElement = crel('span',
@@ -16,7 +16,7 @@ Select.prototype.render = function(){
         );
 
     renderedElement.className = 'select';
-    
+
     doc.on(this.updateEventName || "change", select, function(event){
         var option,
             data;
@@ -28,26 +28,26 @@ Select.prototype.render = function(){
         }
 
         data = option && option.data || undefined;
-        
+
         viewModel.value.set(data);
     });
-    
+
     this.renderedElement = renderedElement;
-    
+
     this.__super__.render.apply(this, arguments);
 };
 
 Select.prototype.options = new Gaffa.Property(function(viewModel, value) {
     var property = this,
         element = viewModel.renderedElement.childNodes[0];
-        
+
     if(!Array.isArray(value)){
         value = [];
     }
-    
+
     if(element){
         element.innerHTML = '';
-        
+
         if(viewModel.showBlank.value)
         {
             element.appendChild(document.createElement("option"));
@@ -57,9 +57,9 @@ Select.prototype.options = new Gaffa.Property(function(viewModel, value) {
             var optionData = value[i];
             if(optionData !== undefined){
                 var option = document.createElement('option');
-                
-                option.value = option.data = gaffa.gedi.get(property.valuePath, optionData);
-                option.innerHTML = gaffa.gedi.get(property.textPath, optionData);
+
+                option.value = option.data = gaffa.gedi.utils.get(property.valuePath, optionData);
+                option.textContent = gaffa.gedi.utils.get(property.textPath, optionData);
 
                 element.appendChild(option);
             }

@@ -1,37 +1,33 @@
-
 "use strict";
 
 var Gaffa = require('gaffa'),
-    crel = require('crel'),
-    viewType = "checkbox";
+    crel = require('crel');
 
 function Checkbox(){}
 Checkbox = Gaffa.createSpec(Checkbox, Gaffa.ContainerView);
-Checkbox.prototype.type = viewType;
+Checkbox.prototype.type = 'checkbox';
 
-Checkbox.prototype.render = function(){
-     var classes = viewType;
-    
-    var checkboxId = parseInt(Math.random() * 100000), //Dodgy as.... don't like it? submit a pull request.
+Checkbox.prototype.render = function(){    
+    var view = this,
         label,
         checkbox,
         renderedElement = crel('span',
             label = crel('label'),
-            checkbox = crel('input', {'type': 'checkbox', 'id': checkboxId})
+            checkbox = crel('input', {'type': 'checkbox'})
         );
 
     this.checkboxInput = checkbox;
     this.checkboxLabel = label;
     
     checkbox.addEventListener(this.updateEventName || "change", function(event){
-        var viewModel = this.parentNode.viewModel;
-        Gaffa.propertyUpdaters.bool(viewModel, viewModel.checked, this.checked);            
+        view.checked.set(this.checked);            
     });     
-    label.setAttribute('for', checkboxId);
+    label.addEventListener('click', function(){
+        checkbox.click();
+    });
     renderedElement.appendChild(checkbox);
     renderedElement.appendChild(label);
-    renderedElement.className = classes;
-	
+    
     this.views.content.element = label;
     
     this.renderedElement = renderedElement;
@@ -39,16 +35,16 @@ Checkbox.prototype.render = function(){
     this.__super__.render.apply(this, arguments);
 };
 
-Checkbox.prototype.checked = new Gaffa.Property(function(viewModel, value) {
-    viewModel.checkboxInput.checked = value;
+Checkbox.prototype.checked = new Gaffa.Property(function(view, value) {
+    view.checkboxInput.checked = value;
 });
 
-Checkbox.prototype.text = new Gaffa.Property(function(viewModel, value){
-    viewModel.checkboxLabel.textContent = (value && typeof value === 'string') ? value : null;
+Checkbox.prototype.text = new Gaffa.Property(function(view, value){
+    view.checkboxLabel.textContent = (value && typeof value === 'string') ? value : null;
 });
 
-Checkbox.prototype.showLabel = new Gaffa.Property(function(viewModel, value){
-    viewModel.checkboxLabel.style.display = value === false ? 'none' : null;
+Checkbox.prototype.showLabel = new Gaffa.Property(function(view, value){
+    view.checkboxLabel.style.display = value === false ? 'none' : null;
 });
 
 module.exports = Checkbox;
