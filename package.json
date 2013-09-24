@@ -5,7 +5,7 @@
     "tags": [
         "DOM"
     ],
-    "version": "0.12.1",
+    "version": "0.13.0",
     "main": "gaffa.js",
     "dependencies": {
         "fasteach":">= 1.0.0",
