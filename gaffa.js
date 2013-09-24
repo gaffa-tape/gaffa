@@ -1206,7 +1206,7 @@ View.prototype.render = function(){
 };
 
 function insert(view, viewContainer, insertIndex){
-    window.requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
         var gaffa = view.gaffa;
 
         if(view.afterInsert){
