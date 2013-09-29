@@ -16,7 +16,6 @@ var Gedi = require('gedi'),
     createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
     animationFrame = require('./raf.js'),
-    weakmap = require('weakmap'),
     requestAnimationFrame = animationFrame.requestAnimationFrame,
     cancelAnimationFrame = animationFrame.cancelAnimationFrame;
 
@@ -1239,7 +1238,7 @@ function Visible(){};
 Visible = createSpec(Visible, Property);
 Visible.prototype.value = true;
 Visible.prototype.update = function(view, value) {
-    view.renderedElement.style.display = value ? null : 'none';
+    view.renderedElement.style.display = value ? '' : 'none';
 };
 View.prototype.visible = new Visible();
 
@@ -1370,11 +1369,6 @@ function Gaffa(){
         // Create gaffa global.
         gaffa = {};
 
-
-    // Dom accessible instance
-    window.addEventListener('DOMContentLoaded', function(){
-        document.body.gaffa = gaffa;
-    });
 
     // internal varaibles
 

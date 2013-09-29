@@ -43,7 +43,7 @@ List.prototype.list = new TemplaterProperty({
     sameAsPrevious:function () {
         var oldKeys = this.getPreviousHash(),
             value = this.value,
-            newKeys = value && (this._sourcePathInfo && this._sourcePathInfo.subPaths || Object.keys(value));
+            newKeys = value && (this._sourcePathInfo && this._sourcePathInfo.subPaths || typeof value === 'object' && Object.keys(value));
 
         this.setPreviousHash(newKeys || value);
 
