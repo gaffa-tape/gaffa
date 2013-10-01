@@ -1205,20 +1205,18 @@ View.prototype.render = function(){
 };
 
 function insert(view, viewContainer, insertIndex){
-    requestAnimationFrame(function(){
-        var gaffa = view.gaffa;
+    var gaffa = view.gaffa;
 
-        if(view.afterInsert){
-            doc.on('DOMNodeInserted', document, function (event) {
-                if(doc.closest(view.renderedElement, event.target)){
-                    view.afterInsert();
-                }
-            });
-        }
+    if(view.afterInsert){
+        doc.on('DOMNodeInserted', document, function (event) {
+            if(doc.closest(view.renderedElement, event.target)){
+                view.afterInsert();
+            }
+        });
+    }
 
-        var renderTarget = view.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
-        view.insertFunction(view.insertSelector || renderTarget, view.renderedElement, insertIndex);
-    });
+    var renderTarget = view.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
+    view.insertFunction(view.insertSelector || renderTarget, view.renderedElement, insertIndex);
 }
 
 View.prototype.insert = function(viewContainer, insertIndex){

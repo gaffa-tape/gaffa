@@ -28,7 +28,8 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
         viewsName = this.viewsName,
         childViews = viewModel.views[viewsName],
         sourcePathInfo = this._sourcePathInfo,
-        viewsToRemove = childViews.slice();
+        viewsToRemove = childViews.slice(),
+        isEmpty = true;
 
     if (value && typeof value === "object" && sourcePathInfo){
 
@@ -44,7 +45,6 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
         }
 
         var newView,
-            isEmpty = true,
             itemIndex = 0;
 
         for(var i = 0; i < childViews.length; i++){
@@ -91,7 +91,9 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
             newView.containerName = viewsName;
             childViews.add(newView, itemIndex);
         }
-    }else{
+    }
+
+    if(isEmpty){
         for(var i = 0; i < childViews.length; i++){
             if(childViews[i].containerName === viewsName){
                 childViews[i].remove();
@@ -103,7 +105,6 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
             newView.containerName = viewsName;
             childViews.add(newView, itemIndex);
         }
-        return;
     }
 };
 
