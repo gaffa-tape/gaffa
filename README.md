@@ -11,6 +11,16 @@ Gaffa must be compiled with browserify [browserify](https://github.com/substack/
 [Live Example](https://rawgithub.com/KoryNunn/gaffa-todo/master/index.html)
 
 
+## Quick n easy setup
+
+    npm install gaffa-boilerplate
+    
+Then make a folder for your test project.
+
+    gaffa-boilerplate
+    
+This will copy some boilerplate files and start a file watcher that browserifys app.js, in the scripts folder.
+
 ## Overview
 Gaffa attempts to speed up the development of complicated UI's by providing a rich binding layer between abitrary data and your UI.
 
