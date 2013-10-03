@@ -735,13 +735,10 @@ function updateProperty(property, firstUpdate){
     // Still run the sameAsPrevious function,
     // because it sets up the last value hash,
     // and it will be false anyway.
-    if(!property.sameAsPrevious()){
-        if(property.nextUpdate){
-            cancelAnimationFrame(property.nextUpdate);
-            property.nextUpdate = null;
-        }
+    if(!property.sameAsPrevious() && !property.nextUpdate){
         property.nextUpdate = requestAnimationFrame(function(){
             property.update(property.parent, property.value);
+            property.nextUpdate = null;
         });
     }
 }
@@ -855,9 +852,7 @@ function Property(propertyDescription){
         this.update = propertyDescription;
     }else{
         for(var key in propertyDescription){
-            if(propertyDescription.hasOwnProperty(key)){
-                this[key] = propertyDescription[key];
-            }
+            this[key] = propertyDescription[key];
         }
     }
 
@@ -1084,7 +1079,8 @@ function ViewItem(viewItemDescription){
 ViewItem = createSpec(ViewItem, EventEmitter);
 ViewItem.prototype.path = '[]';
 ViewItem.prototype.bind = function(parent){
-    var viewItem = this;
+    var viewItem = this,
+        property;
 
     this.parent = parent;
 
@@ -1093,8 +1089,8 @@ ViewItem.prototype.bind = function(parent){
     // Only set up properties that were on the prototype.
     // Faster and 'safer'
     for(var propertyKey in this.constructor.prototype){
-        if(this[propertyKey] instanceof Property){
-            var property = this[propertyKey];
+        property = this[propertyKey];
+        if(property instanceof Property){
             property.gaffa = viewItem.gaffa;
             property.bind(this);
         }
