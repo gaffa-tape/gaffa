@@ -5,7 +5,7 @@
     "tags": [
         "DOM"
     ],
-    "version": "0.14.1",
+    "version": "0.14.2",
     "main": "gaffa.js",
     "dependencies": {
         "fasteach":">= 1.0.0",
@@ -13,7 +13,6 @@
         "doc-js":"0.1.x",
         "crel": "1.0.x",
         "deep-equal": "0.0.x",
-        "weakmap": "0.0.x",
         "spec-js": "0.0.x"
     },
     "repository": {

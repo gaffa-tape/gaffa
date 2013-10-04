@@ -3,21 +3,21 @@
 var Gaffa = require('gaffa'),
     crel = require('crel'),
     viewType = "button";
-    
+
 function Button(){}
 Button = Gaffa.createSpec(Button, Gaffa.ContainerView);
 Button.prototype.type = viewType;
 
-Button.prototype.render = function(){        
+Button.prototype.render = function(){
     var textNode = document.createTextNode(''),
         renderedElement = crel('button', textNode);
-            
+
     this.views.content.element = renderedElement;
 
     this.text.textNode = textNode;
-    
+
     this.renderedElement = renderedElement;
-    
+
     this.__super__.render.apply(this, arguments);
 };
 
@@ -37,7 +37,7 @@ Button.prototype.disabled = new Gaffa.Property(function(viewModel, value){
     if(value){
         viewModel.renderedElement.setAttribute("disabled", "disabled");
     }else{
-        viewModel.renderedElement.removeAttribute("disabled");					
+        viewModel.renderedElement.removeAttribute("disabled");
     }
 });
 

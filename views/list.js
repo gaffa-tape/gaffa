@@ -22,45 +22,8 @@ List.prototype.render = function(){
     this.__super__.render.apply(this, arguments);
 };
 
-function createNewView(property, templateKey, addedItem){
-    if(!property.templateCache){
-        property.templateCache= {};
-    }
-    var view = JSON.parse(
-        property.templateCache[templateKey] ||
-        (property.templateCache[templateKey] = JSON.stringify(property[templateKey]))
-    );
-
-    for(var key in addedItem){
-        view[key] = addedItem[key];
-    }
-
-    return property.gaffa.initialiseViewItem(view, property.gaffa, property.gaffa.views.constructors);
-}
-
 List.prototype.list = new TemplaterProperty({
-    viewsName: 'list',
-    sameAsPrevious:function () {
-        var oldKeys = this.getPreviousHash(),
-            value = this.value,
-            newKeys = value && (this._sourcePathInfo && this._sourcePathInfo.subPaths || typeof value === 'object' && Object.keys(value));
-
-        this.setPreviousHash(newKeys || value);
-
-        if(newKeys && oldKeys && oldKeys.length){
-            if(oldKeys.length !== newKeys.length){
-                return;
-            }
-            for (var i = 0; i < newKeys.length; i++) {
-                if(newKeys[i] !== oldKeys[i]){
-                    return;
-                }
-            };
-            return true;
-        }
-
-        return value === oldKeys;
-    }
+    viewsName: 'list'
 });
 
 module.exports = List;
