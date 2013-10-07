@@ -930,10 +930,9 @@ ViewContainer.prototype.bind = function(parent){
 
     this.bound = true;
 
-    for(var propertyKey in this){
-        if(this[propertyKey] instanceof Property){
-            this[propertyKey].bind(this);
-        }
+    for(var i = 0; i < this.length; i++){
+        var viewModel = this[i];
+        this.add(viewModel, i);
     }
 
     return this;
@@ -956,19 +955,67 @@ ViewContainer.prototype.add = function(viewModel, insertIndex){
     // If passed an array
     if(Array.isArray(viewModel)){
         for(var i = 0; i < viewModel.length; i++){
-            this.add(viewModel[i]);
+            this.add(viewModel[i], i);
         }
         return this;
     }
 
-    this.splice(insertIndex != null ? insertIndex : this.length, 0, viewModel);
+    var currentIndex = this.indexOf(viewModel);
+
+    if(currentIndex < 0 || (!isNaN(insertIndex) && currentIndex !== insertIndex)){
+        this.splice(insertIndex != null ? insertIndex : this.length, 0, viewModel);
+    }
+
     viewModel.parentContainer = this;
 
     if(this.bound){
-        this.render.update(this, this.render.value);
+        if(!(viewModel instanceof View)){
+            viewModel = this[this.indexOf(viewModel)] = initialiseViewItem(viewModel, this.gaffa, this.gaffa.views.constructors);
+        }
+        viewModel.gaffa = this.gaffa;
+
+        if(!viewModel.renderedElement){
+            viewModel.render();
+        }
+
+
+        viewModel.bind(this.parent);
+        viewModel.insert(this, insertIndex);
     }
 
     return this;
+};
+ViewContainer.prototype.createDeferredAdder = function(){
+    var viewContainer = this,
+        aborted = false,
+        views = [],
+        adder = function(viewModel, insertIndex){
+            views.push([viewModel, insertIndex]);
+        },
+        lastTime = 0;
+
+    adder.execute = function(callback, time){
+        var currentOpperation = views.splice(0,Math.max(1, 500/(time || 100)));
+
+        if(aborted || !currentOpperation.length){
+            callback && callback();
+            return;
+        }
+
+        for (var i = 0; i < currentOpperation.length; i++) {
+            viewContainer.add(currentOpperation[i][0], currentOpperation[i][1]);
+        };
+        requestAnimationFrame(function(time){
+            adder.execute(callback, time - lastTime);
+            lastTime = time;
+        });
+    };
+
+    adder.abort = function(){
+        aborted = true;
+    };
+
+    return adder;
 };
 ViewContainer.prototype.remove = function(viewModel){
     viewModel.remove();
@@ -979,34 +1026,6 @@ ViewContainer.prototype.empty = function(){
 ViewContainer.prototype.toJSON = function(){
     return jsonConverter(this, ['element']);
 };
-ViewContainer.prototype.render = new Property({
-    update: function(viewContainer, value){
-        var i = 0,
-            viewContainerLength = viewContainer.length;
-        if(value){
-            for(; i < viewContainerLength; i++){
-                var viewModel = viewContainer[i];
-                viewModel.gaffa = viewContainer.gaffa;
-
-                if(!viewModel.renderedElement){
-                    viewModel.render();
-                }
-
-                if(viewModel.name){
-                    viewContainer.gaffa.namedViews[viewModel.name] = viewModel;
-                }
-
-                viewModel.bind(viewContainer.parent);
-                viewModel.insert(viewContainer, i);
-            }
-        }else{
-            for(; i < viewContainerLength; i++){
-                viewContainer[i].debind();
-            }
-        }
-    },
-    value: true
-});
 
 function copyProperties(source, target){
     if(
@@ -1172,6 +1191,10 @@ View.prototype.bind = function(parent){
             this._removeHandlers.push(off);
         }
     }
+
+    if(this.name){
+        this.gaffa.namedViews[this.name] = this;
+    }
 };
 
 View.prototype.detach = function(){
@@ -1201,17 +1224,18 @@ View.prototype.render = function(){
 };
 
 function insert(view, viewContainer, insertIndex){
-    var gaffa = view.gaffa;
+    var gaffa = view.gaffa,
+        renderTarget = view.insertSelector || view.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
 
     if(view.afterInsert){
-        doc.on('DOMNodeInserted', document, function (event) {
+        var off = doc.on('DOMNodeInserted', renderTarget, function (event) {
             if(doc.closest(view.renderedElement, event.target)){
                 view.afterInsert();
+                off();
             }
         });
     }
 
-    var renderTarget = view.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
     view.insertFunction(view.insertSelector || renderTarget, view.renderedElement, insertIndex);
 }
 
@@ -1253,17 +1277,6 @@ Title.prototype.update = function(view, value) {
     view.renderedElement[value ? 'setAttribute' : 'removeAttribute']('title',value);
 };
 View.prototype.title = new Title();
-
-function RenderChildren(){};
-RenderChildren = createSpec(RenderChildren, Property);
-RenderChildren.prototype.update = function(view, value) {
-    if('value' in this){
-        for(var key in view.views){
-            view.views[key].render.value = value;
-        }
-    }
-};
-View.prototype.renderChildren = new RenderChildren();
 
 View.prototype.insertFunction = insertFunction;
 

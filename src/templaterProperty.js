@@ -45,13 +45,18 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
     }
     this._templateCache = this._templateCache || this.template && JSON.stringify(this.template);
     this._emptyTemplateCache = this._emptyTemplateCache || this.emptyTemplate && JSON.stringify(this.emptyTemplate);
-    var gaffa = this.gaffa,
+    var property = this,
+        gaffa = this.gaffa,
         paths = gaffa.gedi.paths,
         viewsName = this.viewsName,
         childViews = viewModel.views[viewsName],
         sourcePathInfo = this._sourcePathInfo,
         viewsToRemove = childViews.slice(),
         isEmpty = true;
+
+    if(this.deferredAdd){
+        this.deferredAdd.abort();
+    }
 
     if (value && typeof value === "object" && sourcePathInfo){
 
@@ -81,6 +86,8 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
             }
         }
 
+        this.deferredAdd = childViews.createDeferredAdder();
+
         for(var key in sourcePathInfo.subPaths){
             if(Array.isArray(sourcePathInfo.subPaths) && isNaN(key)){
                 continue;
@@ -99,14 +106,18 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
             }
 
             if(!exists){
-                newView = gaffa.initialiseViewItem(JSON.parse(this._templateCache), this.gaffa, this.gaffa.views.constructors);
+                newView = JSON.parse(this._templateCache);
                 newView.sourcePath = sourcePath;
                 newView.containerName = viewsName;
-                childViews.add(newView, itemIndex);
+                this.deferredAdd(newView, itemIndex);
             }
 
             itemIndex++;
         }
+
+        this.deferredAdd.execute(function(){
+            property.deferredAdd = null;
+        });
     }
 
     if(isEmpty){
