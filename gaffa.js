@@ -913,6 +913,9 @@ Property.prototype.toJSON = function(){
 
 function ViewContainer(viewContainerDescription){
     var viewContainer = this;
+
+    this._deferredViews = [];
+
     if(viewContainerDescription instanceof Array){
         for (var i = 0; i < viewContainerDescription.length; i++) {
             viewContainer.push(viewContainerDescription[i]);
@@ -985,37 +988,35 @@ ViewContainer.prototype.add = function(viewModel, insertIndex){
 
     return this;
 };
-ViewContainer.prototype.createDeferredAdder = function(){
+function executeDeferredAdd(viewContainer){
+    var currentOpperation = viewContainer._deferredViews.splice(0,5);
+
+    if(!currentOpperation.length){
+        return;
+    }
+
+    for (var i = 0; i < currentOpperation.length; i++) {
+        viewContainer.add(currentOpperation[i][0], currentOpperation[i][1]);
+    };
+    requestAnimationFrame(function(time){
+        executeDeferredAdd(viewContainer);
+    });
+}
+ViewContainer.prototype.deferredAdd = function(view, insertIndex){
     var viewContainer = this,
-        aborted = false,
-        views = [],
-        adder = function(viewModel, insertIndex){
-            views.push([viewModel, insertIndex]);
-        },
-        lastTime = 0;
+        shouldStart = !this._deferredViews.length;
 
-    adder.execute = function(callback, time){
-        var currentOpperation = views.splice(0,Math.max(1, 500/(time || 100)));
+    this._deferredViews.push([view, insertIndex]);
 
-        if(aborted || !currentOpperation.length){
-            callback && callback();
-            return;
-        }
-
-        for (var i = 0; i < currentOpperation.length; i++) {
-            viewContainer.add(currentOpperation[i][0], currentOpperation[i][1]);
-        };
-        requestAnimationFrame(function(time){
-            adder.execute(callback, time - lastTime);
-            lastTime = time;
+    if(shouldStart){
+        requestAnimationFrame(function(){
+            executeDeferredAdd(viewContainer);
         });
-    };
+    }
+};
 
-    adder.abort = function(){
-        aborted = true;
-    };
-
-    return adder;
+ViewContainer.prototype.abortDeferredAdd = function(){
+    this._deferredViews = [];
 };
 ViewContainer.prototype.remove = function(viewModel){
     viewModel.remove();

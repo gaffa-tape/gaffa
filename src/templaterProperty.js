@@ -54,13 +54,11 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
         viewsToRemove = childViews.slice(),
         isEmpty = true;
 
-    if(this.deferredAdd){
-        this.deferredAdd.abort();
-    }
+    childViews.abortDeferredAdd();
 
     if (value && typeof value === "object" && sourcePathInfo){
 
-        if(!sourcePathInfo || !sourcePathInfo.subPaths){
+        if(!sourcePathInfo.subPaths){
             sourcePathInfo.subPaths = new value.constructor();
 
             for(var key in value){
@@ -86,8 +84,6 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
             }
         }
 
-        this.deferredAdd = childViews.createDeferredAdder();
-
         for(var key in sourcePathInfo.subPaths){
             if(Array.isArray(sourcePathInfo.subPaths) && isNaN(key)){
                 continue;
@@ -109,15 +105,11 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
                 newView = JSON.parse(this._templateCache);
                 newView.sourcePath = sourcePath;
                 newView.containerName = viewsName;
-                this.deferredAdd(newView, itemIndex);
+                childViews.deferredAdd(newView, itemIndex);
             }
 
             itemIndex++;
         }
-
-        this.deferredAdd.execute(function(){
-            property.deferredAdd = null;
-        });
     }
 
     if(isEmpty){
