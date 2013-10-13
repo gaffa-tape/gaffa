@@ -1,0 +1,322 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'C:\\Program Files\\nodejs\\\\node.exe',
+1 verbose cli   'C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'pub' ]
+2 info using npm@1.3.2
+3 info using node@v0.10.13
+4 verbose node symlink C:\Program Files\nodejs\\node.exe
+5 verbose publish [ '.' ]
+6 verbose cache add [ '.', null ]
+7 verbose cache add name=undefined spec="." args=[".",null]
+8 verbose parsed url { protocol: null,
+8 verbose parsed url   slashes: null,
+8 verbose parsed url   auth: null,
+8 verbose parsed url   host: null,
+8 verbose parsed url   port: null,
+8 verbose parsed url   hostname: null,
+8 verbose parsed url   hash: null,
+8 verbose parsed url   search: null,
+8 verbose parsed url   query: null,
+8 verbose parsed url   pathname: '.',
+8 verbose parsed url   path: '.',
+8 verbose parsed url   href: '.' }
+9 silly lockFile 3a52ce78- .
+10 verbose lock . C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\3a52ce78-.lock
+11 verbose tar pack [ 'C:\\Users\\Kory.korys-laptop\\AppData\\Local\\Temp\\npm-3472\\1381674270380-0.7714414668735117\\tmp.tgz',
+11 verbose tar pack   '.' ]
+12 verbose tarball C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\tmp.tgz
+13 verbose folder .
+14 info prepublish gaffa@0.16.0
+15 silly lockFile 1f1177db-tar tar://.
+16 verbose lock tar://. C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\1f1177db-tar.lock
+17 silly lockFile 34a73e89-70380-0-7714414668735117-tmp-tgz tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\tmp.tgz
+18 verbose lock tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\tmp.tgz C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\34a73e89-70380-0-7714414668735117-tmp-tgz.lock
+19 silly lockFile 1f1177db-tar tar://.
+20 silly lockFile 1f1177db-tar tar://.
+21 silly lockFile 34a73e89-70380-0-7714414668735117-tmp-tgz tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\tmp.tgz
+22 silly lockFile 34a73e89-70380-0-7714414668735117-tmp-tgz tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\tmp.tgz
+23 verbose tar unpack C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\tmp.tgz
+24 silly lockFile 76dd5679-70380-0-7714414668735117-package tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\package
+25 verbose lock tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\package C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\76dd5679-70380-0-7714414668735117-package.lock
+26 silly lockFile 34a73e89-70380-0-7714414668735117-tmp-tgz tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\tmp.tgz
+27 verbose lock tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\tmp.tgz C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\34a73e89-70380-0-7714414668735117-tmp-tgz.lock
+28 silly gunzTarPerm modes [ '755', '644' ]
+29 silly gunzTarPerm extractEntry package.json
+30 silly gunzTarPerm modified mode [ 'package.json', 438, 420 ]
+31 silly gunzTarPerm extractEntry .npmignore
+32 silly gunzTarPerm modified mode [ '.npmignore', 438, 420 ]
+33 silly gunzTarPerm extractEntry README.md
+34 silly gunzTarPerm modified mode [ 'README.md', 438, 420 ]
+35 silly gunzTarPerm extractEntry gaffa.js
+36 silly gunzTarPerm modified mode [ 'gaffa.js', 438, 420 ]
+37 silly gunzTarPerm extractEntry raf.js
+38 silly gunzTarPerm modified mode [ 'raf.js', 438, 420 ]
+39 silly gunzTarPerm extractEntry actions/ajax.js
+40 silly gunzTarPerm modified mode [ 'actions/ajax.js', 438, 420 ]
+41 silly gunzTarPerm extractEntry actions/delay.js
+42 silly gunzTarPerm modified mode [ 'actions/delay.js', 438, 420 ]
+43 silly gunzTarPerm extractEntry actions/forEach.js
+44 silly gunzTarPerm modified mode [ 'actions/forEach.js', 438, 420 ]
+45 silly gunzTarPerm extractEntry actions/fromJson.js
+46 silly gunzTarPerm modified mode [ 'actions/fromJson.js', 438, 420 ]
+47 silly gunzTarPerm extractEntry actions/conditional.js
+48 silly gunzTarPerm modified mode [ 'actions/conditional.js', 438, 420 ]
+49 silly gunzTarPerm extractEntry actions/navigate.js
+50 silly gunzTarPerm modified mode [ 'actions/navigate.js', 438, 420 ]
+51 silly gunzTarPerm extractEntry actions/pop.js
+52 silly gunzTarPerm modified mode [ 'actions/pop.js', 438, 420 ]
+53 silly gunzTarPerm extractEntry actions/push.js
+54 silly gunzTarPerm modified mode [ 'actions/push.js', 438, 420 ]
+55 silly gunzTarPerm extractEntry actions/remove.js
+56 silly gunzTarPerm modified mode [ 'actions/remove.js', 438, 420 ]
+57 silly gunzTarPerm extractEntry actions/set.js
+58 silly gunzTarPerm modified mode [ 'actions/set.js', 438, 420 ]
+59 silly gunzTarPerm extractEntry actions/concat.js
+60 silly gunzTarPerm modified mode [ 'actions/concat.js', 438, 420 ]
+61 silly gunzTarPerm extractEntry actions/switch.js
+62 silly gunzTarPerm modified mode [ 'actions/switch.js', 438, 420 ]
+63 silly gunzTarPerm extractEntry actions/clean.js
+64 silly gunzTarPerm modified mode [ 'actions/clean.js', 438, 420 ]
+65 silly gunzTarPerm extractEntry actions/toggle.js
+66 silly gunzTarPerm modified mode [ 'actions/toggle.js', 438, 420 ]
+67 silly gunzTarPerm extractEntry actions/browserStorage.js
+68 silly gunzTarPerm modified mode [ 'actions/browserStorage.js', 438, 420 ]
+69 silly gunzTarPerm extractEntry actions/toJson.js
+70 silly gunzTarPerm modified mode [ 'actions/toJson.js', 438, 420 ]
+71 silly gunzTarPerm extractEntry actions/generic.js
+72 silly gunzTarPerm modified mode [ 'actions/generic.js', 438, 420 ]
+73 silly gunzTarPerm extractEntry behaviours/interval.js
+74 silly gunzTarPerm modified mode [ 'behaviours/interval.js', 438, 420 ]
+75 silly gunzTarPerm extractEntry behaviours/link.js
+76 silly gunzTarPerm modified mode [ 'behaviours/link.js', 438, 420 ]
+77 silly gunzTarPerm extractEntry behaviours/modelChange.js
+78 silly gunzTarPerm modified mode [ 'behaviours/modelChange.js', 438, 420 ]
+79 silly gunzTarPerm extractEntry behaviours/navigate.js
+80 silly gunzTarPerm modified mode [ 'behaviours/navigate.js', 438, 420 ]
+81 silly gunzTarPerm extractEntry behaviours/notification.js
+82 silly gunzTarPerm modified mode [ 'behaviours/notification.js', 438, 420 ]
+83 silly gunzTarPerm extractEntry behaviours/pageLoad.js
+84 silly gunzTarPerm modified mode [ 'behaviours/pageLoad.js', 438, 420 ]
+85 silly gunzTarPerm extractEntry views/anchor.js
+86 silly gunzTarPerm modified mode [ 'views/anchor.js', 438, 420 ]
+87 silly gunzTarPerm extractEntry views/form.js
+88 silly gunzTarPerm modified mode [ 'views/form.js', 438, 420 ]
+89 silly gunzTarPerm extractEntry views/group.js
+90 silly gunzTarPerm modified mode [ 'views/group.js', 438, 420 ]
+91 silly gunzTarPerm extractEntry views/heading.js
+92 silly gunzTarPerm modified mode [ 'views/heading.js', 438, 420 ]
+93 silly gunzTarPerm extractEntry views/fileInput.js
+94 silly gunzTarPerm modified mode [ 'views/fileInput.js', 438, 420 ]
+95 silly gunzTarPerm extractEntry views/image.js
+96 silly gunzTarPerm modified mode [ 'views/image.js', 438, 420 ]
+97 silly gunzTarPerm extractEntry views/label.js
+98 silly gunzTarPerm modified mode [ 'views/label.js', 438, 420 ]
+99 silly gunzTarPerm extractEntry views/list.js
+100 silly gunzTarPerm modified mode [ 'views/list.js', 438, 420 ]
+101 silly gunzTarPerm extractEntry views/radio.js
+102 silly gunzTarPerm modified mode [ 'views/radio.js', 438, 420 ]
+103 silly gunzTarPerm extractEntry views/select.js
+104 silly gunzTarPerm modified mode [ 'views/select.js', 438, 420 ]
+105 silly gunzTarPerm extractEntry views/container.js
+106 silly gunzTarPerm modified mode [ 'views/container.js', 438, 420 ]
+107 silly gunzTarPerm extractEntry views/switchContainer.js
+108 silly gunzTarPerm modified mode [ 'views/switchContainer.js', 438, 420 ]
+109 silly gunzTarPerm extractEntry views/code.js
+110 silly gunzTarPerm modified mode [ 'views/code.js', 438, 420 ]
+111 silly gunzTarPerm extractEntry views/text.js
+112 silly gunzTarPerm modified mode [ 'views/text.js', 438, 420 ]
+113 silly gunzTarPerm extractEntry views/checkbox.js
+114 silly gunzTarPerm modified mode [ 'views/checkbox.js', 438, 420 ]
+115 silly gunzTarPerm extractEntry views/textarea.js
+116 silly gunzTarPerm modified mode [ 'views/textarea.js', 438, 420 ]
+117 silly gunzTarPerm extractEntry views/button.js
+118 silly gunzTarPerm modified mode [ 'views/button.js', 438, 420 ]
+119 silly gunzTarPerm extractEntry views/textbox.js
+120 silly gunzTarPerm modified mode [ 'views/textbox.js', 438, 420 ]
+121 silly gunzTarPerm extractEntry views/html.js
+122 silly gunzTarPerm modified mode [ 'views/html.js', 438, 420 ]
+123 silly gunzTarPerm extractEntry src/templaterProperty.js
+124 silly gunzTarPerm modified mode [ 'src/templaterProperty.js', 438, 420 ]
+125 silly lockFile 76dd5679-70380-0-7714414668735117-package tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\package
+126 silly lockFile 76dd5679-70380-0-7714414668735117-package tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\package
+127 silly lockFile 34a73e89-70380-0-7714414668735117-tmp-tgz tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\tmp.tgz
+128 silly lockFile 34a73e89-70380-0-7714414668735117-tmp-tgz tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\tmp.tgz
+129 verbose tar pack [ 'C:\\Users\\Kory.korys-laptop\\AppData\\Roaming\\npm-cache\\gaffa\\0.16.0\\package.tgz',
+129 verbose tar pack   'C:\\Users\\Kory.korys-laptop\\AppData\\Local\\Temp\\npm-3472\\1381674270380-0.7714414668735117\\package' ]
+130 verbose tarball C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package.tgz
+131 verbose folder C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\package
+132 silly lockFile 76dd5679-70380-0-7714414668735117-package tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\package
+133 verbose lock tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\package C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\76dd5679-70380-0-7714414668735117-package.lock
+134 silly lockFile e9f4db72-m-cache-gaffa-0-16-0-package-tgz tar://C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package.tgz
+135 verbose lock tar://C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package.tgz C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\e9f4db72-m-cache-gaffa-0-16-0-package-tgz.lock
+136 silly lockFile 76dd5679-70380-0-7714414668735117-package tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\package
+137 silly lockFile 76dd5679-70380-0-7714414668735117-package tar://C:\Users\Kory.korys-laptop\AppData\Local\Temp\npm-3472\1381674270380-0.7714414668735117\package
+138 silly lockFile e9f4db72-m-cache-gaffa-0-16-0-package-tgz tar://C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package.tgz
+139 silly lockFile e9f4db72-m-cache-gaffa-0-16-0-package-tgz tar://C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package.tgz
+140 silly lockFile 949b2f88-g-npm-cache-gaffa-0-16-0-package C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package
+141 verbose lock C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\949b2f88-g-npm-cache-gaffa-0-16-0-package.lock
+142 silly lockFile 949b2f88-g-npm-cache-gaffa-0-16-0-package C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package
+143 silly lockFile 949b2f88-g-npm-cache-gaffa-0-16-0-package C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package
+144 verbose tar unpack C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package.tgz
+145 silly lockFile 125bb374-g-npm-cache-gaffa-0-16-0-package tar://C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package
+146 verbose lock tar://C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\125bb374-g-npm-cache-gaffa-0-16-0-package.lock
+147 silly lockFile e9f4db72-m-cache-gaffa-0-16-0-package-tgz tar://C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package.tgz
+148 verbose lock tar://C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package.tgz C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\e9f4db72-m-cache-gaffa-0-16-0-package-tgz.lock
+149 silly gunzTarPerm modes [ '755', '644' ]
+150 silly gunzTarPerm extractEntry package.json
+151 silly gunzTarPerm modified mode [ 'package.json', 438, 420 ]
+152 silly gunzTarPerm extractEntry .npmignore
+153 silly gunzTarPerm modified mode [ '.npmignore', 438, 420 ]
+154 silly gunzTarPerm extractEntry README.md
+155 silly gunzTarPerm modified mode [ 'README.md', 438, 420 ]
+156 silly gunzTarPerm extractEntry gaffa.js
+157 silly gunzTarPerm modified mode [ 'gaffa.js', 438, 420 ]
+158 silly gunzTarPerm extractEntry raf.js
+159 silly gunzTarPerm modified mode [ 'raf.js', 438, 420 ]
+160 silly gunzTarPerm extractEntry actions/ajax.js
+161 silly gunzTarPerm modified mode [ 'actions/ajax.js', 438, 420 ]
+162 silly gunzTarPerm extractEntry actions/delay.js
+163 silly gunzTarPerm modified mode [ 'actions/delay.js', 438, 420 ]
+164 silly gunzTarPerm extractEntry actions/forEach.js
+165 silly gunzTarPerm modified mode [ 'actions/forEach.js', 438, 420 ]
+166 silly gunzTarPerm extractEntry actions/fromJson.js
+167 silly gunzTarPerm modified mode [ 'actions/fromJson.js', 438, 420 ]
+168 silly gunzTarPerm extractEntry actions/conditional.js
+169 silly gunzTarPerm modified mode [ 'actions/conditional.js', 438, 420 ]
+170 silly gunzTarPerm extractEntry actions/navigate.js
+171 silly gunzTarPerm modified mode [ 'actions/navigate.js', 438, 420 ]
+172 silly gunzTarPerm extractEntry actions/pop.js
+173 silly gunzTarPerm modified mode [ 'actions/pop.js', 438, 420 ]
+174 silly gunzTarPerm extractEntry actions/push.js
+175 silly gunzTarPerm modified mode [ 'actions/push.js', 438, 420 ]
+176 silly gunzTarPerm extractEntry actions/remove.js
+177 silly gunzTarPerm modified mode [ 'actions/remove.js', 438, 420 ]
+178 silly gunzTarPerm extractEntry actions/set.js
+179 silly gunzTarPerm modified mode [ 'actions/set.js', 438, 420 ]
+180 silly gunzTarPerm extractEntry actions/concat.js
+181 silly gunzTarPerm modified mode [ 'actions/concat.js', 438, 420 ]
+182 silly gunzTarPerm extractEntry actions/switch.js
+183 silly gunzTarPerm modified mode [ 'actions/switch.js', 438, 420 ]
+184 silly gunzTarPerm extractEntry actions/clean.js
+185 silly gunzTarPerm modified mode [ 'actions/clean.js', 438, 420 ]
+186 silly gunzTarPerm extractEntry actions/toggle.js
+187 silly gunzTarPerm modified mode [ 'actions/toggle.js', 438, 420 ]
+188 silly gunzTarPerm extractEntry actions/browserStorage.js
+189 silly gunzTarPerm modified mode [ 'actions/browserStorage.js', 438, 420 ]
+190 silly gunzTarPerm extractEntry actions/toJson.js
+191 silly gunzTarPerm modified mode [ 'actions/toJson.js', 438, 420 ]
+192 silly gunzTarPerm extractEntry actions/generic.js
+193 silly gunzTarPerm modified mode [ 'actions/generic.js', 438, 420 ]
+194 silly gunzTarPerm extractEntry behaviours/interval.js
+195 silly gunzTarPerm modified mode [ 'behaviours/interval.js', 438, 420 ]
+196 silly gunzTarPerm extractEntry behaviours/link.js
+197 silly gunzTarPerm modified mode [ 'behaviours/link.js', 438, 420 ]
+198 silly gunzTarPerm extractEntry behaviours/modelChange.js
+199 silly gunzTarPerm modified mode [ 'behaviours/modelChange.js', 438, 420 ]
+200 silly gunzTarPerm extractEntry behaviours/navigate.js
+201 silly gunzTarPerm modified mode [ 'behaviours/navigate.js', 438, 420 ]
+202 silly gunzTarPerm extractEntry behaviours/notification.js
+203 silly gunzTarPerm modified mode [ 'behaviours/notification.js', 438, 420 ]
+204 silly gunzTarPerm extractEntry behaviours/pageLoad.js
+205 silly gunzTarPerm modified mode [ 'behaviours/pageLoad.js', 438, 420 ]
+206 silly gunzTarPerm extractEntry src/templaterProperty.js
+207 silly gunzTarPerm modified mode [ 'src/templaterProperty.js', 438, 420 ]
+208 silly gunzTarPerm extractEntry views/anchor.js
+209 silly gunzTarPerm modified mode [ 'views/anchor.js', 438, 420 ]
+210 silly gunzTarPerm extractEntry views/form.js
+211 silly gunzTarPerm modified mode [ 'views/form.js', 438, 420 ]
+212 silly gunzTarPerm extractEntry views/group.js
+213 silly gunzTarPerm modified mode [ 'views/group.js', 438, 420 ]
+214 silly gunzTarPerm extractEntry views/heading.js
+215 silly gunzTarPerm modified mode [ 'views/heading.js', 438, 420 ]
+216 silly gunzTarPerm extractEntry views/fileInput.js
+217 silly gunzTarPerm modified mode [ 'views/fileInput.js', 438, 420 ]
+218 silly gunzTarPerm extractEntry views/image.js
+219 silly gunzTarPerm modified mode [ 'views/image.js', 438, 420 ]
+220 silly gunzTarPerm extractEntry views/label.js
+221 silly gunzTarPerm modified mode [ 'views/label.js', 438, 420 ]
+222 silly gunzTarPerm extractEntry views/list.js
+223 silly gunzTarPerm modified mode [ 'views/list.js', 438, 420 ]
+224 silly gunzTarPerm extractEntry views/radio.js
+225 silly gunzTarPerm modified mode [ 'views/radio.js', 438, 420 ]
+226 silly gunzTarPerm extractEntry views/select.js
+227 silly gunzTarPerm modified mode [ 'views/select.js', 438, 420 ]
+228 silly gunzTarPerm extractEntry views/container.js
+229 silly gunzTarPerm modified mode [ 'views/container.js', 438, 420 ]
+230 silly gunzTarPerm extractEntry views/switchContainer.js
+231 silly gunzTarPerm modified mode [ 'views/switchContainer.js', 438, 420 ]
+232 silly gunzTarPerm extractEntry views/code.js
+233 silly gunzTarPerm modified mode [ 'views/code.js', 438, 420 ]
+234 silly gunzTarPerm extractEntry views/text.js
+235 silly gunzTarPerm modified mode [ 'views/text.js', 438, 420 ]
+236 silly gunzTarPerm extractEntry views/checkbox.js
+237 silly gunzTarPerm modified mode [ 'views/checkbox.js', 438, 420 ]
+238 silly gunzTarPerm extractEntry views/textarea.js
+239 silly gunzTarPerm modified mode [ 'views/textarea.js', 438, 420 ]
+240 silly gunzTarPerm extractEntry views/button.js
+241 silly gunzTarPerm modified mode [ 'views/button.js', 438, 420 ]
+242 silly gunzTarPerm extractEntry views/textbox.js
+243 silly gunzTarPerm modified mode [ 'views/textbox.js', 438, 420 ]
+244 silly gunzTarPerm extractEntry views/html.js
+245 silly gunzTarPerm modified mode [ 'views/html.js', 438, 420 ]
+246 silly lockFile 125bb374-g-npm-cache-gaffa-0-16-0-package tar://C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package
+247 silly lockFile 125bb374-g-npm-cache-gaffa-0-16-0-package tar://C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package
+248 silly lockFile e9f4db72-m-cache-gaffa-0-16-0-package-tgz tar://C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package.tgz
+249 silly lockFile e9f4db72-m-cache-gaffa-0-16-0-package-tgz tar://C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package.tgz
+250 verbose chmod C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package.tgz 644
+251 silly chown skipping for windows C:\Users\Kory.korys-laptop\AppData\Roaming\npm-cache\gaffa\0.16.0\package.tgz
+252 silly lockFile 3a52ce78- .
+253 silly lockFile 3a52ce78- .
+254 silly publish { name: 'gaffa',
+254 silly publish   description: 'The tape',
+254 silly publish   author: { name: 'Kory Nunn', email: 'knunn187@gmail.com' },
+254 silly publish   tags: [ 'DOM' ],
+254 silly publish   version: '0.16.0',
+254 silly publish   main: 'gaffa.js',
+254 silly publish   dependencies:
+254 silly publish    { fasteach: '>= 1.0.0',
+254 silly publish      gedi: '0.9.x',
+254 silly publish      'doc-js': '0.1.x',
+254 silly publish      crel: '1.0.x',
+254 silly publish      'deep-equal': '0.0.x',
+254 silly publish      'spec-js': '0.0.x' },
+254 silly publish   repository: { type: 'git', url: 'git://github.com/KoryNunn/gaffa-js.git' },
+254 silly publish   bugs: { url: 'http://github.com/KoryNunn/gaffa-js/issues' },
+254 silly publish   contributors: [],
+254 silly publish   devDependencies: { tape: '>=0.0.4', mockery: '1.x.x' },
+254 silly publish   scripts: { test: 'node ./test/test.js' },
+254 silly publish   testling:
+254 silly publish    { files: 'test/*.js',
+254 silly publish      browsers: [ 'ie8', 'ie9', 'ff/13', 'chrome/20' ] },
+254 silly publish   readme: '# gaffa.js\r\n\r\n## Dependencies\r\n\r\nGaffa must be compiled with browserify [browserify](https://github.com/substack/node-browserify)\r\n\r\n## Example app\r\n\r\n[Gaffa-ToDo](https://github.com/KoryNunn/gaffa-todo)\r\n\r\n[Live Example](https://rawgithub.com/KoryNunn/gaffa-todo/master/index.html)\r\n\r\n\r\n## Quick n easy setup\r\n\r\n    npm install gaffa-boilerplate\r\n    \r\nThen make a folder for your test project.\r\n\r\n    gaffa-boilerplate\r\n    \r\nThis will copy some boilerplate files and start a file watcher that browserifys app.js, in the scripts folder.\r\n\r\n## Overview\r\nGaffa attempts to speed up the development of complicated UI\'s by providing a rich binding layer between abitrary data and your UI.\r\n\r\nWriting UI\'s using gaffa is unlike most other MVC/MVVM/etc frameworks for a number of different reasons. (Although, others share some of the below points)\r\n\r\n* ASAP databinding - model change events are instantaneous\r\n* Extremely powerful model bindings - use complex expressions to bind to data\r\n* UI by transform  - Use transforms over data to affect how data is displated, rather than modifying the data to suite the UI.\r\n* NO HTML! - Javascript to DOM, no pointless middleman.\r\n* Serialise to JSON - An entire application can be serialised to JSON, by design.\r\n* No lock-in - Push your views to the edge of Gaffa\'s capabilities, and break out whenever you need.\r\n\r\n### Minimal usage\r\n\r\n\tvar Gaffa = require(\'gaffa\'),\r\n\t\tgaffa = new Gaffa();\r\n\r\n### The Bits..\r\n\r\nA Gaffa application consists of 2 high-level bits:\r\n\r\n* Many ViewItems\r\n* One model\r\n\r\n### ViewItems\r\n\r\nViewItems can be **Views**, **Actions**, or **Behaviours**.\r\n\r\nViewItems represent and can affect the model, they are combined to create a UI.\r\n\r\na View is a ViewItem that has a renderedElement, be it some DOM, or any other abstract UI element, such as a google maps pin object.\r\n\r\nTo use a view, you must first load the constructor for that view. For example, to use a label, and a textbox, the label.js and textbox.js files must be required(). Every viewItem must be added to its appropriate constructors object in gaffa, eg:\r\n\r\n\t// Add viewItem constructors to gaffa. Only use what you need.\r\n\r\n\t// Views\r\n\tgaffa.views.constructors = {\r\n\t\tlabel: require(\'gaffa/views/label\'), \r\n\t\ttextbox: require(\'gaffa/views/textbox\'), \r\n\t\tbutton: require(\'gaffa/views/button\')\r\n\t};\r\n\r\n\t// Actions\r\n\tgaffa.actions.constructors = {\r\n\t\tremove: require(\'gaffa/actions/remove\')\r\n\t};\r\n\r\n\t// Behaviours\r\n\tgaffa.actions.constructors = {\r\n\t\tpageLoad: require(\'gaffa/behaviours/pageLoad\')\r\n\t};\r\n\r\nFor ease of development, the constructors are usually assigned to a variable:\r\n\r\n\t// Cache the view constructors object to easy access later.\r\n\tvar views = gaffa.views.constructors;\r\n\r\nviewItems can then be instantiated:\r\n\r\n\t// New up a label\r\n\tvar nameLabel = new views.label(),\r\n\t\tfirstNameBox = new views.textbox(),\r\n\t\tsurnameBox = new views.textbox(),\r\n\t\tremoveUserButton = new views.button();\r\n\r\nan Action is a non-visual entity which performs some action when executed. For example, an action could be assigned to be triggered when a button is clicked, and it could set a value into the model, or remove an item from an array.\r\n\r\n\tvar removeUser = new actions.remove();\r\n\r\nTo assign actions to a view:\r\n\r\n\tremoveUserButton.actions.click = [removeUser];\r\n\r\nGaffa will automatically use the actions.*whatever* propertyName as a DOM event name, and trigger any actions assigned when that event occurs.\r\n\r\na Behaviour is a non-visual entity that triggers actions. For example, a modelChange behaviour could be created to watch a property in the model, and assigned actions to perform when the value of that property changes. \r\n\r\n### The Model\r\n\r\nThe Model is just a Javascript object. If you can serialize it to JSON, and it inherrits from Object, it is a valid gaffa model, and it can be bound to. Unlike most similar frameworks, Gaffa focuses on keeping the model pure. If you add an object to the model, that exact object is used throughout the whole lifecycle, with no extra attributes like "Observable" etc. It\'s just a plain old object.\r\n\r\nThese are valid models:\r\n\r\n\t{};\r\n\r\n\tnew Date();\r\n\r\n\t[];\r\n\r\nHowever usually a model would look something like this:\r\n\r\n\tvar model = {\r\n\t\tusers:[\r\n\t\t\t{\r\n\t\t\t\tfirstName: "John",\r\n\t\t\t\tsurname: "Smith",\r\n\t\t\t\tage: 30,\r\n\t\t\t\tlastVisit: (a date object)\r\n\t\t\t}\r\n\t\t]\r\n\t};\r\n\r\nThis can be set as the applications model by:\r\n\r\n\tgaffa.model.set(model);\r\n\r\nYou can also set parts of the model using paths.\r\n\r\n\tgaffa.model.set(\'[users/0/firstName]\', \'Bob\');\r\n\r\nThis will cause properties bound to this value to update.\r\n\r\nYou would very rarely use this syntax to affect the model, but rather use bound viewItem properties to change model data. This method of affecting the model is mostly used for debugging.\r\n\r\nYou can bind ViewItems properties to parts of the model using paths, eg:\r\n\r\n\t// Bind the firstName box to the users first name in the model\r\n\tfirstNameBox.value.binding = \'[user/firstName]\';\r\n\r\n\t// Bind the surname box to the users surname in the model\r\n\tsurnameBox.value.binding = \'[user/surname]\';\r\n\r\n\t// Bind the nameLabel to an expression that joins both names together.\r\n\tnameLabel.text.binding = \'(join " " [user/firstName] [user/surname])\';\r\n\r\nOnce you have set up your viewItems, you can add them to the application.\r\nCalling gaffa.views.add(viewItem) on a viewItem binds and renders the view. No properties will be bound to the model untill this has occured.\r\n\r\n\t// Add the views to gaffa\r\n\tgaffa.views.add([\r\n\t\tnameLabel,\r\n\t\tfirstNameBox,\r\n\t\tsurnameBox\r\n\t]);\r\n\r\n### Expressions\r\n\r\nGaffa uses Gedi as its model, and as such, uses Gedi\'s expressions.\r\n\r\nExpressions in gaffa are used to address the model in some way.\r\n\r\nFor a more in-depth explanation of expressions, checkout the gedi readme: [Gedi](https://github.com/gaffa-tape/gedi)\r\n\r\n\r\n## License\r\n(The MIT License)\r\n\r\nCopyright (C) 2012 Kory Nunn, Matt Ginty & Maurice Butler\r\n\r\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\r\n\r\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\r\n\r\nTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\r\n',
+254 silly publish   readmeFilename: 'README.md',
+254 silly publish   _id: 'gaffa@0.16.0',
+254 silly publish   dist: { shasum: '9cf2d0ed55031e15ebba8ee1e4c5d2f7cfeb91ba' },
+254 silly publish   _from: '.' }
+255 verbose url raw gaffa
+256 verbose url resolving [ 'https://registry.npmjs.org/', './gaffa' ]
+257 verbose url resolved https://registry.npmjs.org/gaffa
+258 info trying registry request attempt 1 at 00:24:32
+259 http PUT https://registry.npmjs.org/gaffa
+260 http 409 https://registry.npmjs.org/gaffa
+261 verbose url raw gaffa
+262 verbose url resolving [ 'https://registry.npmjs.org/', './gaffa' ]
+263 verbose url resolved https://registry.npmjs.org/gaffa
+264 info trying registry request attempt 1 at 00:24:34
+265 http GET https://registry.npmjs.org/gaffa
+266 http 200 https://registry.npmjs.org/gaffa
+267 error publish fail Cannot publish over existing version.
+267 error publish fail Update the 'version' field in package.json and try again.
+267 error publish fail
+267 error publish fail If the previous version was published in error, see:
+267 error publish fail     npm help unpublish
+267 error publish fail
+267 error publish fail To automatically increment version numbers, see:
+267 error publish fail     npm help version
+268 error System Windows_NT 6.2.9200
+269 error command "C:\\Program Files\\nodejs\\\\node.exe" "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "pub"
+270 error cwd C:\dev\github\gaffa-js
+271 error node -v v0.10.13
+272 error npm -v 1.3.2
+273 error code EPUBLISHCONFLICT
+274 verbose exit [ 1, true ]
