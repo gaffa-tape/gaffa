@@ -11,7 +11,7 @@ test('JSONify plain textbox', function (t) {
     var viewItem = new views.textbox(),
         viewItemJSON = JSON.stringify(viewItem),
         pojo = JSON.parse(viewItemJSON);
-    
+
     t.deepEqual(pojo, {type:'textbox'});
     t.end();
 });
@@ -26,7 +26,7 @@ test('JSONify textbox with value binding', function (t) {
 
     viewItemJSON = JSON.stringify(viewItem),
     pojo = JSON.parse(viewItemJSON);
-    
+
     t.deepEqual(pojo, {type:'textbox', value:{binding:'[thing]'}});
     t.end();
 });
@@ -42,7 +42,7 @@ test('JSONify container with child', function (t) {
 
     viewItemJSON = JSON.stringify(viewItem),
     pojo = JSON.parse(viewItemJSON);
-    
+
     t.deepEqual(pojo, {type:'container', views:{content:[{type:'textbox'}]}});
     t.end();
 });

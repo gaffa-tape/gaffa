@@ -472,14 +472,10 @@ function extend(target, source){
                 targetProperty = target[key];
 
             if(typeof sourceProperty === "object" && sourceProperty != null){
-                if(sourceProperty instanceof Array){
+                if(!(targetProperty instanceof sourceProperty.constructor)){
                     targetProperty = new sourceProperty.constructor();
-                    fastEach(sourceProperty, function(value){
-                        var item = new value.constructor();
-                        internalExtend(item, value);
-                        targetProperty.push(item);
-                    });
-                }else if(sourceProperty instanceof Date){
+                }
+                if(sourceProperty instanceof Date){
                     targetProperty = new Date(sourceProperty);
                 }else{
                     if(visited.indexOf(sourceProperty)>=0){
@@ -487,13 +483,10 @@ function extend(target, source){
                         continue;
                     }
                     visited.push(sourceProperty);
-                    targetProperty = targetProperty || Object.create(sourceProperty);
                     internalExtend(targetProperty, sourceProperty);
                 }
             }else{
-                if(targetProperty === undefined){
-                    targetProperty = sourceProperty;
-                }
+                targetProperty = sourceProperty;
             }
             target[key] = targetProperty;
         }
