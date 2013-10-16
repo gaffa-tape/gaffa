@@ -951,7 +951,7 @@ ViewContainer.prototype.add = function(viewModel, insertIndex){
     // If passed an array
     if(Array.isArray(viewModel)){
         for(var i = 0; i < viewModel.length; i++){
-            this.add(viewModel[i], i);
+            this.add(viewModel[i]);
         }
         return this;
     }
