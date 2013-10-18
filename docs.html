@@ -1,0 +1,310 @@
+<style>body{
+    font-family: Arial;
+    background: #ddd;
+    padding:20px;
+}
+
+pre{
+    margin:10px;
+    border:solid 1px #ccc;
+    padding: 20px;
+    background: white;
+    box-shadow: 5px 5px 20px rgba(0,0,0,0.3);
+    margin-bottom:30px;
+}
+code{
+    padding: 5px;
+    display: block;
+    line-height: 12px;
+    overflow: auto;
+}
+
+h1{
+    font-size: 36px;
+    padding:0 20px;
+}
+
+h2{
+    color: #555;
+    margin-top:30px 0;
+    border-bottom: solid 3px #ccc;
+}
+
+h3, h4{
+    color: #888;
+    margin:10px;
+    padding:5px 10px;
+}
+
+p{
+    margin:10px 0;
+    padding:0 10px;
+}
+
+section{
+    margin-left: 20px;
+}
+
+.docyacode-block{
+    margin: 20px 0;
+    padding: 10px 20px;
+    background-color: rgba(255,255,255,0.3);
+}</style><script>console.log('things');</script><div class="docyacode-block"><h1>Gaffa</h1>
+</div><div class="docyacode-block"><h2>ViewItem</h2>
+<p>The base constructor for all gaffa ViewItems.</p>
+<p>Views, Behaviours, and Actions inherrit from ViewItem.</p>
+<section><div class="docyacode-block"><h2>.actions</h2>
+<p>All ViewItems have an actions object which can be overriden.</p>
+<p>The actions object looks like this:</p>
+<pre><code>viewItem.actions = {
+
+    click: [action1, action2],
+
+    hover: [action3, action4]
+
+}</code></pre>
+<p>eg:</p>
+<pre><code>// Some ViewItems
+
+var someButton = new views.button(),
+
+    removeItem = new actions.remove();
+
+
+
+// Set removeItem as a child of someButton.
+
+someButton.actions.click = [removeItem];</code></pre>
+<p>If a Views action.[name] matches a DOM event name, it will be automatically bound.</p>
+<pre><code>myView.actions.click = [
+
+    // actions to trigger when a &#39;click&#39; event is raised by the views renderedElement
+
+];</code></pre>
+</div><div class="docyacode-block"><h2>.path</h2>
+<p>the base path for a viewItem.</p>
+<p>Any bindings on a ViewItem will recursivly resolve through the ViewItems parent&#39;s paths.</p>
+<p>Eg:</p>
+<pre><code>// Some ViewItems
+
+var viewItem1 = new views.button(),
+
+    viewItem2 = new actions.set();
+
+
+
+// Give viewItem1 a path.
+
+viewItem1.path = &#39;[things]&#39;;
+
+// Set viewItem2 as a child of viewItem1.
+
+viewItem1.actions.click = [viewItem2];
+
+
+
+// Give viewItem2 a path.
+
+viewItem2.path = &#39;[stuff]&#39;;
+
+// Set viewItem2s target binding.
+
+viewItem2.target.binding = &#39;[majigger]&#39;;</code></pre>
+<p>viewItem2.target.binding will resolve to:</p>
+<pre><code>&#39;[/things/stuff/majigger]&#39;</code></pre>
+</div></section></div><div class="docyacode-block"><h2>View</h2>
+<p>A base constructor for gaffa Views that have content view.</p>
+<p>All Views that inherit from ContainerView will have:</p>
+<pre><code>someView.views.content</code></pre>
+</div><div class="docyacode-block"><h2>ContainerView</h2>
+<p>A base constructor for gaffa Views that have content view.</p>
+<p>All Views that inherit from ContainerView will have:</p>
+<pre><code>someView.views.content</code></pre>
+</div><div class="docyacode-block"><h2>The gaffa instance</h2>
+<p>Instance of Gaffa</p>
+<pre><code>var gaffa = new Gaffa();</code></pre>
+<section><div class="docyacode-block"><h3>.addDefaultStyle</h3>
+<p>used to add default syling for a view to the application, eg:</p>
+<pre><code>MyView.prototype.render = function(){
+
+    //render code...
+
+
+
+    gaffa.addDefaultStyle(css);
+
+
+
+};</code></pre>
+<p>Gaffa encourages style-free Views, however sometimes views require minimal css to add functionality.</p>
+<p>addDefaultStyle allows encaptulation of css within the View&#39;s .js file, and allows the style to be easily overriden.</p>
+</div><div class="docyacode-block"><h3>.createSpec</h3>
+<pre><code>function myConstructor(){}
+
+myConstructor = gaffa.createSpec(myConstructor, inheritedConstructor);</code></pre>
+<p>npm module: <a href="https://npmjs.org/package/spec-js">spec-js</a></p>
+</div><div class="docyacode-block"><h3>.jsonConverter</h3>
+<p>default jsonification for ViewItems</p>
+</div><div class="docyacode-block"><h3>.initialiseViewItem</h3>
+<p>takes the plain old object representation of a viewItem and returns an instance of ViewItem with all the settings applied.</p>
+<p>Also recurses through the ViewItem&#39;s tree and inflates children.</p>
+</div><div class="docyacode-block"><h3>.events</h3>
+<p>used throughout gaffa for binding DOM events.</p>
+<section><div class="docyacode-block"><h3>.on</h3>
+<p>usage:</p>
+<pre><code>gaffa.events.on(&#39;eventname&#39;, target, callback);</code></pre>
+</div></section></div><div class="docyacode-block"><h2>.model</h2>
+<p>access to the applications model</p>
+<section><div class="docyacode-block"><h3>.get(path, viewItem, scope, asTokens)</h3>
+<p>used to get data from the model.</p>
+<p>path is relative to the viewItems path.</p>
+<pre><code>gaffa.model.get(&#39;[someProp]&#39;, parentViewItem);</code></pre>
+</div><div class="docyacode-block"><h3>.set(path, value, viewItem, dirty)</h3>
+<p>used to set data into the model.</p>
+<p>path is relative to the viewItems path.</p>
+<pre><code>gaffa.model.set(&#39;[someProp]&#39;, &#39;hello&#39;, parentViewItem);</code></pre>
+</div><div class="docyacode-block"><h3>.remove(path, viewItem, dirty)</h3>
+<p>used to remove data from the model.</p>
+<p>path is relative to the viewItems path.</p>
+<pre><code>gaffa.model.remove(&#39;[someProp]&#39;, parentViewItem);</code></pre>
+</div><div class="docyacode-block"><h3>.bind(path, callback, viewItem)</h3>
+<p>used to bind callbacks to changes in the model.</p>
+<p>path is relative to the viewItems path.</p>
+<pre><code>gaffa.model.bind(&#39;[someProp]&#39;, function(){
+
+    //do something when &#39;[someProp]&#39; changes.
+
+}, viewItem);</code></pre>
+</div><div class="docyacode-block"><h3>.debind(viewItem)</h3>
+<p>remove all callbacks assigned to a viewItem.</p>
+<pre><code>gaffa.model.debind(&#39;[someProp]&#39;, function(){
+
+    //do something when &#39;[someProp]&#39; changes.
+
+});</code></pre>
+</div><div class="docyacode-block"><h3>.isDirty(path, viewItem)</h3>
+<p>check if a part of the model is dirty.</p>
+<p>path is relative to the viewItems path.</p>
+<pre><code>gaffa.model.isDirty(&#39;[someProp]&#39;, viewItem); // true/false?</code></pre>
+</div><div class="docyacode-block"><h3>.setDirtyState(path, value, viewItem)</h3>
+<p>set a part of the model to be dirty or not.</p>
+<p>path is relative to the viewItems path.</p>
+<pre><code>gaffa.model.setDirtyState(&#39;[someProp]&#39;, true, viewItem);</code></pre>
+</div></section></div><div class="docyacode-block"><h2>.views</h2>
+<pre><code>gaffa.views //Object.</code></pre>
+<p>contains functions and properties for manipulating the application&#39;s views.</p>
+<section><div class="docyacode-block"><h3>.renderTarget</h3>
+<p>Overrideable DOM selector that top level view items will be inserted into.</p>
+<pre><code>gaffa.views.renderTarget = &#39;body&#39;;</code></pre>
+</div><div class="docyacode-block"><h3>.add(View/viewModel, insertIndex)</h3>
+<p>Add a view or views to the root list of viewModels.</p>
+<p>When a view is added, it will be rendered bound, and inserted into the DOM.</p>
+<pre><code>gaffa.views.add(myView);</code></pre>
+<p>Or:</p>
+<pre><code>gaffa.views.add([
+
+    myView1,
+
+    myView1,
+
+    myView1
+
+]);</code></pre>
+</div><div class="docyacode-block"><h3>.remove(view/views)</h3>
+<p>Remove a view or views from anywhere in the application.</p>
+<pre><code>gaffa.views.remove(myView);</code></pre>
+</div><div class="docyacode-block"><h3>.empty()</h3>
+<p>empty the application of all views.</p>
+<pre><code>gaffa.views.empty();</code></pre>
+</div><div class="docyacode-block"><h3>.constructors</h3>
+<p>An overridable object used by Gaffa to instantiate views.</p>
+<p>The constructors for any views your application requires should be added to this object.</p>
+<p>Either:</p>
+<pre><code>gaffa.views.constructors.textbox = require(&#39;gaffa/views/textbox&#39;);
+
+gaffa.views.constructors.label = require(&#39;gaffa/views/label&#39;);
+
+// etc...</code></pre>
+<p>Or:</p>
+<pre><code>gaffa.views.constructors = {
+
+    textbox: require(&#39;gaffa/views/textbox&#39;),
+
+    label: require(&#39;gaffa/views/label&#39;)
+
+}
+
+// etc...</code></pre>
+</div></section></div><div class="docyacode-block"><h3>.namedViews</h3>
+<p>Storage for named views.</p>
+<p>Any views with a .name property will be put here, with the name as the key.</p>
+<p>This is used for navigation, where you can specify a view to navigate into.</p>
+<p>See gaffa.navitate();</p>
+</div><div class="docyacode-block"><h2>.actions</h2>
+<pre><code>gaffa.actions //Object.</code></pre>
+<p>contains functions and properties for manipulating the application&#39;s actions.</p>
+<section><div class="docyacode-block"><h3>.trigger(actions, parent, scope, event)</h3>
+<p>trigger a gaffa action where:</p>
+<ul>
+<li><p>actions is an array of actions to trigger.</p>
+</li>
+<li><p>parent is an instance of ViewItem that the action is on.</p>
+</li>
+<li><p>scope is an arbitrary object to be passed in as scope to all expressions in the action</p>
+</li>
+<li><p>event is an arbitrary event object that may have triggered the action, such as a DOM event.</p>
+</li>
+</ul>
+</div><div class="docyacode-block"><h3>.constructors</h3>
+<p>An overridable object used by Gaffa to instantiate actions.</p>
+<p>The constructors for any actions your application requires should be added to this object.</p>
+<p>Either:</p>
+<pre><code>gaffa.actions.constructors.set = require(&#39;gaffa/actions/set&#39;);
+
+gaffa.actions.constructors.remove = require(&#39;gaffa/actions/remove&#39;);
+
+// etc...</code></pre>
+<p>Or:</p>
+<pre><code>gaffa.actions.constructors = {
+
+    set: require(&#39;gaffa/views/set&#39;),
+
+    remove: require(&#39;gaffa/views/remove&#39;)
+
+}
+
+// etc...</code></pre>
+</div></section></div><div class="docyacode-block"><h2>.behaviours</h2>
+<pre><code>gaffa.behaviours //Object.</code></pre>
+<p>contains functions and properties for manipulating the application&#39;s behaviours.</p>
+<section><div class="docyacode-block"><h3>.add(behaviour)</h3>
+<p>add a behaviour to the root of the appliaction</p>
+<pre><code>gaffa.behaviours.add(someBehaviour);</code></pre>
+</div><div class="docyacode-block"><h3>.constructors</h3>
+<p>An overridable object used by Gaffa to instantiate behaviours.</p>
+<p>The constructors for any behaviours your application requires should be added to this object.</p>
+<p>Either:</p>
+<pre><code>gaffa.behaviours.constructors.pageLoad = require(&#39;gaffa/behaviours/pageLoad&#39;);
+
+gaffa.behaviours.constructors.modelChange = require(&#39;gaffa/behaviours/modelChange&#39;);
+
+// etc...</code></pre>
+<p>Or:</p>
+<pre><code>gaffa.behaviours.constructors = {
+
+    pageLoad: require(&#39;gaffa/views/pageLoad&#39;),
+
+    modelChange: require(&#39;gaffa/views/modelChange&#39;)
+
+}
+
+// etc...</code></pre>
+</div></section></div><div class="docyacode-block"><h2>Navigate</h2>
+<p>Navigates the app to a gaffa-app endpoint</p>
+<pre><code>gaffa.navigate(url);</code></pre>
+<p>To navigate into a named view:</p>
+<pre><code>gaffa.navigate(url, target);</code></pre>
+<p>Where target is: [viewName].[viewContainerName], eg:</p>
+<pre><code>gaffa.navigate(&#39;/someroute&#39;, &#39;myPageContainer.content&#39;);</code></pre>
+<p>myPageContainer would be a named ContainerView and content is the viewContainer on the view to target.</p>
+</div></section></div>

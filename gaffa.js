@@ -6,6 +6,12 @@
 
 //THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+/**
+
+    # Gaffa
+
+*/
+
 "use strict";
 
 var Gedi = require('gedi'),
@@ -24,13 +30,7 @@ var defaultViewStyles;
 
 //internal functions
 
-//***********************************************
-//
-//      Object.create polyfill
-//      https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/create
-//
-//***********************************************
-
+// https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/create
 Object.create = Object.create || function (o) {
     if (arguments.length > 1) {
         throw new Error('Object.create implementation only accepts the first parameter.');
@@ -41,11 +41,7 @@ Object.create = Object.create || function (o) {
 };
 
 
-//***********************************************
-//
-//      IE indexOf polyfill
-//
-//***********************************************
+
 
 //IE Specific idiocy
 
@@ -68,11 +64,7 @@ Array.isArray = Array.isArray || function(obj){
 //End IE land.
 
 
-//***********************************************
-//
-//      Array Fast Each
-//
-//***********************************************
+
 
 function fastEach(array, callback) {
     for (var i = 0; i < array.length; i++) {
@@ -82,11 +74,7 @@ function fastEach(array, callback) {
 };
 
 
-//***********************************************
-//
-//      String Formatter
-//
-//***********************************************
+
 
 //http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format/4673436#4673436
 //changed to a single array argument
@@ -97,11 +85,7 @@ String.prototype.format = function (values) {
 };
 
 
-//***********************************************
-//
-//      String De-Formatter
-//
-//***********************************************
+
 
 //http://stackoverflow.com/questions/5346158/parse-string-using-format-template
 //Haxy de-formatter
@@ -136,11 +120,7 @@ String.prototype.deformat = function (template) {
 };
 
 
-//***********************************************
-//
-//      Parse QueryString
-//
-//***********************************************
+
 
 function parseQueryString(url){
     var urlParts = url.split('?'),
@@ -163,11 +143,7 @@ function parseQueryString(url){
 }
 
 
-//***********************************************
-//
-//      To QueryString
-//
-//***********************************************
+
 
 function toQueryString(data){
     var queryString = '';
@@ -182,11 +158,7 @@ function toQueryString(data){
 }
 
 
-//***********************************************
-//
-//      Clone
-//
-//***********************************************
+
 
 function clone(value){
     if(value != null && typeof value === "object"){
@@ -202,11 +174,7 @@ function clone(value){
 }
 
 
-//***********************************************
-//
-//      Ajax
-//
-//***********************************************
+
 
 function tryParseJson(data){
     try{
@@ -293,11 +261,7 @@ function ajax(settings){
 }
 
 
-//***********************************************
-//
-//      Get Closest Item
-//
-//***********************************************
+
 
 function getClosestItem(target){
     var viewModel = target.viewModel;
@@ -314,11 +278,7 @@ function getClosestItem(target){
 }
 
 
-//***********************************************
-//
-//      Get Closest Item
-//
-//***********************************************
+
 
 function langify(fn, context){
     return function(scope, args){
@@ -329,11 +289,7 @@ function langify(fn, context){
 }
 
 
-//***********************************************
-//
-//      Get Distinct Groups
-//
-//***********************************************
+
 
 function getDistinctGroups(gaffa, collection, expression){
     var distinctValues = {},
@@ -352,11 +308,7 @@ function getDistinctGroups(gaffa, collection, expression){
     return Object.keys(distinctValues);
 }
 
-//***********************************************
-//
-//      De-Dom
-//
-//***********************************************
+
 
 function deDom(node){
     var parent = node.parentNode,
@@ -379,21 +331,13 @@ function deDom(node){
     };
 }
 
-//***********************************************
-//
-//      Trigger Action
-//
-//***********************************************
+
 
 function triggerAction(action, parent, scope, event) {
     action.trigger(parent, scope, event);
 }
 
-//***********************************************
-//
-//      Trigger Action
-//
-//***********************************************
+
 
 function triggerActions(actions, parent, scope, event) {
     if(Array.isArray(actions)){
@@ -404,11 +348,7 @@ function triggerActions(actions, parent, scope, event) {
 }
 
 
-//***********************************************
-//
-//      Insert Function
-//
-//***********************************************
+
 
 function insertFunction(selector, renderedElement, insertIndex){
     var target = ((typeof selector === "string") ? document.querySelectorAll(selector)[0] : selector),
@@ -424,11 +364,7 @@ function insertFunction(selector, renderedElement, insertIndex){
     }
 }
 
-//***********************************************
-//
-//      Get ViewItem Path
-//
-//***********************************************
+
 
 function getItemPath(item){
     var gedi = item.gaffa.gedi,
@@ -454,11 +390,7 @@ function getItemPath(item){
     return gedi.paths.resolve.apply(this, paths.reverse());
 }
 
-//***********************************************
-//
-//      Extend
-//
-//***********************************************
+
 
 function extend(target, source){
     var args = Array.prototype.slice.call(arguments),
@@ -502,11 +434,7 @@ function extend(target, source){
     return target;
 }
 
-//***********************************************
-//
-//      Same As
-//
-//***********************************************
+
 
 function sameAs(a,b){
     var typeofA = typeof a,
@@ -531,11 +459,7 @@ function sameAs(a,b){
     }
 }
 
-//***********************************************
-//
-//      Add Default Style
-//
-//***********************************************
+
 
 function addDefaultStyle(style){
     defaultViewStyles = defaultViewStyles || (function(){
@@ -563,11 +487,7 @@ function addDefaultStyle(style){
 
 }
 
-//***********************************************
-//
-//      Initialise ViewItem
-//
-//***********************************************
+
 
 function initialiseViewItem(viewItem, gaffa, specCollection) {
     if(!(viewItem instanceof ViewItem)){
@@ -609,43 +529,27 @@ function initialiseViewItem(viewItem, gaffa, specCollection) {
     return viewItem;
 }
 
-//***********************************************
-//
-//      Initialise View
-//
-//***********************************************
+
 
 function initialiseView(viewItem, gaffa) {
     return initialiseViewItem(viewItem, gaffa, gaffa.views.constructors);
 }
 
-//***********************************************
-//
-//      Initialise Action
-//
-//***********************************************
+
 
 function initialiseAction(viewItem, gaffa) {
     return initialiseViewItem(viewItem, gaffa, gaffa.actions.constructors);
 }
 
 
-//***********************************************
-//
-//      Initialise Behaviour
-//
-//***********************************************
+
 
 function initialiseBehaviour(viewItem, gaffa) {
     return initialiseViewItem(viewItem, gaffa, gaffa.behaviours.constructors);
 }
 
 
-//***********************************************
-//
-//      Remove Views
-//
-//***********************************************
+
 
 function removeViews(views){
     if(!views){
@@ -661,11 +565,7 @@ function removeViews(views){
     });
 }
 
-//***********************************************
-//
-//      JSON Converter
-//
-//***********************************************
+
 
 function jsonConverter(object, exclude, include){
     var plainInstance = new object.constructor(),
@@ -776,11 +676,7 @@ function createPropertyCallback(property){
 }
 
 
-//***********************************************
-//
-//      Bind Property
-//
-//***********************************************
+
 
 function bindProperty(parent) {
     this.parent = parent;
@@ -801,11 +697,7 @@ function bindProperty(parent) {
 }
 
 
-//***********************************************
-//
-//      Gaffa object.
-//
-//***********************************************
+
 
 //Public Objects ******************************************************************************
 
@@ -834,11 +726,7 @@ function compareToHash(value, hash){
     return value === hash;
 }
 
-//***********************************************
-//
-//      Property Object
-//
-//***********************************************
+
 
 function Property(propertyDescription){
     if(typeof propertyDescription === 'function'){
@@ -898,11 +786,7 @@ Property.prototype.toJSON = function(){
     return tempObject;
 };
 
-//***********************************************
-//
-//      View Container Object
-//
-//***********************************************
+
 
 function ViewContainer(viewContainerDescription){
     var viewContainer = this;
@@ -1064,12 +948,13 @@ function removeViewItem(viewItem){
     viewItem.parentContainer = null;
 }
 
-//***********************************************
-//
-//      ViewItem Object
-//
-//***********************************************
+/**
+    ## ViewItem
 
+    The base constructor for all gaffa ViewItems.
+
+    Views, Behaviours, and Actions inherrit from ViewItem.
+*/
 function ViewItem(viewItemDescription){
 
     for(var key in this){
@@ -1078,6 +963,33 @@ function ViewItem(viewItemDescription){
         }
     }
 
+    /**
+        ## .actions
+
+        All ViewItems have an actions object which can be overriden.
+
+        The actions object looks like this:
+
+            viewItem.actions = {
+                click: [action1, action2],
+                hover: [action3, action4]
+            }
+
+        eg:
+
+            // Some ViewItems
+            var someButton = new views.button(),
+                removeItem = new actions.remove();
+
+            // Set removeItem as a child of someButton.
+            someButton.actions.click = [removeItem];
+
+        If a Views action.[name] matches a DOM event name, it will be automatically bound.
+
+            myView.actions.click = [
+                // actions to trigger when a 'click' event is raised by the views renderedElement
+            ];
+    */
     this.actions = this.actions ? clone(this.actions) : {};
 
     for(var key in viewItemDescription){
@@ -1090,6 +1002,34 @@ function ViewItem(viewItemDescription){
     }
 }
 ViewItem = createSpec(ViewItem, EventEmitter);
+
+    /**
+        ## .path
+
+        the base path for a viewItem.
+
+        Any bindings on a ViewItem will recursivly resolve through the ViewItems parent's paths.
+
+        Eg:
+
+            // Some ViewItems
+            var viewItem1 = new views.button(),
+                viewItem2 = new actions.set();
+
+            // Give viewItem1 a path.
+            viewItem1.path = '[things]';
+            // Set viewItem2 as a child of viewItem1.
+            viewItem1.actions.click = [viewItem2];
+
+            // Give viewItem2 a path.
+            viewItem2.path = '[stuff]';
+            // Set viewItem2s target binding.
+            viewItem2.target.binding = '[majigger]';
+
+        viewItem2.target.binding will resolve to:
+
+            '[/things/stuff/majigger]'
+    */
 ViewItem.prototype.path = '[]';
 ViewItem.prototype.bind = function(parent){
     var viewItem = this,
@@ -1125,11 +1065,7 @@ ViewItem.prototype.triggerActions = function(actionName, scope, event){
     this.gaffa.actions.trigger(this.actions[actionName], this, scope, event);
 };
 
-//***********************************************
-//
-//      View Object
-//
-//***********************************************
+
 
 function createEventedActionScope(view, event){
     var scope = createModelScope(view);
@@ -1153,6 +1089,15 @@ function bindViewEvent(view, eventName){
     });
 }
 
+/**
+    ## View
+
+    A base constructor for gaffa Views that have content view.
+
+    All Views that inherit from ContainerView will have:
+
+        someView.views.content
+*/
 function View(viewDescription){
     var view = this;
 
@@ -1219,7 +1164,7 @@ View.prototype.render = function(){
 
 function insert(view, viewContainer, insertIndex){
     var gaffa = view.gaffa,
-        renderTarget = view.insertSelector || view.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget || 'body';
+        renderTarget = view.insertSelector || view.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget;
 
     if(view.afterInsert){
         var off = doc.on('DOMNodeInserted', renderTarget, function (event) {
@@ -1274,12 +1219,15 @@ View.prototype.title = new Title();
 
 View.prototype.insertFunction = insertFunction;
 
-//***********************************************
-//
-//      Container View Object
-//
-//***********************************************
+/**
+    ## ContainerView
 
+    A base constructor for gaffa Views that have content view.
+
+    All Views that inherit from ContainerView will have:
+
+        someView.views.content
+*/
 function ContainerView(viewDescription){
     this.views = this.views || {};
     this.views.content = new ViewContainer(this.views.content);
@@ -1317,11 +1265,7 @@ ContainerView.prototype.remove = function(){
 };
 
 
-//***********************************************
-//
-//      Action Object
-//
-//***********************************************
+
 
 function Action(actionDescription){
 }
@@ -1350,11 +1294,7 @@ Action.prototype.trigger = function(parent, scope, event){
     this.debind();
 };
 
-//***********************************************
-//
-//      Behaviour Object
-//
-//***********************************************
+
 
 function Behaviour(behaviourDescription){}
 Behaviour = createSpec(Behaviour, ViewItem);
@@ -1398,11 +1338,7 @@ function Gaffa(){
     // Add gedi instance to gaffa.
     gaffa.gedi = gedi;
 
-    //***********************************************
-    //
-    //      add Behaviour
-    //
-    //***********************************************
+
 
     function addBehaviour(behaviour) {
         //if the views isnt an array, make it one.
@@ -1420,11 +1356,7 @@ function Gaffa(){
     }
 
 
-    //***********************************************
-    //
-    //      Add Notification
-    //
-    //***********************************************
+
 
     function addNotification(kind, callback){
         internalNotifications[kind] = internalNotifications[kind] || [];
@@ -1432,11 +1364,7 @@ function Gaffa(){
     }
 
 
-    //***********************************************
-    //
-    //      Notify
-    //
-    //***********************************************
+
 
     function notify(kind, data){
         var subKinds = kind.split(".");
@@ -1451,11 +1379,7 @@ function Gaffa(){
     }
 
 
-    //***********************************************
-    //
-    //      QueryString To Model
-    //
-    //***********************************************
+
 
     function queryStringToModel(){
         var queryStringData = parseQueryString(window.location.search);
@@ -1473,11 +1397,7 @@ function Gaffa(){
         }
     }
 
-    //***********************************************
-    //
-    //      Load
-    //
-    //***********************************************
+
 
     function load(app, target){
 
@@ -1521,11 +1441,7 @@ function Gaffa(){
         queryStringToModel();
     }
 
-    //***********************************************
-    //
-    //      Navigate
-    //
-    //***********************************************
+
 
     var pageCache = {};
 
@@ -1589,11 +1505,7 @@ function Gaffa(){
         });
     }
 
-    //***********************************************
-    //
-    //      Pop State
-    //
-    //***********************************************
+
 
     gaffa.onpopstate = function(event){
         if(event.state){
@@ -1608,36 +1520,106 @@ function Gaffa(){
         scope.windowLocation = window.location.toString();
     }
 
-    extend(gaffa, {
+
+/**
+    ## The gaffa instance
+
+    Instance of Gaffa
+
+        var gaffa = new Gaffa();
+*/
+
+    var gaffaPublicObject = {
+
+        /**
+            ### .addDefaultStyle
+
+            used to add default syling for a view to the application, eg:
+
+                MyView.prototype.render = function(){
+                    //render code...
+
+                    gaffa.addDefaultStyle(css);
+
+                };
+
+            Gaffa encourages style-free Views, however sometimes views require minimal css to add functionality.
+
+            addDefaultStyle allows encaptulation of css within the View's .js file, and allows the style to be easily overriden.
+        */
         addDefaultStyle: addDefaultStyle,
+
+        /**
+            ### .createSpec
+
+                function myConstructor(){}
+                myConstructor = gaffa.createSpec(myConstructor, inheritedConstructor);
+
+            npm module: [spec-js](https://npmjs.org/package/spec-js)
+        */
         createSpec: createSpec,
+
+        /**
+            ### .jsonConverter
+
+            default jsonification for ViewItems
+        */
         jsonConverter: jsonConverter,
-        Path: gedi.Path,
-        ViewItem: ViewItem,
-        View: View,
-        ContainerView: ContainerView,
-        Action: Action,
-        Behaviour: Behaviour,
-        Property: Property,
-        ViewContainer: ViewContainer,
+
+        /**
+            ### .initialiseViewItem
+
+            takes the plain old object representation of a viewItem and returns an instance of ViewItem with all the settings applied.
+
+            Also recurses through the ViewItem's tree and inflates children.
+        */
         initialiseViewItem: initialiseViewItem,
+
+        /**
+            ### .events
+
+            used throughout gaffa for binding DOM events.
+        */
         events:{
+
+            /**
+                ### .on
+
+                usage:
+
+                    gaffa.events.on('eventname', target, callback);
+            */
             on: function(eventName, target, callback){
                 if('on' + eventName.toLowerCase() in target){
                     return doc.on(eventName, target, callback);
                 }
             }
         },
+
+        /**
+            ## .model
+
+            access to the applications model
+        */
         model: {
-            get:function(path, parent, scope, asTokens) {
-                if(!(parent instanceof ViewItem || parent instanceof Property)){
-                    scope = parent;
-                    parent = undefined;
+
+            /**
+                ### .get(path, viewItem, scope, asTokens)
+
+                used to get data from the model.
+                path is relative to the viewItems path.
+
+                    gaffa.model.get('[someProp]', parentViewItem);
+            */
+            get:function(path, viewItem, scope, asTokens) {
+                if(!(viewItem instanceof ViewItem || viewItem instanceof Property)){
+                    scope = viewItem;
+                    viewItem = undefined;
                 }
 
                 var parentPath;
-                if(parent && parent.getPath){
-                    parentPath = parent.getPath();
+                if(viewItem && viewItem.getPath){
+                    parentPath = viewItem.getPath();
                 }
 
                 scope = scope || {};
@@ -1645,87 +1627,174 @@ function Gaffa(){
                 addDefaultsToScope(scope);
                 return gedi.get(path, parentPath, scope, asTokens);
             },
-            set:function(path, value, parent, dirty) {
+
+            /**
+                ### .set(path, value, viewItem, dirty)
+
+                used to set data into the model.
+                path is relative to the viewItems path.
+
+                    gaffa.model.set('[someProp]', 'hello', parentViewItem);
+            */
+            set:function(path, value, viewItem, dirty) {
                 var parentPath;
 
                 if(path == null){
                     return;
                 }
 
-                if(parent && parent.getPath){
-                    parentPath = parent.getPath();
+                if(viewItem && viewItem.getPath){
+                    parentPath = viewItem.getPath();
                 }
 
                 gedi.set(path, value, parentPath, dirty);
             },
-            remove: function(path, parent, dirty) {
+
+            /**
+                ### .remove(path, viewItem, dirty)
+
+                used to remove data from the model.
+                path is relative to the viewItems path.
+
+                    gaffa.model.remove('[someProp]', parentViewItem);
+            */
+            remove: function(path, viewItem, dirty) {
                 var parentPath;
 
                 if(path == null){
                     return;
                 }
 
-                if(parent && parent.getPath){
-                    parentPath = parent.getPath();
+                if(viewItem && viewItem.getPath){
+                    parentPath = viewItem.getPath();
                 }
 
                 gedi.remove(path, parentPath, dirty);
             },
-            bind: function(path, callback, parent) {
+
+            /**
+                ### .bind(path, callback, viewItem)
+
+                used to bind callbacks to changes in the model.
+                path is relative to the viewItems path.
+
+                    gaffa.model.bind('[someProp]', function(){
+                        //do something when '[someProp]' changes.
+                    }, viewItem);
+            */
+            bind: function(path, callback, viewItem) {
                 var parentPath;
 
-                if(parent && parent.getPath){
-                    parentPath = parent.getPath();
+                if(viewItem && viewItem.getPath){
+                    parentPath = viewItem.getPath();
                 }
 
-                if(!parent.gediCallbacks){
-                    parent.gediCallbacks = [];
+                if(!viewItem.gediCallbacks){
+                    viewItem.gediCallbacks = [];
                 }
 
                 // Add the callback to the list of handlers associated with the viewItem
-                parent.gediCallbacks.push(function(){
+                viewItem.gediCallbacks.push(function(){
                     gedi.debind(callback);
                 });
 
                 gedi.bind(path, callback, parentPath);
             },
-            debind: function(item) {
-                while(item.gediCallbacks && item.gediCallbacks.length){
-                    item.gediCallbacks.pop()();
+
+            /**
+                ### .debind(viewItem)
+
+                remove all callbacks assigned to a viewItem.
+
+                    gaffa.model.debind('[someProp]', function(){
+                        //do something when '[someProp]' changes.
+                    });
+            */
+            debind: function(viewItem) {
+                while(viewItem.gediCallbacks && viewItem.gediCallbacks.length){
+                    viewItem.gediCallbacks.pop()();
                 }
             },
-            isDirty: function(path, parent) {
+
+            /**
+                ### .isDirty(path, viewItem)
+
+                check if a part of the model is dirty.
+                path is relative to the viewItems path.
+
+                    gaffa.model.isDirty('[someProp]', viewItem); // true/false?
+            */
+            isDirty: function(path, viewItem) {
                 var parentPath;
 
                 if(path == null){
                     return;
                 }
 
-                if(parent && parent.getPath){
-                    parentPath = parent.getPath();
+                if(viewItem && viewItem.getPath){
+                    parentPath = viewItem.getPath();
                 }
 
                 return gedi.isDirty(path, parentPath);
             },
-            setDirtyState: function(path, value, parent) {
+
+            /**
+                ### .setDirtyState(path, value, viewItem)
+
+                set a part of the model to be dirty or not.
+                path is relative to the viewItems path.
+
+                    gaffa.model.setDirtyState('[someProp]', true, viewItem);
+            */
+            setDirtyState: function(path, value, viewItem) {
                 var parentPath;
 
                 if(path == null){
                     return;
                 }
 
-                if(parent && parent.getPath){
-                    parentPath = parent.getPath();
+                if(viewItem && viewItem.getPath){
+                    parentPath = viewItem.getPath();
                 }
 
                 gedi.setDirtyState(path, value, parentPath);
             }
         },
-        views: {
-            insertTarget: null,
 
-            //Add a view or viewModels to another view, or the root list of viewModels if a parent isnt passed.
-            //Set up the viewModels bindings as they are added.
+        /**
+            ## .views
+
+                gaffa.views //Object.
+
+            contains functions and properties for manipulating the application's views.
+        */
+        views: {
+
+            /**
+                ### .renderTarget
+
+                Overrideable DOM selector that top level view items will be inserted into.
+
+                    gaffa.views.renderTarget = 'body';
+            */
+            renderTarget: 'body',
+
+            /**
+                ### .add(View/viewModel, insertIndex)
+
+                Add a view or views to the root list of viewModels.
+                When a view is added, it will be rendered bound, and inserted into the DOM.
+
+                    gaffa.views.add(myView);
+
+                Or:
+
+                    gaffa.views.add([
+                        myView1,
+                        myView1,
+                        myView1
+                    ]);
+            */
             add: function(view, insertIndex){
                 if(Array.isArray(view)){
                     fastEach(view, gaffa.views.add);
@@ -1743,26 +1812,140 @@ function Gaffa(){
                 view.insert(internalViewItems, insertIndex);
             },
 
+            /**
+                ### .remove(view/views)
+
+                Remove a view or views from anywhere in the application.
+
+                    gaffa.views.remove(myView);
+            */
             remove: removeViews,
 
+            /**
+                ### .empty()
+
+                empty the application of all views.
+
+                    gaffa.views.empty();
+            */
             empty: function(){
                 removeViews(internalViewItems);
             },
 
+            /**
+                ### .constructors
+
+                An overridable object used by Gaffa to instantiate views.
+
+                The constructors for any views your application requires should be added to this object.
+
+                Either:
+                    gaffa.views.constructors.textbox = require('gaffa/views/textbox');
+                    gaffa.views.constructors.label = require('gaffa/views/label');
+                    // etc...
+
+                Or:
+                    gaffa.views.constructors = {
+                        textbox: require('gaffa/views/textbox'),
+                        label: require('gaffa/views/label')
+                    }
+                    // etc...
+            */
             constructors: {}
         },
 
+        /**
+            ### .namedViews
+
+            Storage for named views.
+            Any views with a .name property will be put here, with the name as the key.
+
+            This is used for navigation, where you can specify a view to navigate into.
+
+            See gaffa.navitate();
+        */
         namedViews: {},
 
+        /**
+            ## .actions
+
+                gaffa.actions //Object.
+
+            contains functions and properties for manipulating the application's actions.
+        */
         actions: {
+
+            /**
+                ### .trigger(actions, parent, scope, event)
+
+                trigger a gaffa action where:
+
+                 - actions is an array of actions to trigger.
+                 - parent is an instance of ViewItem that the action is on.
+                 - scope is an arbitrary object to be passed in as scope to all expressions in the action
+                 - event is an arbitrary event object that may have triggered the action, such as a DOM event.
+            */
             trigger: triggerActions,
 
+            /**
+                ### .constructors
+
+                An overridable object used by Gaffa to instantiate actions.
+
+                The constructors for any actions your application requires should be added to this object.
+
+                Either:
+                    gaffa.actions.constructors.set = require('gaffa/actions/set');
+                    gaffa.actions.constructors.remove = require('gaffa/actions/remove');
+                    // etc...
+
+                Or:
+                    gaffa.actions.constructors = {
+                        set: require('gaffa/views/set'),
+                        remove: require('gaffa/views/remove')
+                    }
+                    // etc...
+            */
             constructors: {}
         },
 
+        /**
+            ## .behaviours
+
+                gaffa.behaviours //Object.
+
+            contains functions and properties for manipulating the application's behaviours.
+        */
         behaviours: {
+
+            /**
+                ### .add(behaviour)
+
+                add a behaviour to the root of the appliaction
+
+                    gaffa.behaviours.add(someBehaviour);
+            */
             add: addBehaviour,
 
+            /**
+                ### .constructors
+
+                An overridable object used by Gaffa to instantiate behaviours.
+
+                The constructors for any behaviours your application requires should be added to this object.
+
+                Either:
+                    gaffa.behaviours.constructors.pageLoad = require('gaffa/behaviours/pageLoad');
+                    gaffa.behaviours.constructors.modelChange = require('gaffa/behaviours/modelChange');
+                    // etc...
+
+                Or:
+                    gaffa.behaviours.constructors = {
+                        pageLoad: require('gaffa/views/pageLoad'),
+                        modelChange: require('gaffa/views/modelChange')
+                    }
+                    // etc...
+            */
             constructors: {}
         },
 
@@ -1796,6 +1979,24 @@ function Gaffa(){
             deDom: deDom
         },
 
+        /**
+
+            ## Navigate
+
+            Navigates the app to a gaffa-app endpoint
+
+                gaffa.navigate(url);
+
+            To navigate into a named view:
+
+                gaffa.navigate(url, target);
+
+            Where target is: [viewName].[viewContainerName], eg:
+
+                gaffa.navigate('/someroute', 'myPageContainer.content');
+
+            myPageContainer would be a named ContainerView and content is the viewContainer on the view to target.
+        */
         navigate: navigate,
 
         notifications:{
@@ -1833,7 +2034,9 @@ function Gaffa(){
         pushState: function(state, title, location){
             window.history.pushState(state, title, location);
         }
-    });
+    };
+
+    extend(gaffa, gaffaPublicObject);
 
     return gaffa;
 
