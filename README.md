@@ -14,11 +14,11 @@ Gaffa must be compiled with browserify [browserify](https://github.com/substack/
 ## Quick n easy setup
 
     npm install gaffa-boilerplate
-    
+
 Then make a folder for your test project.
 
     gaffa-boilerplate
-    
+
 This will copy some boilerplate files and start a file watcher that browserifys app.js, in the scripts folder.
 
 ## Overview
@@ -59,8 +59,8 @@ To use a view, you must first load the constructor for that view. For example, t
 
 	// Views
 	gaffa.views.constructors = {
-		label: require('gaffa/views/label'), 
-		textbox: require('gaffa/views/textbox'), 
+		label: require('gaffa/views/label'),
+		textbox: require('gaffa/views/textbox'),
 		button: require('gaffa/views/button')
 	};
 
@@ -97,7 +97,7 @@ To assign actions to a view:
 
 Gaffa will automatically use the actions.*whatever* propertyName as a DOM event name, and trigger any actions assigned when that event occurs.
 
-a Behaviour is a non-visual entity that triggers actions. For example, a modelChange behaviour could be created to watch a property in the model, and assigned actions to perform when the value of that property changes. 
+a Behaviour is a non-visual entity that triggers actions. For example, a modelChange behaviour could be created to watch a property in the model, and assigned actions to perform when the value of that property changes.
 
 ### The Model
 
@@ -164,15 +164,3 @@ Gaffa uses Gedi as its model, and as such, uses Gedi's expressions.
 Expressions in gaffa are used to address the model in some way.
 
 For a more in-depth explanation of expressions, checkout the gedi readme: [Gedi](https://github.com/gaffa-tape/gedi)
-
-
-## License
-(The MIT License)
-
-Copyright (C) 2012 Kory Nunn, Matt Ginty & Maurice Butler
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
