@@ -6,11 +6,9 @@
 
 Gaffa must be compiled with browserify [browserify](https://github.com/substack/node-browserify)
 
-## Example app
+## Example
 
-[Gaffa-ToDo](https://github.com/KoryNunn/gaffa-todo)
-
-[Live Example](https://rawgithub.com/KoryNunn/gaffa-todo/master/index.html)
+[Gaffa-ToDo](http://korynunn.github.io/gaffa-todo/)
 
 
 ## Quick n easy setup
