@@ -1,5 +1,7 @@
 # gaffa.js
 
+![logo](logosmall.png)
+
 ## Dependencies
 
 Gaffa must be compiled with browserify [browserify](https://github.com/substack/node-browserify)
