@@ -2,14 +2,9 @@
 
 ![logo](logosmall.png)
 
-## Dependencies
-
-Gaffa must be compiled with browserify [browserify](https://github.com/substack/node-browserify)
-
 ## Example
 
 [Gaffa-ToDo](http://korynunn.github.io/gaffa-todo/)
-
 
 ## Quick n easy setup
 
@@ -32,6 +27,10 @@ Writing UI's using gaffa is unlike most other MVC/MVVM/etc frameworks for a numb
 * NO HTML! - Javascript to DOM, no pointless middleman.
 * Serialise to JSON - An entire application can be serialised to JSON, by design.
 * No lock-in - Push your views to the edge of Gaffa's capabilities, and break out whenever you need.
+
+### Dependencies
+
+Gaffa must be compiled with browserify [browserify](https://github.com/substack/node-browserify)
 
 ### Minimal usage
 
