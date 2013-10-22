@@ -842,8 +842,6 @@ ViewContainer.prototype.add = function(viewModel, insertIndex){
         this.splice(insertIndex != null ? insertIndex : this.length, 0, viewModel);
     }
 
-    viewModel.parentContainer = this;
-
     if(this.bound){
         if(!(viewModel instanceof View)){
             viewModel = this[this.indexOf(viewModel)] = initialiseViewItem(viewModel, this.gaffa, this.gaffa.views.constructors);
@@ -931,17 +929,14 @@ function removeViewItem(viewItem){
         return;
     }
 
-    var viewIndex = viewItem.parentContainer.indexOf(viewItem);
-
-    if(viewIndex >= 0){
-        viewItem.parentContainer.splice(viewIndex, 1);
+    if(viewItem.parentContainer){
+        viewItem.parentContainer.splice(viewItem.parentContainer.indexOf(viewItem), 1);
+        viewItem.parentContainer = null;
     }
 
     viewItem.debind();
 
     viewItem.emit('remove');
-
-    viewItem.parentContainer = null;
 }
 
 /**
@@ -1170,6 +1165,12 @@ function insert(view, viewContainer, insertIndex){
             }
         });
     }
+
+    if(view.parentContainer){
+        view.parentContainer.splice(view.parentContainer.indexOf(view),1);
+    }
+
+    view.parentContainer = viewContainer;
 
     view.insertFunction(view.insertSelector || renderTarget, view.renderedElement, insertIndex);
 }

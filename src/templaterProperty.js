@@ -89,23 +89,27 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
                 continue;
             }
             isEmpty = false;
-            var exists = false,
-                sourcePath = sourcePathInfo.subPaths[key];
+            var sourcePath = sourcePathInfo.subPaths[key],
+                existingChild = null,
+                existingIndex = null;
 
             for(var i = 0; i < childViews.length; i++){
                 var child = childViews[i];
 
                 if(child.sourcePath === sourcePath){
-                    exists = true;
+                    existingChild = child;
+                    existingIndex = i;
                     break;
                 }
             }
 
-            if(!exists){
+            if(!existingChild){
                 newView = JSON.parse(this._templateCache);
                 newView.sourcePath = sourcePath;
                 newView.containerName = viewsName;
                 childViews.deferredAdd(newView, itemIndex);
+            }else if(itemIndex !== existingIndex){
+                childViews.deferredAdd(existingChild, itemIndex);
             }
 
             itemIndex++;
