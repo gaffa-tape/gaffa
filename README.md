@@ -22,7 +22,7 @@ Then make a folder for your test project.
 This will copy some boilerplate files and start a file watcher that browserifys app.js, in the scripts folder.
 
 ## Overview
-Gaffa attempts to speed up the development of complicated UI's by providing a rich binding layer between abitrary data and your UI.
+Gaffa attempts to speed up the development of complicated UI's by providing a rich binding layer between arbitrary data and your UI.
 
 Writing UI's using gaffa is unlike most other MVC/MVVM/etc frameworks for a number of different reasons. (Although, others share some of the below points)
 
