@@ -790,9 +790,7 @@ function ViewContainer(viewContainerDescription){
     this._deferredViews = [];
 
     if(viewContainerDescription instanceof Array){
-        for (var i = 0; i < viewContainerDescription.length; i++) {
-            viewContainer.push(viewContainerDescription[i]);
-        }
+        viewContainer.add(viewContainerDescription);
     }
 }
 ViewContainer = createSpec(ViewContainer, Array);
@@ -800,65 +798,81 @@ ViewContainer.prototype.bind = function(parent){
     this.parent = parent;
     this.gaffa = parent.gaffa;
 
-    if(this.bound){
+    if(this._bound){
         return;
     }
 
-    this.bound = true;
+    this._bound = true;
 
     for(var i = 0; i < this.length; i++){
-        var viewModel = this[i];
-        this.add(viewModel, i);
+        this.add(this[i], i);
     }
 
     return this;
 };
 ViewContainer.prototype.debind = function(){
-    if(!this.bound){
+    if(!this._bound){
         return;
     }
 
-    this.bound = false;
+    this._bound = false;
 
     for (var i = 0; i < this.length; i++) {
+        this[i].detach();
         this[i].debind();
     }
 };
 ViewContainer.prototype.getPath = function(){
     return getItemPath(this);
 };
-ViewContainer.prototype.add = function(viewModel, insertIndex){
+
+/*
+    ViewContainers handle their own array state.
+    A View that is added to a ViewContainer will
+    be automatically removed from its current
+    container, if it has one.
+*/
+ViewContainer.prototype.add = function(view, insertIndex){
     // If passed an array
-    if(Array.isArray(viewModel)){
-        for(var i = 0; i < viewModel.length; i++){
-            this.add(viewModel[i]);
+    if(Array.isArray(view)){
+        for(var i = 0; i < view.length; i++){
+            this.add(view[i]);
         }
         return this;
     }
 
-    var currentIndex = this.indexOf(viewModel);
-
-    if(currentIndex < 0 || (!isNaN(insertIndex) && currentIndex !== insertIndex)){
-        this.splice(insertIndex != null ? insertIndex : this.length, 0, viewModel);
+    // Is already in the tree somewhere? remove it.
+    if(view.parentContainer){
+        view.parentContainer.splice(view.parentContainer.indexOf(view),1);
     }
 
-    if(this.bound){
-        if(!(viewModel instanceof View)){
-            viewModel = this[this.indexOf(viewModel)] = initialiseViewItem(viewModel, this.gaffa, this.gaffa.views.constructors);
+    this.splice(insertIndex >= 0 ? insertIndex : this.length,0,view);
+
+    view.parentContainer = this;
+
+    if(this._bound){
+        if(!(view instanceof View)){
+            view = this[this.indexOf(view)] = initialiseViewItem(view, this.gaffa, this.gaffa.views.constructors);
         }
-        viewModel.gaffa = this.gaffa;
+        view.gaffa = this.gaffa;
 
-        if(!viewModel.renderedElement){
-            viewModel.render();
+        this.gaffa.namedViews[view.name] = view;
+
+        if(!view.renderedElement){
+            view.render();
         }
-
-
-        viewModel.bind(this.parent);
-        viewModel.insert(this, insertIndex);
+        view.bind(this.parent);
+        view.insert(this, insertIndex);
     }
+
 
     return this;
 };
+
+/*
+    adds 5 (5 is arbitrary) views at a time to the target viewContainer,
+    then queues up another add.
+*/
 function executeDeferredAdd(viewContainer){
     var currentOpperation = viewContainer._deferredViews.splice(0,5);
 
@@ -873,6 +887,13 @@ function executeDeferredAdd(viewContainer){
         executeDeferredAdd(viewContainer);
     });
 }
+
+/*
+    Adds children to the view container over time, via RAF.
+    Will only begin the render cycle if there are no _deferredViews,
+    because if _deferredViews.length is > 0, the render loop will
+    already be going.
+*/
 ViewContainer.prototype.deferredAdd = function(view, insertIndex){
     var viewContainer = this,
         shouldStart = !this._deferredViews.length;
@@ -921,7 +942,7 @@ function debindViewItem(viewItem){
         }
     }
     viewItem.emit('debind');
-    viewItem.bound = false;
+    viewItem._bound = false;
 }
 
 function removeViewItem(viewItem){
@@ -975,7 +996,7 @@ function ViewItem(viewItemDescription){
             // Set removeItem as a child of someButton.
             someButton.actions.click = [removeItem];
 
-        If a Views action.[name] matches a DOM event name, it will be automatically bound.
+        If a Views action.[name] matches a DOM event name, it will be automatically _bound.
 
             myView.actions.click = [
                 // actions to trigger when a 'click' event is raised by the views renderedElement
@@ -1028,7 +1049,7 @@ ViewItem.prototype.bind = function(parent){
 
     this.parent = parent;
 
-    this.bound = true;
+    this._bound = true;
 
     // Only set up properties that were on the prototype.
     // Faster and 'safer'
@@ -1048,6 +1069,12 @@ ViewItem.prototype.remove = function(){
 };
 ViewItem.prototype.getPath = function(){
     return getItemPath(this);
+};
+ViewItem.prototype.getDataAtPath = function(){
+    if(!this.gaffa){
+        return;
+    }
+    return this.gaffa.model.get(getItemPath(this));
 };
 ViewItem.prototype.toJSON = function(){
     return jsonConverter(this);
@@ -1109,21 +1136,17 @@ View.prototype.bind = function(parent){
         var actions = this.actions[key],
             off;
 
-        if(actions._bound){
+        if(actions.__bound){
             continue;
         }
 
-        actions._bound = true;
+        actions.__bound = true;
 
         off = bindViewEvent(this, key);
 
         if(off){
             this._removeHandlers.push(off);
         }
-    }
-
-    if(this.name){
-        this.gaffa.namedViews[this.name] = this;
     }
 };
 
@@ -1144,7 +1167,7 @@ View.prototype.debind = function () {
         this._removeHandlers.pop()();
     }
     for(var key in this.actions){
-        this.actions[key]._bound = false;
+        this.actions[key].__bound = false;
     }
     debindViewItem(this);
 };
@@ -1165,12 +1188,6 @@ function insert(view, viewContainer, insertIndex){
             }
         });
     }
-
-    if(view.parentContainer){
-        view.parentContainer.splice(view.parentContainer.indexOf(view),1);
-    }
-
-    view.parentContainer = viewContainer;
 
     view.insertFunction(view.insertSelector || renderTarget, view.renderedElement, insertIndex);
 }
@@ -1247,16 +1264,6 @@ ContainerView.prototype.debind = function(){
 
         if(viewContainer instanceof ViewContainer){
             viewContainer.debind();
-        }
-    }
-};
-ContainerView.prototype.remove = function(){
-    View.prototype.remove.apply(this, arguments);
-    for(var key in this.views){
-        var viewContainer = this.views[key];
-
-        if(viewContainer instanceof ViewContainer){
-            viewContainer.empty();
         }
     }
 };
@@ -1780,7 +1787,7 @@ function Gaffa(){
                 ### .add(View/viewModel, insertIndex)
 
                 Add a view or views to the root list of viewModels.
-                When a view is added, it will be rendered bound, and inserted into the DOM.
+                When a view is added, it will be rendered _bound, and inserted into the DOM.
 
                     gaffa.views.add(myView);
 
