@@ -1,5 +1,6 @@
 var Gaffa = require('gaffa'),
     crel = require('crel'),
+    doc = require('doc-js'),
     viewType = "radio";
 
 function Radio(){}
@@ -11,13 +12,13 @@ Radio.prototype.render = function() {
         renderedElement = document.createElement('div');
 
     renderedElement.className = classes;
-    
+
     $(renderedElement).bind(this.updateEventName || "change", function () {
-        viewModel.value.set(viewModel.value.binding, $(this).find(':checked').val(), viewModel);
+        viewModel.value.set(doc(this).find(':checked')().value);
     });
 
     this.renderedElement = renderedElement;
-    
+
     this.__super__.render.apply(this, arguments);
 }
 
@@ -60,7 +61,7 @@ Radio.prototype.options = new Gaffa.Property(updateOptions);
 
 Radio.prototype.value = new Gaffa.Property(function (viewModel, value) {
     var options = $(this.renderedElement).find('input');
-        
+
     options.each(function(){
         var option = $(this);
         if(value === option.attr('value')){

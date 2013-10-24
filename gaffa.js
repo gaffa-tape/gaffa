@@ -221,7 +221,7 @@ function ajax(settings){
             settings.error && settings.error(event, data instanceof Error ? undefined : data);
         }else{
             if(data instanceof Error){
-                settings.error && settings.error(event, error);
+                settings.error && settings.error(event, data);
             }else{
                 settings.success && settings.success(data, event);
             }
@@ -254,6 +254,8 @@ function ajax(settings){
     }
 
     request.send(settings.data && settings.data);
+
+    return request;
 }
 
 
@@ -736,26 +738,23 @@ function Property(propertyDescription){
     this.gediCallbacks = [];
 }
 Property = createSpec(Property);
-Property.prototype.set = function(value, callUpdate){
+Property.prototype.set = function(value){
     var gaffa = this.gaffa;
 
-    if(callUpdate == null){
-        callUpdate = true;
-    }
-
-    this.value = value;
-
     if(this.binding){
-        this._previousHash = createValueHash(value);
         gaffa.model.set(
             this.binding,
             this.setTransform ? gaffa.model.get(this.setTransform, this, {value: value}) : value,
             this
         );
+    }else{
+        this.value = value;
+        this._previousHash = createValueHash(value);
+        if(this.update){
+            this.update(this.parent, value);
+        }
     }
-    if(callUpdate && this.update){
-        this.update(this.parent, value);
-    }
+
 }
 Property.prototype.sameAsPrevious = function () {
     if(compareToHash(this.value, this._previousHash)){

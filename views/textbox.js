@@ -4,23 +4,23 @@ var Gaffa = require('gaffa'),
     fastEach = require('fasteach'),
     doc = require('doc-js'),
 	cachedElement;
-    
+
 function setValue(event){
     var input = event.target,
         viewModel = input.viewModel;
-            
+
     if (viewModel.subType.value === "number") {
-        viewModel.value.set(parseFloat(input.value), false);
+        viewModel.value.set(parseFloat(input.value));
     } else {
-        viewModel.value.set(input.value, false);
-    } 
+        viewModel.value.set(input.value);
+    }
 }
 
 function updateValue(viewModel, value){
 
     value = value || '';
 
-            
+
     var element = viewModel.renderedElement,
         caretPosition = 0,
         hasCaret = element === document.activeElement; //this is only necissary because IE10 is a pile of crap (i know what a surprise)
@@ -44,24 +44,24 @@ function updateValue(viewModel, value){
             caretPosition = selection.text.length;
         }
         else if (element.selectionStart || element.selectionStart == '0'){
-            caretPosition = element.selectionStart; 
-        }       
+            caretPosition = element.selectionStart;
+        }
     }
-    
-    element.value = value;                    
-    
+
+    element.value = value;
+
     if(hasCaret){
         if(element.createTextRange) {
             var range = element.createTextRange();
-                
-            range.move('character', caretPosition);   
-            
+
+            range.move('character', caretPosition);
+
             range.select();
         }
         if(element.selectionStart) {
             element.setSelectionRange(caretPosition, caretPosition);
         }
-    }        
+    }
 }
 
 function updateSubType(viewModel, value){
@@ -95,11 +95,11 @@ Textbox.prototype.type = viewType;
 Textbox.prototype.render = function(){
     var renderedElement = crel('input'),
         updateEventNames = (this.updateEventName || "change").split(' ');
-            
+
     this._removeHandlers.push(this.gaffa.events.on(this.updateEventName || "change", renderedElement, setValue));
-    
+
     this.renderedElement = renderedElement;
-    
+
     this.__super__.render.apply(this, arguments);
 };
 
