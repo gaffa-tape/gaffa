@@ -17,10 +17,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/KoryNunn/gaffa-js.git"
+    "url": "https://github.com/gaffa-tape/gaffa-js.git"
   },
   "bugs": {
-    "url": "http://github.com/KoryNunn/gaffa-js/issues"
+    "url": "http://github.com/gaffa-tape/gaffa-js/issues"
   },
   "contributors": [],
   "devDependencies": {
