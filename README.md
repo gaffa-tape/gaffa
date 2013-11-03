@@ -8,7 +8,7 @@
 
 ## Quick n easy setup
 
-    npm install gaffa-boilerplate
+    npm install gaffa-boilerplate -g
 
 Then make a folder for your test project.
 
