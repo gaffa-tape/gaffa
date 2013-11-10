@@ -738,14 +738,15 @@ function Property(propertyDescription){
     this.gediCallbacks = [];
 }
 Property = createSpec(Property);
-Property.prototype.set = function(value){
+Property.prototype.set = function(value, isDirty){
     var gaffa = this.gaffa;
 
     if(this.binding){
         gaffa.model.set(
             this.binding,
             this.setTransform ? gaffa.model.get(this.setTransform, this, {value: value}) : value,
-            this
+            this,
+            isDirty
         );
     }else{
         this.value = value;
