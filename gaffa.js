@@ -42,11 +42,11 @@ Object.create = Object.create || function (o) {
 //IE Specific idiocy
 
 Array.prototype.indexOf = Array.prototype.indexOf || function(object) {
-    fastEach(this, function(value, index) {
-        if (value === object) {
-            return index;
+    for(var i = 0; i < this.length; i++) {
+        if (this[i] === object){
+            return i;
         }
-    });
+    }
 };
 
 // http://stackoverflow.com/questions/498970/how-do-i-trim-a-string-in-javascript
@@ -58,17 +58,6 @@ Array.isArray = Array.isArray || function(obj){
 };
 
 //End IE land.
-
-
-
-
-function fastEach(array, callback) {
-    for (var i = 0; i < array.length; i++) {
-        if(callback(array[i], i, array)) break;
-    }
-    return array;
-};
-
 
 
 
@@ -126,13 +115,13 @@ function parseQueryString(url){
 
         var queryStringData = urlParts.pop().split("&");
 
-        fastEach(queryStringData, function(keyValue){
-            var parts = keyValue.split("="),
+        for(var i = 0; i < queryStringData.length; i++) {
+            var parts = queryStringData[i].split("="),
                 key = window.unescape(parts[0]),
                 value = window.unescape(parts[1]);
 
             result[key] = value;
-        });
+        }
     }
 
     return result;
@@ -295,9 +284,9 @@ function getDistinctGroups(gaffa, collection, expression){
 
     if(collection && typeof collection === "object"){
         if(Array.isArray(collection)){
-            fastEach(values, function(value){
-                distinctValues[value] = null;
-            });
+            for(var i = 0; i < values.length; i++) {
+                distinctValues[values[i]] = null;
+            }
         }else{
             throw "Object collections are not currently supported";
         }
@@ -339,9 +328,9 @@ function triggerAction(action, parent, scope, event) {
 
 function triggerActions(actions, parent, scope, event) {
     if(Array.isArray(actions)){
-        fastEach(actions, function(action){
-            triggerAction(action, parent, scope, event);
-        });
+        for(var i = 0; i < actions.length; i++) {
+            triggerAction(actions[i], parent, scope, event);
+        }
     }
 }
 
@@ -558,9 +547,9 @@ function removeViews(views){
 
     views = views.slice();
 
-    fastEach(views, function(viewModel){
-        viewModel.remove();
-    });
+    for(var i = 0; i < views.length; i++) {
+        views[i].remove();
+    }
 }
 
 
@@ -1347,7 +1336,9 @@ function Gaffa(){
     function addBehaviour(behaviour) {
         //if the views isnt an array, make it one.
         if (Array.isArray(behaviour)) {
-            fastEach(behaviour, addBehaviour);
+            for(var i = 0; i < behaviour.length; i++) {
+                addBehaviour(behaviour[i]);
+            }
             return;
         }
 
@@ -1368,18 +1359,22 @@ function Gaffa(){
     }
 
 
-
+    function callbackNotification(notifications, data){
+        for(var i = 0; i < notifications.length; i++) {
+            notifications[i](data);
+        }
+    }
 
     function notify(kind, data){
         var subKinds = kind.split(".");
 
-        fastEach(subKinds, function(subKind, index){
-            var notificationKind = subKinds.slice(0, index + 1).join(".");
+        for(var i = 0; i < subKinds.length; i++) {
+            var notificationKind = subKinds.slice(0, i + 1).join(".");
 
-            internalNotifications[notificationKind] && fastEach(internalNotifications[notificationKind], function(callback){
-                callback(data);
-            });
-        });
+            if(internalNotifications[notificationKind]){
+                callbackNotification(internalNotifications[notificationKind]);
+            }
+        }
     }
 
 
@@ -1430,15 +1425,15 @@ function Gaffa(){
             gaffa.model.set(app.model, null, null, false);
         }
         if (app.views) {
-            fastEach(app.views, function(view, index){
-                app.views[index] = initialiseView(view, gaffa);
-            });
+            for(var i = 0; i < app.views.length; i++) {
+                app.views[i] = initialiseView(app.views[i], gaffa);
+            }
             targetView.add(app.views);
         }
         if (app.behaviours) {
-            fastEach(app.behaviours, function(behaviour, index){
-                app.behaviours[index] = initialiseBehaviour(behaviour, gaffa);
-            });
+            for(var i = 0; i < app.behaviours.length; i++) {
+                app.behaviours[i] = initialiseBehaviour(app.behaviours[i], gaffa);
+            }
             gaffa.behaviours.add(app.behaviours);
         }
 
@@ -1801,7 +1796,9 @@ function Gaffa(){
             */
             add: function(view, insertIndex){
                 if(Array.isArray(view)){
-                    fastEach(view, gaffa.views.add);
+                    for(var i = 0; i < view.length; i++) {
+                        gaffa.views.add(view[i]);
+                    }
                     return;
                 }
 
@@ -2079,11 +2076,12 @@ Gaffa.propertyUpdaters = {
                         return;
                     }
                     var same = true;
-                    fastEach(previousGroups, function(group, index){
+                    for(var i = 0; i < previousGroups.length; i++) {
+                        var group = previousGroups[i];
                         if(group !== viewModel.distinctGroups[group]){
                             same = false;
                         }
-                    });
+                    }
                     if(same){
                         return;
                     }
@@ -2100,29 +2098,29 @@ Gaffa.propertyUpdaters = {
                         remove(viewModel, value, childView);
                     }
                 }
-
-                fastEach(viewModel.distinctGroups, function(group){
+                for(var i = 0; i < viewModel.distinctGroups.length; i++) {
+                    var group = viewModel.distinctGroups[i];
                     var exists = false;
-                    fastEach(childViews, function(child){
-                        if(child.group === group){
+                    for(var i = 0; i < childViews.length; i++) {
+                        if(child.group === childViews[i]){
                             exists = true;
                         }
-                    });
+                    }
 
                     if (!exists) {
                         newView = {group: group};
                         insert(viewModel, value, newView);
                     }
-                });
+                }
 
                 isEmpty = !childViews.length;
 
                 empty(viewModel, isEmpty);
             }else{
-                fastEach(childViews, function(childView, index){
+                for(var i = 0; i < childViews.length; i++) {
                     childViews.splice(index, 1);
-                    remove(viewModel, property.value, childView);
-                });
+                    remove(viewModel, property.value, childViews[i]);
+                }
             }
         };
     }
