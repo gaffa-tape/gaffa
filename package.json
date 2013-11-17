@@ -5,11 +5,11 @@
   "tags": [
     "DOM"
   ],
-  "version": "0.17.3",
+  "version": "0.18.0",
   "main": "gaffa.js",
   "dependencies": {
     "fasteach": ">= 1.0.0",
-    "gedi": "0.9.x",
+    "gedi": "0.10.x",
     "doc-js": "0.1.x",
     "crel": "1.0.x",
     "deep-equal": "0.0.x",
