@@ -148,7 +148,7 @@ function toQueryString(data){
 function clone(value){
     if(value != null && typeof value === "object"){
         if(Array.isArray(value)){
-            return value.slice();
+            return extend([], value);
         }else if (value instanceof Date) {
             return new Date(value);
         }else{
