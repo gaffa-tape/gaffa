@@ -630,11 +630,18 @@ function createPropertyCallback(property){
             valueTokens;
 
         if(event){
+
             scope = createModelScope(property.parent, event);
+
             if(event === true){ // Initial update.
+
                 valueTokens = property.gaffa.model.get(property.binding, property, scope, true);
 
-            } else if(property.binding){ // Model change update.
+            }else if(event.captureType === 'bubble' && property.ignoreBubbledEvents){
+
+                return;
+
+            }else if(property.binding){ // Model change update.
 
                 if(property.ignoreTargets && event.target.toString().match(property.ignoreTargets)){
                     return;
