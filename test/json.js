@@ -1,4 +1,4 @@
-var test = require('tape'),
+var test = require('grape'),
     Gaffa = require('gaffa'),
     views = {
         textbox: require('../views/textbox'),
