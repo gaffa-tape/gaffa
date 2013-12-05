@@ -1501,7 +1501,7 @@ function Gaffa(){
                 'x-gaffa': 'navigate'
             },
             cache: navigator.appName !== 'Microsoft Internet Explorer',
-            url: url,
+            url: url + '.json',
             type: "get",
             data: data, // This is to avoid the cached HTML version of a page if you are bootstrapping.
             dataType: "json",
