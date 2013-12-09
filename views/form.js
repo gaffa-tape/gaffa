@@ -7,10 +7,10 @@ function Form(){}
 Form = Gaffa.createSpec(Form, Gaffa.ContainerView);
 Form.prototype.type = viewType;
 
-Form.prototype.render = function(){        
+Form.prototype.render = function(){
     var viewModel = this,
         renderedElement = crel('form')
-    
+
     if (this.action) {
         renderedElement.setAttribute("action", this.action);
     } else {
@@ -24,12 +24,12 @@ Form.prototype.render = function(){
     if (this.method) {
         renderedElement.setAttribute("method", this.method);
     }
-    
+
     this.views.content.element = renderedElement;
-    
+
     this.renderedElement = renderedElement;
-    
-    this.__super__.render.apply(this, arguments);
+
+
 };
 
 module.exports = Form;

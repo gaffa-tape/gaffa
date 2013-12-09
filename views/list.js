@@ -19,7 +19,7 @@ List.prototype.render = function(){
 	this.views.empty.element = renderedElement;
     this.renderedElement = renderedElement;
 
-    this.__super__.render.apply(this, arguments);
+
 };
 
 List.prototype.list = new TemplaterProperty({

@@ -14,7 +14,7 @@ SwitchContainer.prototype.render = function(){
     this.views.content.element = renderedElement;
     this.renderedElement = renderedElement;
 
-    this.__super__.render.apply(this, arguments);
+
 };
 
 function createNewView(property, template, templateKey){

@@ -2,13 +2,13 @@ var Gaffa = require('gaffa'),
     crel = require('crel'),
     doc = require('doc-js'),
     viewType = "fileInput";
-    
-function setValue(event){    
+
+function setValue(event){
     var input = event.target,
         viewModel = input.viewModel;
-            
+
     viewModel.files.set(Array.prototype.slice.call(input.files), viewModel);
-}  
+}
 
 function FileInput(){}
 FileInput = Gaffa.createSpec(FileInput, Gaffa.View);
@@ -23,8 +23,8 @@ FileInput.prototype.render = function(){
     doc.on("change", 'input[type="file"]', setValue, renderedElement);
 
     this.renderedElement = renderedElement;
-    
-    this.__super__.render.apply(this, arguments);
+
+
 };
 FileInput.prototype.multiple = new Gaffa.Property(function(viewModel, value){
     if (value){

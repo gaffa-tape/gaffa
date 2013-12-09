@@ -100,7 +100,7 @@ Textbox.prototype.render = function(){
 
     this.renderedElement = renderedElement;
 
-    this.__super__.render.apply(this, arguments);
+
 };
 
 Textbox.prototype.value = new Gaffa.Property(updateValue);

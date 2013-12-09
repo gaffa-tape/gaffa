@@ -16,7 +16,7 @@ Anchor.prototype.render = function(){
         viewModel = this;
 
     this.views.content.element = renderedElement;
-    
+
     this.renderedElement = renderedElement;
 
     this.text.textNode = textNode;
@@ -29,8 +29,8 @@ Anchor.prototype.render = function(){
             viewModel.gaffa.navigate(viewModel.href.value, viewModel.target.value);
         });
     }
-    
-    this.__super__.render.apply(this, arguments);
+
+
 };
 
 Anchor.prototype.text = new Gaffa.Property(function(view, value){

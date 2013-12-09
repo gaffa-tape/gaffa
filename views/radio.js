@@ -19,7 +19,7 @@ Radio.prototype.render = function() {
 
     this.renderedElement = renderedElement;
 
-    this.__super__.render.apply(this, arguments);
+
 }
 
 function updateOptions(viewModel, value) {
