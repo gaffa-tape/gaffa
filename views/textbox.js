@@ -1,9 +1,7 @@
 var Gaffa = require('gaffa'),
     crel = require('crel'),
     viewType = "textbox",
-    fastEach = require('fasteach'),
-    doc = require('doc-js'),
-	cachedElement;
+    doc = require('doc-js');
 
 function setValue(event){
     var input = event.target,
