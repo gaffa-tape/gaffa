@@ -13,11 +13,10 @@
 var Gedi = require('gedi'),
     doc = require('doc-js'),
     crel = require('crel'),
-    fastEach = require('fasteach'),
     deepEqual = require('deep-equal'),
     createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
-    animationFrame = require('./raf.js'),
+    animationFrame = require('./lib/raf.js'),
     requestAnimationFrame = animationFrame.requestAnimationFrame,
     cancelAnimationFrame = animationFrame.cancelAnimationFrame;
 
@@ -2037,7 +2036,6 @@ function Gaffa(){
         ajax: ajax,
         crel: crel,
         doc: doc,
-        fastEach: fastEach,
         getClosestItem: getClosestItem,
         pushState: function(state, title, location){
             window.history.pushState(state, title, location);

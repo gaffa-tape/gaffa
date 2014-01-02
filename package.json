@@ -8,9 +8,8 @@
   "version": "0.19.1",
   "main": "gaffa.js",
   "dependencies": {
-    "fasteach": ">= 1.0.0",
     "gedi": "0.12.x",
-    "doc-js": "0.1.x",
+    "doc-js": "0.4.x",
     "crel": "1.0.x",
     "deep-equal": "0.0.x",
     "spec-js": "0.0.x"

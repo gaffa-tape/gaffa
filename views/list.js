@@ -1,6 +1,6 @@
 var Gaffa = require('gaffa'),
     crel = require('crel'),
-    TemplaterProperty = require('gaffa/src/templaterProperty'),
+    TemplaterProperty = require('gaffa/lib/templaterProperty'),
     viewType = "list",
 	cachedElement;
 
