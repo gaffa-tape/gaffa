@@ -1213,7 +1213,7 @@ function Enabled(){};
 Enabled = createSpec(Enabled, Property);
 Enabled.prototype.value = true;
 Enabled.prototype.update = function(view, value) {
-    if(!value === !!view.renderedElement.disabled){
+    if(!value === !!view.renderedElement.getAttribute('disabled')){
         return;
     }
     view.renderedElement[!value ? 'setAttribute' : 'removeAttribute']('disabled','disabled');
