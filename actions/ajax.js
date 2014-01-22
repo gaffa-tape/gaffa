@@ -50,12 +50,10 @@ Ajax.prototype.trigger = function(parent, scope, event){
                 return;
             }
 
-            action.target.set(data);
-
-            // Mark a portion of the model as clean after a successful request.
-            if(action.cleans !== false && action.target.binding){
-                gaffa.model.setDirtyState(action.target.binding, false, action);
-            }
+            // Set the response into the model
+            // and mark a portion of the model
+            // as clean after a successful request.
+            action.target.set(data, action.cleans === false);
 
             scope.data = data;
 

@@ -616,6 +616,10 @@ function updateProperty(property, firstUpdate){
     // because it sets up the last value hash,
     // and it will be false anyway.
     if(!property.sameAsPrevious() && !property.nextUpdate){
+        if(property.gaffa.debug){
+            property.update(property.parent, property.value);
+            return;
+        }
         property.nextUpdate = requestAnimationFrame(function(){
             property.update(property.parent, property.value);
             property.nextUpdate = null;
