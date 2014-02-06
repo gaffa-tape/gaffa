@@ -16,20 +16,26 @@ Anchor.prototype.render = function(){
         viewModel = this;
 
     this.views.content.element = renderedElement;
-    
+
     this.renderedElement = renderedElement;
 
     this.text.textNode = textNode;
 
     if(!this.external){
         // Prevent default click action reguardless of gaffa.event implementation
-        renderedElement.onclick = function(event){event.preventDefault()};
+        renderedElement.onclick = function(event){
+            if(event.which === 1){
+                event.preventDefault()
+            }
+        };
 
         this.gaffa.events.on('click', renderedElement, function(event){
-            viewModel.gaffa.navigate(viewModel.href.value, viewModel.target.value);
+            if(event.which === 1){
+                viewModel.gaffa.navigate(viewModel.href.value, viewModel.target.value);
+            }
         });
     }
-    
+
     this.__super__.render.apply(this, arguments);
 };
 
