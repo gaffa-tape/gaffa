@@ -6,7 +6,7 @@ Push = Gaffa.createSpec(Push, Gaffa.Action);
 Push.prototype.type = actionType;
 Push.prototype.trigger = function(){
     this.__super__.trigger.apply(this, arguments);
-    
+
     var toObject = this.target.value;
     if(toObject == null){
         toObject = [];
@@ -26,6 +26,9 @@ Push.prototype.trigger = function(){
 Push.prototype.target = new Gaffa.Property();
 Push.prototype.source = new Gaffa.Property();
 Push.prototype.cleans = new Gaffa.Property();
+Push.prototype.clone = new Gaffa.Property({
+    value: true
+});
 
 
 
