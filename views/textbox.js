@@ -1,9 +1,7 @@
 var Gaffa = require('gaffa'),
     crel = require('crel'),
     viewType = "textbox",
-    fastEach = require('fasteach'),
-    doc = require('doc-js'),
-	cachedElement;
+    doc = require('doc-js');
 
 function setValue(event){
     var input = event.target,
@@ -88,6 +86,22 @@ function updateRequired(viewModel, value){
     }
 }
 
+function updateMaxLength(viewModel, value){
+    if (value){
+        viewModel.renderedElement.setAttribute('maxlength', value != null ? value : "");
+    }else{
+        viewModel.renderedElement.removeAttribute('maxlength');
+    }
+}
+
+function updateName(viewModel, value){
+    if (value){
+        viewModel.renderedElement.setAttribute('name', value != null ? value : "");
+    }else{
+        viewModel.renderedElement.removeAttribute('name');
+    }
+}
+
 function Textbox(){}
 Textbox = Gaffa.createSpec(Textbox, Gaffa.View);
 Textbox.prototype.type = viewType;
@@ -112,5 +126,9 @@ Textbox.prototype.placeholder = new Gaffa.Property(updatePlaceholder);
 Textbox.prototype.disabled = new Gaffa.Property(updateDisabled);
 
 Textbox.prototype.required = new Gaffa.Property(updateRequired);
+
+Textbox.prototype.maxLength = new Gaffa.Property(updateMaxLength);
+
+Textbox.prototype.name = new Gaffa.Property(updateName);
 
 module.exports = Textbox;
