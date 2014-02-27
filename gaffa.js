@@ -170,9 +170,31 @@ function tryParseJson(data){
 }
 
 function ajax(settings){
-    var queryStringData;
+    var queryStringData,
+        request = new XMLHttpRequest();
     if(typeof settings !== 'object'){
         settings = {};
+    }
+
+    if(settings.cors){
+        //http://www.html5rocks.com/en/tutorials/cors/
+
+        if ("withCredentials" in request) {
+
+            // all good.
+
+        } else if (typeof XDomainRequest != "undefined") {
+
+            // Otherwise, check if XDomainRequest.
+            // XDomainRequest only exists in IE, and is IE's way of making CORS requests.
+            request = new XDomainRequest();
+        } else {
+
+            // Otherwise, CORS is not supported by the browser.
+            throw "Cors is not supported by this browser";
+        }
+    }else{
+        request = new XMLHttpRequest();
     }
 
     if(settings.cache === false){
@@ -191,8 +213,6 @@ function ajax(settings){
         settings.url  = settings.url.split('?').shift() + toQueryString(queryStringData);
         settings.data = null;
     }
-
-    var request = new XMLHttpRequest();
 
     request.addEventListener("progress", settings.progress, false);
     request.addEventListener("load", function(event){
@@ -221,7 +241,7 @@ function ajax(settings){
     request.addEventListener("abort", settings.abort, false);
     request.addEventListener("loadend", settings.complete, false);
 
-    request.open(settings.type || "get", settings.url, true);
+    request.open(settings.type || "get", settings.url, settings.cors);
 
     // Set default headers
     if(settings.contentType !== false){
