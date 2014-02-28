@@ -1295,7 +1295,7 @@ function Action(actionDescription){
 }
 Action = createSpec(Action, ViewItem);
 Action.prototype.bind = function(){
-    ViewItem.prototype.bind.apply(this);
+    ViewItem.prototype.bind.call(this);
 };
 Action.prototype.trigger = function(parent, scope, event){
     this.parent = parent;
