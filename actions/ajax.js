@@ -11,7 +11,6 @@ Ajax.prototype.method = new Gaffa.Property({
 Ajax.prototype.auth = new Gaffa.Property();
 Ajax.prototype.dataType = 'json';
 Ajax.prototype.trigger = function(parent, scope, event){
-    this.__super__.trigger.apply(this, arguments);
 
     var action = this,
         gaffa = this.gaffa,

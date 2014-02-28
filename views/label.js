@@ -3,20 +3,19 @@
 var Gaffa = require('gaffa'),
     crel = require('crel'),
     viewType = 'label';
-    
+
 function Label(){}
 Label = Gaffa.createSpec(Label, Gaffa.View);
 Label.prototype.type = viewType;
 
-Label.prototype.render = function(){        
+Label.prototype.render = function(){
     var textNode = document.createTextNode(''),
         renderedElement = crel(this.tagName || 'label', textNode);
-    
+
     this.renderedElement = renderedElement;
 
     this.text.textNode = textNode;
-    
-    this.__super__.render.apply(this, arguments);
+
 };
 
 Label.prototype.text = new Gaffa.Property(function(view, value){

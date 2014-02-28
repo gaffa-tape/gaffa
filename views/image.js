@@ -2,7 +2,7 @@ var Gaffa = require('gaffa'),
     viewType = "image",
     crel = require('crel'),
 	cachedElement;
-    
+
 function imageToURI(image, callback) {
     var reader = new window.FileReader();
     reader.onload = function(event) {
@@ -17,10 +17,9 @@ Image.prototype.type = viewType;
 
 Image.prototype.render = function(){
     var renderedElement = crel('img');
-    
+
     this.renderedElement = renderedElement;
-    
-    this.__super__.render.apply(this, arguments);
+
 };
 
 Image.prototype.source = new Gaffa.Property(function (viewModel, value) {

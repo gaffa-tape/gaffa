@@ -18,7 +18,6 @@ Button.prototype.render = function(){
 
     this.renderedElement = renderedElement;
 
-    this.__super__.render.apply(this, arguments);
 };
 
 Button.prototype.text = new Gaffa.Property(function(view, value){

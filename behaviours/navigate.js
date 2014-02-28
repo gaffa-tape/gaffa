@@ -5,7 +5,6 @@ function Navigate(){}
 Navigate = Gaffa.createSpec(Navigate, Gaffa.Behaviour);
 Navigate.prototype.type = behaviourType;
 Navigate.prototype.bind = function(){
-    Gaffa.Behaviour.prototype.bind.apply(this, arguments);
 
     var behaviour = this;
 

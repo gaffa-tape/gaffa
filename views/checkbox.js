@@ -7,7 +7,7 @@ function Checkbox(){}
 Checkbox = Gaffa.createSpec(Checkbox, Gaffa.ContainerView);
 Checkbox.prototype.type = 'checkbox';
 
-Checkbox.prototype.render = function(){    
+Checkbox.prototype.render = function(){
     var view = this,
         label,
         checkbox,
@@ -18,21 +18,20 @@ Checkbox.prototype.render = function(){
 
     this.checkboxInput = checkbox;
     this.checkboxLabel = label;
-    
+
     checkbox.addEventListener(this.updateEventName || "change", function(event){
-        view.checked.set(this.checked);            
-    });     
+        view.checked.set(this.checked);
+    });
     label.addEventListener('click', function(){
         checkbox.click();
     });
     renderedElement.appendChild(checkbox);
     renderedElement.appendChild(label);
-    
+
     this.views.content.element = label;
-    
+
     this.renderedElement = renderedElement;
-    
-    this.__super__.render.apply(this, arguments);
+
 };
 
 Checkbox.prototype.checked = new Gaffa.Property(function(view, value) {

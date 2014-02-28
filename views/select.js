@@ -34,7 +34,6 @@ Select.prototype.render = function(){
 
     this.renderedElement = renderedElement;
 
-    this.__super__.render.apply(this, arguments);
 };
 
 Select.prototype.options = new Gaffa.Property(function(viewModel, value) {

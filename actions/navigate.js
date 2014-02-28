@@ -8,9 +8,8 @@ Navigate.prototype.url = new Gaffa.Property();
 Navigate.prototype.target = new Gaffa.Property();
 Navigate.prototype.data = new Gaffa.Property();
 Navigate.prototype.pushstate = new Gaffa.Property();
-Navigate.prototype.external = new Gaffa.Property();    
+Navigate.prototype.external = new Gaffa.Property();
 Navigate.prototype.trigger = function() {
-    this.__super__.trigger.apply(this, arguments);
 
     if(this.external.value){
         window.location = this.url.value;

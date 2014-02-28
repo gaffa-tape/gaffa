@@ -5,7 +5,6 @@ function Clean(){}
 Clean = Gaffa.createSpec(Clean, Gaffa.Action);
 Clean.prototype.type = actionType;
 Clean.prototype.trigger = function(){
-    this.__super__.trigger.apply(this, arguments);
 
     this.gaffa.model.setDirtyState(this.target.binding, false, this);
 

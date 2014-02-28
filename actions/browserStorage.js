@@ -6,7 +6,6 @@ function BrowserStorage(actionDefinition){
 BrowserStorage = Gaffa.createSpec(BrowserStorage, Gaffa.Action);
 BrowserStorage.prototype.type = actionType;
 BrowserStorage.prototype.trigger = function(parent, scope, event){
-    this.__super__.trigger.apply(this, arguments);
 
     var action = this,
         data = action.source.value;
@@ -21,7 +20,7 @@ BrowserStorage.prototype.trigger = function(parent, scope, event){
             window[action.storageType.value + 'Storage'].setItem(action.target.value, JSON.stringify(data));
             break;
     }
-    
+
 };
 BrowserStorage.prototype.storageType = new Gaffa.Property({
     value: 'local'
