@@ -18,7 +18,6 @@ Textarea.prototype.render = function(){
 
     this.renderedElement = renderedElement;
 
-    this.__super__.render.apply(this, arguments);
 };
 
 Textarea.prototype.value = new Gaffa.Property(function(view, value){

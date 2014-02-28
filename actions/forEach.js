@@ -9,7 +9,6 @@ ForEach.prototype.target = new Gaffa.Property({
 });
 
 ForEach.prototype.trigger = function(parent, scope, event) {
-    this.__super__.trigger.apply(this, arguments);
 
     var items = this.target.value,
         keys = this.target._sourcePathInfo && this.target._sourcePathInfo.subPaths;

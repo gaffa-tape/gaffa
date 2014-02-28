@@ -7,13 +7,12 @@ Conditional.prototype.type = actionType;
 Conditional.prototype.condition = new Gaffa.Property();
 
 Conditional.prototype.trigger = function(parent, scope, event) {
-    this.__super__.trigger.apply(this, arguments);
 
     if (this.condition.value) {
         this.triggerActions('true', scope, event);
     } else {
         this.triggerActions('false', scope, event);
-    }           
+    }
 };
 
 

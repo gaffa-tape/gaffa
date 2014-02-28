@@ -341,6 +341,7 @@ function deDom(node){
 
 
 function triggerAction(action, parent, scope, event) {
+    Action.prototype.trigger.call(action, parent, scope, event);
     action.trigger(parent, scope, event);
 }
 
@@ -880,6 +881,7 @@ ViewContainer.prototype.add = function(view, insertIndex){
 
         if(!view.renderedElement){
             view.render();
+            view.renderedElement.viewModel = view;
         }
         view.bind(this.parent);
         view.insert(this, insertIndex);
@@ -1192,9 +1194,7 @@ View.prototype.debind = function () {
     debindViewItem(this);
 };
 
-View.prototype.render = function(){
-    this.renderedElement.viewModel = this;
-};
+View.prototype.render = function(){};
 
 function insert(view, viewContainer, insertIndex){
     var gaffa = view.gaffa,
@@ -1376,6 +1376,7 @@ function Gaffa(){
         behaviour.gaffa = gaffa;
         behaviour.parentContainer = internalBehaviours;
 
+        Behaviour.prototype.bind.call(this);
         behaviour.bind();
 
         internalBehaviours.push(behaviour);
@@ -1840,6 +1841,7 @@ function Gaffa(){
                 view.gaffa = gaffa;
                 view.parentContainer = internalViewItems;
                 view.render();
+                view.renderedElement.viewModel = view;
                 view.bind();
                 view.insert(internalViewItems, insertIndex);
             },

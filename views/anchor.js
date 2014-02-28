@@ -35,8 +35,6 @@ Anchor.prototype.render = function(){
             }
         });
     }
-
-    this.__super__.render.apply(this, arguments);
 };
 
 Anchor.prototype.text = new Gaffa.Property(function(view, value){

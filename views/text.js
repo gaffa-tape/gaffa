@@ -1,15 +1,14 @@
 var Gaffa = require('gaffa'),
     crel = require('crel'),
     viewType = "text";
-    
+
 function Text(){}
 Text = Gaffa.createSpec(Text, Gaffa.View);
 Text.prototype.type = viewType;
 
-Text.prototype.render = function(){        
+Text.prototype.render = function(){
     this.renderedElement = document.createTextNode('');
-    
-    this.__super__.render.apply(this, arguments);
+
 };
 
 Text.prototype.text = new Gaffa.Property(function(viewModel, value){

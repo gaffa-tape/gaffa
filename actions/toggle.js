@@ -5,7 +5,6 @@ function Toggle(){}
 Toggle = Gaffa.createSpec(Toggle, Gaffa.Action);
 Toggle.prototype.type = actionType;
 Toggle.prototype.trigger = function(){
-    this.__super__.trigger.apply(this, arguments);
 
     this.target.set(!this.target.value, this);
 };
