@@ -13,6 +13,9 @@ BrowserStorage.prototype.trigger = function(parent, scope, event){
     switch(action.method.value){
         case "get":
             data = window[action.storageType.value + 'Storage'].getItem(action.source.value);
+            if(data === 'undefined'){
+                data = undefined;
+            }
             action.target.set(data ? JSON.parse(data) : undefined);
             break;
 
