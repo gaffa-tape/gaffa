@@ -1376,7 +1376,7 @@ function Gaffa(){
         behaviour.gaffa = gaffa;
         behaviour.parentContainer = internalBehaviours;
 
-        Behaviour.prototype.bind.call(this);
+        Behaviour.prototype.bind.call(behaviour);
         behaviour.bind();
 
         internalBehaviours.push(behaviour);

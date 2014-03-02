@@ -8,8 +8,6 @@ Container.prototype.render = function(){
     this.views.content.element =
     this.renderedElement =
     document.createElement(this.tagName || 'div');
-
-    Container.__super__.prototype.render.apply(this, arguments);
 };
 
 module.exports = Container;
