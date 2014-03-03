@@ -10,6 +10,7 @@ Ajax.prototype.method = new Gaffa.Property({
 });
 Ajax.prototype.auth = new Gaffa.Property();
 Ajax.prototype.dataType = 'json';
+Ajax.prototype.cors = new Gaffa.Property();
 Ajax.prototype.trigger = function(parent, scope, event){
 
     var action = this,
@@ -36,6 +37,7 @@ Ajax.prototype.trigger = function(parent, scope, event){
     scope = scope || {};
 
     var ajaxSettings = {
+        cors: action.cors.value,
         cache: action.cache,
         type: action.method.value,
         url: action.url.value || window.location.pathname,
