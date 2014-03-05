@@ -16,8 +16,15 @@ Ajax.prototype.trigger = function(parent, scope, event){
     var action = this,
         gaffa = this.gaffa,
         data = action.source.value,
-        errorHandler = function (error, data) {
+        errorHandler = function (xhrEvent, error) {
             scope.data = data;
+
+            action.emit('error', {
+                domEvent: event,
+                scope: scope,
+                data: data,
+                error: error
+            });
             action.triggerActions('error', scope, event);
             gaffa.notifications.notify("ajax.error." + action.kind, error);
         };
@@ -58,12 +65,22 @@ Ajax.prototype.trigger = function(parent, scope, event){
 
             scope.data = data;
 
+            action.emit('success', {
+                domEvent: event,
+                scope: scope,
+                data: data
+            });
+
             action.triggerActions('success', scope, event);
 
             gaffa.notifications.notify("ajax.success." + action.kind);
         },
         error: errorHandler,
         complete:function(){
+            action.emit('complete', {
+                domEvent: event,
+                scope: scope
+            });
             action.triggerActions('complete', scope, event);
             gaffa.notifications.notify("ajax.complete." + action.kind);
         }
