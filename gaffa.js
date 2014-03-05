@@ -497,12 +497,25 @@ function addDefaultStyle(style){
 
 
 
-function initialiseViewItem(viewItem, gaffa, specCollection) {
+function initialiseViewItem(viewItem, gaffa, specCollection, references) {
+    references = references || {
+        objects: [],
+        viewItems: []
+    };
+
     if(!(viewItem instanceof ViewItem)){
         if (!specCollection[viewItem.type]) {
             throw "No constructor is loaded to handle view of type " + viewItem.type;
         }
+
+        var referenceIndex = references.objects.indexOf(viewItem);
+        if(referenceIndex >= 0){
+            return references.viewItems[referenceIndex];
+        }
+
+        references.objects.push(viewItem);
         viewItem = new specCollection[viewItem.type](viewItem);
+        references.viewItems.push(viewItem);
     }
 
     for(var key in viewItem.views){
@@ -511,7 +524,7 @@ function initialiseViewItem(viewItem, gaffa, specCollection) {
         }
         var views = viewItem.views[key];
         for (var viewIndex = 0; viewIndex < views.length; viewIndex++) {
-            var view = initialiseView(views[viewIndex], gaffa);
+            var view = initialiseView(views[viewIndex], gaffa, references);
             views[viewIndex] = view;
             view.parentContainer = views;
         }
@@ -520,7 +533,7 @@ function initialiseViewItem(viewItem, gaffa, specCollection) {
     for(var key in viewItem.actions){
         var actions = viewItem.actions[key];
         for (var actionIndex = 0; actionIndex < actions.length; actionIndex++) {
-            var action = initialiseAction(actions[actionIndex], gaffa);
+            var action = initialiseAction(actions[actionIndex], gaffa, references);
             actions[actionIndex] = action;
             action.parentContainer = actions;
         }
@@ -528,7 +541,7 @@ function initialiseViewItem(viewItem, gaffa, specCollection) {
 
     if(viewItem.behaviours){
         for (var behaviourIndex = 0; behaviourIndex < viewItem.behaviours.length; behaviourIndex++) {
-            var behaviour = initialiseBehaviour(viewItem.behaviours[behaviourIndex], gaffa);
+            var behaviour = initialiseBehaviour(viewItem.behaviours[behaviourIndex], gaffa, references);
             viewItem.behaviours[behaviourIndex] = behaviour;
             behaviour.parentContainer = viewItem.behaviours;
         }
@@ -539,21 +552,21 @@ function initialiseViewItem(viewItem, gaffa, specCollection) {
 
 
 
-function initialiseView(viewItem, gaffa) {
-    return initialiseViewItem(viewItem, gaffa, gaffa.views.constructors);
+function initialiseView(viewItem, gaffa, references) {
+    return initialiseViewItem(viewItem, gaffa, gaffa.views.constructors, references);
 }
 
 
 
-function initialiseAction(viewItem, gaffa) {
-    return initialiseViewItem(viewItem, gaffa, gaffa.actions.constructors);
+function initialiseAction(viewItem, gaffa, references) {
+    return initialiseViewItem(viewItem, gaffa, gaffa.actions.constructors, references);
 }
 
 
 
 
-function initialiseBehaviour(viewItem, gaffa) {
-    return initialiseViewItem(viewItem, gaffa, gaffa.behaviours.constructors);
+function initialiseBehaviour(viewItem, gaffa, references) {
+    return initialiseViewItem(viewItem, gaffa, gaffa.behaviours.constructors, references);
 }
 
 
