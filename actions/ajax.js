@@ -17,14 +17,22 @@ Ajax.prototype.trigger = function(parent, scope, event){
         gaffa = this.gaffa,
         data = action.source.value,
         errorHandler = function (xhrEvent, error) {
+            action.errors.set(error);
+
             scope.data = data;
 
-            action.emit('error', {
-                domEvent: event,
-                scope: scope,
-                data: data,
-                error: error
-            });
+            // EventEmitter will throw an error if you emit an error
+            // and have no handler attached to handle it.
+            // this event is only here as a convenience, not as the
+            // primary means of handling errors.
+            if(action._events.error){
+                action.emit('error', {
+                    domEvent: event,
+                    scope: scope,
+                    data: data,
+                    error: error
+                });
+            }
             action.triggerActions('error', scope, event);
             gaffa.notifications.notify("ajax.error." + action.kind, error);
         };
@@ -100,6 +108,7 @@ Ajax.prototype.trigger = function(parent, scope, event){
 };
 Ajax.prototype.target = new Gaffa.Property();
 Ajax.prototype.source = new Gaffa.Property();
+Ajax.prototype.errors = new Gaffa.Property();
 Ajax.prototype.dirty = new Gaffa.Property();
 Ajax.prototype.url = new Gaffa.Property();
 
