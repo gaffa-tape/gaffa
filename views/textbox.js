@@ -71,7 +71,7 @@ function updatePlaceholder(viewModel, value){
 }
 
 function updateDisabled(viewModel, value){
-    if (value){
+    if (value != 'true'){
         viewModel.renderedElement.setAttribute('disabled', 'disabled');
     }else{
         viewModel.renderedElement.removeAttribute('disabled');
@@ -88,17 +88,9 @@ function updateRequired(viewModel, value){
 
 function updateMaxLength(viewModel, value){
     if (value){
-        viewModel.renderedElement.setAttribute('maxlength', value != null ? value : "");
+        viewModel.renderedElement.setAttribute('maxLength', value != null ? value : "");
     }else{
-        viewModel.renderedElement.removeAttribute('maxlength');
-    }
-}
-
-function updateName(viewModel, value){
-    if (value){
-        viewModel.renderedElement.setAttribute('name', value != null ? value : "");
-    }else{
-        viewModel.renderedElement.removeAttribute('name');
+        viewModel.renderedElement.removeAttribute('maxLength');
     }
 }
 
