@@ -1164,6 +1164,7 @@ View.prototype.bind = function(parent){
 
     for(var i = 0; i < this.behaviours.length; i++){
         this.behaviours[i].gaffa = this.gaffa;
+        Behaviour.prototype.bind.call(this.behaviours[i], this);
         this.behaviours[i].bind(this);
     }
 
