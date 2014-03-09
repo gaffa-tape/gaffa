@@ -55,6 +55,7 @@ Ajax.prototype.trigger = function(parent, scope, event){
         cors: action.cors.value,
         cache: action.cache,
         type: action.method.value,
+        headers: action.headers.value,
         url: action.url.value || window.location.pathname,
         data: data,
         dataType: action.dataType,
@@ -110,6 +111,7 @@ Ajax.prototype.target = new Gaffa.Property();
 Ajax.prototype.source = new Gaffa.Property();
 Ajax.prototype.errors = new Gaffa.Property();
 Ajax.prototype.dirty = new Gaffa.Property();
+Ajax.prototype.headers = new Gaffa.Property();
 Ajax.prototype.url = new Gaffa.Property();
 
 module.exports = Ajax;

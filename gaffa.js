@@ -26,40 +26,6 @@ var defaultViewStyles;
 
 //internal functions
 
-// https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/create
-Object.create = Object.create || function (o) {
-    if (arguments.length > 1) {
-        throw new Error('Object.create implementation only accepts the first parameter.');
-    }
-    function F() {}
-    F.prototype = o;
-    return new F();
-};
-
-
-
-
-//IE Specific idiocy
-
-Array.prototype.indexOf = Array.prototype.indexOf || function(object) {
-    for(var i = 0; i < this.length; i++) {
-        if (this[i] === object){
-            return i;
-        }
-    }
-};
-
-// http://stackoverflow.com/questions/498970/how-do-i-trim-a-string-in-javascript
-String.prototype.trim=String.prototype.trim||function(){return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '');};
-
-// http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
-Array.isArray = Array.isArray || function(obj){
-    return Object.prototype.toString.call(obj) === '[object Array]';
-};
-
-//End IE land.
-
-
 
 //http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format/4673436#4673436
 //changed to a single array argument
@@ -68,9 +34,6 @@ String.prototype.format = function (values) {
         return (values[number] == undefined || values[number] == null) ? match : values[number];
     }).replace(/{(\d+)}/g, "");
 };
-
-
-
 
 //http://stackoverflow.com/questions/5346158/parse-string-using-format-template
 //Haxy de-formatter
@@ -105,8 +68,6 @@ String.prototype.deformat = function (template) {
 };
 
 
-
-
 function parseQueryString(url){
     var urlParts = url.split('?'),
         result = {};
@@ -128,8 +89,6 @@ function parseQueryString(url){
 }
 
 
-
-
 function toQueryString(data){
     var queryString = '';
 
@@ -141,8 +100,6 @@ function toQueryString(data){
 
     return queryString;
 }
-
-
 
 
 function clone(value){
@@ -159,8 +116,6 @@ function clone(value){
 }
 
 
-
-
 function tryParseJson(data){
     try{
         return JSON.parse(data);
@@ -168,6 +123,7 @@ function tryParseJson(data){
         return error;
     }
 }
+
 
 function ajax(settings){
     var queryStringData,
@@ -268,8 +224,6 @@ function ajax(settings){
 }
 
 
-
-
 function getClosestItem(target){
     var viewModel = target.viewModel;
 
@@ -285,8 +239,6 @@ function getClosestItem(target){
 }
 
 
-
-
 function langify(fn, context){
     return function(scope, args){
         var args = args.all();
@@ -294,8 +246,6 @@ function langify(fn, context){
         return fn.apply(context, args);
     }
 }
-
-
 
 
 function getDistinctGroups(gaffa, collection, expression){
@@ -356,8 +306,6 @@ function triggerActions(actions, parent, scope, event) {
 }
 
 
-
-
 function insertFunction(selector, renderedElement, insertIndex){
     var target = ((typeof selector === "string") ? document.querySelectorAll(selector)[0] : selector),
         referenceSibling;
@@ -371,7 +319,6 @@ function insertFunction(selector, renderedElement, insertIndex){
         target.appendChild(renderedElement);
     }
 }
-
 
 
 function getItemPath(item){
@@ -397,7 +344,6 @@ function getItemPath(item){
 
     return gedi.paths.resolve.apply(this, paths.reverse());
 }
-
 
 
 function extend(target, source){
@@ -443,7 +389,6 @@ function extend(target, source){
 }
 
 
-
 function sameAs(a,b){
     var typeofA = typeof a,
         typeofB = typeof b;
@@ -466,7 +411,6 @@ function sameAs(a,b){
         default: return false;
     }
 }
-
 
 
 function addDefaultStyle(style){
@@ -494,7 +438,6 @@ function addDefaultStyle(style){
     }
 
 }
-
 
 
 function initialiseViewItem(viewItem, gaffa, specCollection, references) {
@@ -551,11 +494,9 @@ function initialiseViewItem(viewItem, gaffa, specCollection, references) {
 }
 
 
-
 function initialiseView(viewItem, gaffa, references) {
     return initialiseViewItem(viewItem, gaffa, gaffa.views.constructors, references);
 }
-
 
 
 function initialiseAction(viewItem, gaffa, references) {
@@ -563,13 +504,9 @@ function initialiseAction(viewItem, gaffa, references) {
 }
 
 
-
-
 function initialiseBehaviour(viewItem, gaffa, references) {
     return initialiseViewItem(viewItem, gaffa, gaffa.behaviours.constructors, references);
 }
-
-
 
 
 function removeViews(views){
@@ -585,7 +522,6 @@ function removeViews(views){
         views[i].remove();
     }
 }
-
 
 
 function jsonConverter(object, exclude, include){
@@ -622,6 +558,7 @@ function jsonConverter(object, exclude, include){
     return tempObject;
 }
 
+
 function createModelScope(parent, gediEvent){
     var possibleGroup = parent,
         groupKey;
@@ -637,6 +574,7 @@ function createModelScope(parent, gediEvent){
         modelTarget: gediEvent && gediEvent.target
     };
 }
+
 
 function updateProperty(property, firstUpdate){
     // Update immediately, reduces reflows,
@@ -660,6 +598,7 @@ function updateProperty(property, firstUpdate){
         });
     }
 }
+
 
 function createPropertyCallback(property){
     return function (event) {
@@ -708,8 +647,6 @@ function createPropertyCallback(property){
 }
 
 
-
-
 function bindProperty(parent) {
     this.parent = parent;
 
@@ -729,8 +666,6 @@ function bindProperty(parent) {
 }
 
 
-
-
 //Public Objects ******************************************************************************
 
 function createValueHash(value){
@@ -740,6 +675,7 @@ function createValueHash(value){
 
     return value;
 }
+
 
 function compareToHash(value, hash){
     if(value && hash && typeof value === 'object' && typeof hash === 'object'){
@@ -757,7 +693,6 @@ function compareToHash(value, hash){
 
     return value === hash;
 }
-
 
 
 function Property(propertyDescription){
@@ -815,7 +750,6 @@ Property.prototype.toJSON = function(){
 
     return tempObject;
 };
-
 
 
 function ViewContainer(viewContainerDescription){
@@ -955,6 +889,7 @@ ViewContainer.prototype.toJSON = function(){
     return jsonConverter(this, ['element']);
 };
 
+
 function copyProperties(source, target){
     if(
         !source || typeof source !== 'object' ||
@@ -970,6 +905,7 @@ function copyProperties(source, target){
     }
 }
 
+
 function debindViewItem(viewItem){
     for(var key in viewItem){
         if(viewItem[key] instanceof Property){
@@ -979,6 +915,7 @@ function debindViewItem(viewItem){
     viewItem.emit('debind');
     viewItem._bound = false;
 }
+
 
 function removeViewItem(viewItem){
     if(!viewItem.parentContainer){
@@ -994,6 +931,7 @@ function removeViewItem(viewItem){
 
     viewItem.emit('remove');
 }
+
 
 /**
     ## ViewItem
@@ -1119,7 +1057,6 @@ ViewItem.prototype.triggerActions = function(actionName, scope, event){
 };
 
 
-
 function createEventedActionScope(view, event){
     var scope = createModelScope(view);
 
@@ -1136,11 +1073,13 @@ function createEventedActionScope(view, event){
     return scope;
 }
 
+
 function bindViewEvent(view, eventName){
     return view.gaffa.events.on(eventName, view.renderedElement, function (event) {
         triggerActions(view.actions[eventName], view, createEventedActionScope(view, event), event);
     });
 }
+
 
 /**
     ## View
@@ -1223,6 +1162,10 @@ function insert(view, viewContainer, insertIndex){
         });
     }
 
+    if(viewContainer.indexOf(view) !== insertIndex){
+        viewContainer.splice(insertIndex, 1, view);
+    }
+
     view.insertFunction(view.insertSelector || renderTarget, view.renderedElement, insertIndex);
 }
 
@@ -1267,10 +1210,11 @@ View.prototype.title = new Title();
 
 View.prototype.insertFunction = insertFunction;
 
+
 /**
     ## ContainerView
 
-    A base constructor for gaffa Views that have content view.
+    A base constructor for gaffa Views that can hold child views.
 
     All Views that inherit from ContainerView will have:
 
@@ -1303,8 +1247,6 @@ ContainerView.prototype.debind = function(){
 };
 
 
-
-
 function Action(actionDescription){
 }
 Action = createSpec(Action, ViewItem);
@@ -1333,7 +1275,6 @@ Action.prototype.trigger = function(parent, scope, event){
 };
 
 
-
 function Behaviour(behaviourDescription){}
 Behaviour = createSpec(Behaviour, ViewItem);
 Behaviour.prototype.toJSON = function(){
@@ -1345,7 +1286,6 @@ function Gaffa(){
 
 
     var gedi,
-        // Create gaffa global.
         gaffa = {};
 
 
@@ -1377,7 +1317,6 @@ function Gaffa(){
     gaffa.gedi = gedi;
 
 
-
     function addBehaviour(behaviour) {
         //if the views isnt an array, make it one.
         if (Array.isArray(behaviour)) {
@@ -1395,8 +1334,6 @@ function Gaffa(){
 
         internalBehaviours.push(behaviour);
     }
-
-
 
 
     function addNotification(kind, callback){
@@ -1424,8 +1361,6 @@ function Gaffa(){
     }
 
 
-
-
     function queryStringToModel(){
         var queryStringData = parseQueryString(window.location.search);
 
@@ -1441,7 +1376,6 @@ function Gaffa(){
             }
         }
     }
-
 
 
     function load(app, target){
@@ -1485,7 +1419,6 @@ function Gaffa(){
 
         queryStringToModel();
     }
-
 
 
     var pageCache = {};
@@ -1549,7 +1482,6 @@ function Gaffa(){
             complete: complete
         });
     }
-
 
 
     gaffa.onpopstate = function(event){
