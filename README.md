@@ -2,19 +2,31 @@
 
 ![logo](logosmall.png)
 
+## Recently changed:
+
+gaffa no longer ships with default viewItems, they have been moved to their own repo's and their own npm modules, for easier maintenance.
+
+eg:
+
+[gaffa-textbox](https://www.npmjs.org/package/gaffa-textbox)
+
+Install:
+
+    npm i --save gaffa-textbox
+
+Require:
+
+    var textbox = require('gaffa-textbox');
+
 ## Example
 
-[Gaffa-ToDo](http://korynunn.github.io/gaffa-todo/)
+[gaffa-template](http://korynunn.github.io/gaffa-template/public/)
 
 ## Quick n easy setup
 
-    npm install gaffa-boilerplate -g
+    git clone git@github.com:KoryNunn/gaffa-template.git
 
-Then make a folder for your test project.
-
-    gaffa-boilerplate
-
-This will copy some boilerplate files and start a file watcher that browserifys app.js, in the scripts folder.
+the template repo is a good starting point for an application.
 
 ## Overview
 Gaffa attempts to speed up the development of complicated UI's by providing a rich binding layer between arbitrary data and your UI.
@@ -58,19 +70,19 @@ To use a view, you must first load the constructor for that view. For example, t
 
 	// Views
 	gaffa.views.constructors = {
-		label: require('gaffa/views/label'),
-		textbox: require('gaffa/views/textbox'),
-		button: require('gaffa/views/button')
+		label: require('gaffa-label'),
+		textbox: require('gaffa-textbox'),
+		button: require('gaffa-button')
 	};
 
 	// Actions
 	gaffa.actions.constructors = {
-		remove: require('gaffa/actions/remove')
+		remove: require('gaffa-remove')
 	};
 
 	// Behaviours
 	gaffa.actions.constructors = {
-		pageLoad: require('gaffa/behaviours/pageLoad')
+		pageLoad: require('gaffa-page-load')
 	};
 
 For ease of development, the constructors are usually assigned to a variable:
