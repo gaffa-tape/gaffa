@@ -4,6 +4,8 @@
 
 ## Recently changed:
 
+### v1.1.x
+
 gaffa no longer ships with default viewItems, they have been moved to their own repo's and their own npm modules, for easier maintenance.
 
 eg:
