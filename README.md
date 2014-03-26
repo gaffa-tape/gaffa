@@ -4,6 +4,21 @@
 
 ## Recently changed:
 
+### v1.2.0
+
+The Property prototype now has a .get method which has the siganture:
+
+	property.get(scope, asTokens);
+
+Which allows views to more easily obtain the value of a property, with custom scope, eg:
+
+	// Assuming a binding of:
+	// '(* someScopeProperty 2)'
+
+	var value = property.get({ someScopeProperty: 123 });
+
+	// value === 246
+
 ### v1.1.x
 
 gaffa no longer ships with default viewItems, they have been moved to their own repo's and their own npm modules, for easier maintenance.
