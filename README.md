@@ -4,6 +4,14 @@
 
 ## Recently changed:
 
+### v1.3.0
+
+Added 'load' and 'unload' actions to the base View prototype.
+
+'load' effectivly makes the pageLoad behavior redundant.
+
+'unload' allows for easy data cleanup when a chunk of UI is removed.
+
 ### v1.2.0
 
 The Property prototype now has a .get method which has the siganture:
