@@ -197,7 +197,7 @@ function ajax(settings){
     request.addEventListener("abort", settings.abort, false);
     request.addEventListener("loadend", settings.complete, false);
 
-    request.open(settings.type || "get", settings.url, settings.cors);
+    request.open(settings.type || "get", settings.url, true);
 
     // Set default headers
     if(settings.contentType !== false){
