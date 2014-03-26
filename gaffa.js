@@ -1130,6 +1130,8 @@ View.prototype.bind = function(parent){
             this._removeHandlers.push(off);
         }
     }
+
+    this.triggerActions('load');
 };
 
 View.prototype.detach = function(){
@@ -1142,6 +1144,7 @@ View.prototype.remove = function(){
 }
 
 View.prototype.debind = function () {
+    this.triggerActions('unload');
     for(var i = 0; i < this.behaviours.length; i++){
         this.behaviours[i].debind();
     }
