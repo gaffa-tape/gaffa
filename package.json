@@ -10,7 +10,7 @@
   "dependencies": {
     "fasteach": ">= 1.0.0",
     "gedi": "0.13.x",
-    "doc-js": "0.1.x",
+    "doc-js": "0.4.x",
     "crel": "1.0.x",
     "deep-equal": "0.0.x",
     "spec-js": "0.0.x"
