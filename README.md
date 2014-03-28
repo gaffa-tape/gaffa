@@ -2,7 +2,31 @@
 
 ![logo](logosmall.png)
 
-## Recently changed:
+## Recently changed
+
+### v1.4.0
+
+viewItem constructors can now (and should be) added to gaffa via .registerConstructor
+
+eg:
+
+	var Button = require('gaffa-button');
+
+	gaffa.registerConstructor(Button);
+
+	// Use button as usual..
+
+Also, gaffa 1.3.0 looks for a viewItems type at:
+
+	viewItem._type
+
+And then, for compatibility, looks for the type at:
+
+	viewItem.type
+
+All new viewItems should put their type on the _type key.
+
+This change will allow for views such as textbox and select to have 'type' properties, rather than subType as they have now.
 
 ### v1.3.0
 
