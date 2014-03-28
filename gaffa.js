@@ -446,9 +446,12 @@ function initialiseViewItem(viewItem, gaffa, specCollection, references) {
         viewItems: []
     };
 
+    // ToDo: Deprecate .type
+    var viewItemType = viewItem._type || viewItem.type;
+
     if(!(viewItem instanceof ViewItem)){
-        if (!specCollection[viewItem.type]) {
-            throw "No constructor is loaded to handle view of type " + viewItem.type;
+        if (!specCollection[viewItemType]) {
+            throw "No constructor is loaded to handle view of type " + viewItemType;
         }
 
         var referenceIndex = references.objects.indexOf(viewItem);
@@ -457,7 +460,7 @@ function initialiseViewItem(viewItem, gaffa, specCollection, references) {
         }
 
         references.objects.push(viewItem);
-        viewItem = new specCollection[viewItem.type](viewItem);
+        viewItem = new specCollection[viewItemType](viewItem);
         references.viewItems.push(viewItem);
     }
 
@@ -1561,6 +1564,32 @@ function Gaffa(){
             Also recurses through the ViewItem's tree and inflates children.
         */
         initialiseViewItem: initialiseViewItem,
+
+        /**
+            ### .initialiseViewItem
+
+            takes the plain old object representation of a viewItem and returns an instance of ViewItem with all the settings applied.
+
+            Also recurses through the ViewItem's tree and inflates children.
+        */
+        registerConstructor: function(constructor){
+            if(Array.isArray(constructor)){
+                for(var i = 0; i < constructor.length; i++){
+                    gaffa.registerConstructor(constructor[i]);
+                }
+            }
+
+            var constructorType = constructor.prototype instanceof View && 'views' ||
+                constructor.prototype instanceof Action && 'actions' ||
+                constructor.prototype instanceof Behaviour && 'behaviours';
+
+            if(constructorType){
+                // ToDo: Deprecate .type
+                gaffa[constructorType].constructors[constructor.prototype._type || constructor.prototype.type] = constructor;
+            }else{
+                throw "The provided constructor was not an instance of a View, Action, or Behaviour";
+            }
+        },
 
         /**
             ### .events
