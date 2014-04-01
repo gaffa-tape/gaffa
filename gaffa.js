@@ -531,7 +531,7 @@ function jsonConverter(object, exclude, include){
     var plainInstance = new object.constructor(),
         tempObject = Array.isArray(object) || object instanceof Array && [] || {},
         excludeProps = ["gaffa", "parent", "parentContainer", "renderedElement", "_removeHandlers", "gediCallbacks", "__super__", "_events"],
-        includeProps = ["type"];
+        includeProps = ["type", "_type"];
 
     //console.log(object.constructor.name);
 
