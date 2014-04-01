@@ -731,7 +731,7 @@ Property.prototype.set = function(value, isDirty){
 }
 Property.prototype.get = function(scope, asTokens){
     if(this.binding){
-        return gaffa.model.get(this.binding, this, scope, asTokens);
+        return this.gaffa.model.get(this.binding, this, scope, asTokens);
     }else{
         return this.value;
     }
