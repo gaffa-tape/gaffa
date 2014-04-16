@@ -627,7 +627,7 @@ function createPropertyCallback(property){
                     return;
                 }
 
-                valueTokens = event.getValue(scope, true);
+                valueTokens = property.get(scope, true);
             }
 
             if(valueTokens){
@@ -728,10 +728,15 @@ Property.prototype.set = function(value, isDirty){
         }
     }
 
-}
+};
 Property.prototype.get = function(scope, asTokens){
     if(this.binding){
-        return this.gaffa.model.get(this.binding, this, scope, asTokens);
+        var value = this.gaffa.model.get(this.binding, this, scope, asTokens);
+        if(this.getTransform){
+            scope.value = asTokens ? value[value.length].result : value;
+            return this.gaffa.model.get(this.getTransform, this, scope, asTokens);
+        }
+        return value;
     }else{
         return this.value;
     }
@@ -741,7 +746,7 @@ Property.prototype.sameAsPrevious = function () {
         return true;
     }
     this._previousHash = createValueHash(this.value);
-}
+};
 Property.prototype.setPreviousHash = function(hash){
     this._previousHash = hash;
 };
