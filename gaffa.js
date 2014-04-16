@@ -498,17 +498,17 @@ function initialiseViewItem(viewItem, gaffa, specCollection, references) {
 
 
 function initialiseView(viewItem, gaffa, references) {
-    return initialiseViewItem(viewItem, gaffa, gaffa.views.constructors, references);
+    return initialiseViewItem(viewItem, gaffa, gaffa.views._constructors, references);
 }
 
 
 function initialiseAction(viewItem, gaffa, references) {
-    return initialiseViewItem(viewItem, gaffa, gaffa.actions.constructors, references);
+    return initialiseViewItem(viewItem, gaffa, gaffa.actions._constructors, references);
 }
 
 
 function initialiseBehaviour(viewItem, gaffa, references) {
-    return initialiseViewItem(viewItem, gaffa, gaffa.behaviours.constructors, references);
+    return initialiseViewItem(viewItem, gaffa, gaffa.behaviours._constructors, references);
 }
 
 
@@ -835,7 +835,7 @@ ViewContainer.prototype.add = function(view, insertIndex){
 
     if(this._bound){
         if(!(view instanceof View)){
-            view = this[this.indexOf(view)] = initialiseViewItem(view, this.gaffa, this.gaffa.views.constructors);
+            view = this[this.indexOf(view)] = initialiseViewItem(view, this.gaffa, this.gaffa.views._constructors);
         }
         view.gaffa = this.gaffa;
 
@@ -1226,7 +1226,28 @@ Title.prototype.update = function(view, value) {
 };
 View.prototype.title = new Title();
 
+function Style(){};
+Style = createSpec(Style, Property);
+Style.prototype.update = function(){
+    update: function(view, value){
+        if(!value || typeof value !== 'object'){
+            for(var key in view.renderedElement.style){
+                view.renderedElement.style[key] = null;
+            }
+        }
+
+        for(var key in value){
+            view.renderedElement.style[key] = value[key];
+        }
+    },
+    sameAsPrevious: function(){
+        return false;
+    }
+};
+View.prototype.style = new Style();
+
 View.prototype.insertFunction = insertFunction;
+
 
 
 /**
@@ -1301,11 +1322,8 @@ Behaviour.prototype.toJSON = function(){
 
 
 function Gaffa(){
-
-
     var gedi,
         gaffa = {};
-
 
     // internal varaibles
 
@@ -1314,12 +1332,6 @@ function Gaffa(){
 
         // Storage for the applications view.
         internalViewItems = [],
-
-        // Storage for application actions.
-        internalActions = {},
-
-        // Storage for application behaviours.
-        internalBehaviours = [],
 
         // Storage for application notifications.
         internalNotifications = {},
@@ -1333,183 +1345,6 @@ function Gaffa(){
 
     // Add gedi instance to gaffa.
     gaffa.gedi = gedi;
-
-
-    function addBehaviour(behaviour) {
-        //if the views isnt an array, make it one.
-        if (Array.isArray(behaviour)) {
-            for(var i = 0; i < behaviour.length; i++) {
-                addBehaviour(behaviour[i]);
-            }
-            return;
-        }
-
-        behaviour.gaffa = gaffa;
-        behaviour.parentContainer = internalBehaviours;
-
-        Behaviour.prototype.bind.call(behaviour);
-        behaviour.bind();
-
-        internalBehaviours.push(behaviour);
-    }
-
-
-    function addNotification(kind, callback){
-        internalNotifications[kind] = internalNotifications[kind] || [];
-        internalNotifications[kind].push(callback);
-    }
-
-
-    function callbackNotification(notifications, data){
-        for(var i = 0; i < notifications.length; i++) {
-            notifications[i](data);
-        }
-    }
-
-    function notify(kind, data){
-        var subKinds = kind.split(".");
-
-        for(var i = 0; i < subKinds.length; i++) {
-            var notificationKind = subKinds.slice(0, i + 1).join(".");
-
-            if(internalNotifications[notificationKind]){
-                callbackNotification(internalNotifications[notificationKind]);
-            }
-        }
-    }
-
-
-    function queryStringToModel(){
-        var queryStringData = parseQueryString(window.location.search);
-
-        for(var key in queryStringData){
-            if(!queryStringData.hasOwnProperty(key)){
-                continue;
-            }
-
-            if(queryStringData[key]){
-                gaffa.model.set(key, queryStringData[key]);
-            }else{
-                gaffa.model.set(key, null);
-            }
-        }
-    }
-
-
-    function load(app, target){
-
-        var targetView = gaffa.views;
-
-        if(target){
-            var targetParts = target.split('.'),
-                targetName = targetParts[0],
-                targetViewContainer = targetParts[1];
-
-            targetView = gaffa.namedViews[targetName].views[targetViewContainer];
-        }
-
-        while(internalIntervals.length){
-            clearInterval(internalIntervals.pop());
-        }
-
-        //clear state first
-        if (app.views) {
-            targetView.empty();
-        }
-
-        //set up state
-        if (app.model) {
-            gedi.set({});
-            gaffa.model.set(app.model, null, null, false);
-        }
-        if (app.views) {
-            for(var i = 0; i < app.views.length; i++) {
-                app.views[i] = initialiseView(app.views[i], gaffa);
-            }
-            targetView.add(app.views);
-        }
-        if (app.behaviours) {
-            for(var i = 0; i < app.behaviours.length; i++) {
-                app.behaviours[i] = initialiseBehaviour(app.behaviours[i], gaffa);
-            }
-            gaffa.behaviours.add(app.behaviours);
-        }
-
-        queryStringToModel();
-    }
-
-
-    var pageCache = {};
-
-    function navigate(url, target, pushState, data) {
-
-        // Data will be passed to the route as a querystring
-        // but will not be displayed visually in the address bar.
-        // This is to help resolve caching issues.
-
-        function success (data) {
-            var title;
-
-            data.target = target;
-
-            if(data !== undefined && data !== null && data.title){
-                title = data.title;
-            }
-
-            // Always use pushstate unless triggered by onpopstate
-            if(pushState !== false) {
-                gaffa.pushState(data, title, url);
-            }
-
-            pageCache[url] = JSON.stringify(data);
-
-            load(data, target);
-
-            gaffa.notifications.notify("navigation.success");
-
-            window.scrollTo(0,0);
-        }
-
-        function error(error){
-            gaffa.notifications.notify("navigation.error", error);
-        }
-
-        function complete(){
-            gaffa.notifications.notify("navigation.complete");
-        }
-
-        gaffa.notifications.notify("navigation.begin");
-
-        if(gaffa.cacheNavigates !== false && pageCache[url]){
-            success(JSON.parse(pageCache[url]));
-            complete();
-            return;
-        }
-
-        gaffa.ajax({
-            headers:{
-                'x-gaffa': 'navigate'
-            },
-            cache: navigator.appName !== 'Microsoft Internet Explorer',
-            url: url,
-            type: "get",
-            data: data, // This is to avoid the cached HTML version of a page if you are bootstrapping.
-            dataType: "json",
-            success: success,
-            error: error,
-            complete: complete
-        });
-    }
-
-
-    gaffa.onpopstate = function(event){
-        if(event.state){
-            navigate(window.location.toString(), event.state.target, false);
-        }
-    };
-
-    // Overridable handler
-    window.onpopstate = gaffa.onpopstate;
 
     function addDefaultsToScope(scope){
         scope.windowLocation = window.location.toString();
@@ -1590,7 +1425,7 @@ function Gaffa(){
 
             if(constructorType){
                 // ToDo: Deprecate .type
-                gaffa[constructorType].constructors[constructor.prototype._type || constructor.prototype.type] = constructor;
+                gaffa[constructorType]._constructors[constructor.prototype._type || constructor.prototype.type] = constructor;
             }else{
                 throw "The provided constructor was not an instance of a View, Action, or Behaviour";
             }
@@ -1856,26 +1691,7 @@ function Gaffa(){
                 removeViews(internalViewItems);
             },
 
-            /**
-                ### .constructors
-
-                An overridable object used by Gaffa to instantiate views.
-
-                The constructors for any views your application requires should be added to this object.
-
-                Either:
-                    gaffa.views.constructors.textbox = require('gaffa/views/textbox');
-                    gaffa.views.constructors.label = require('gaffa/views/label');
-                    // etc...
-
-                Or:
-                    gaffa.views.constructors = {
-                        textbox: require('gaffa/views/textbox'),
-                        label: require('gaffa/views/label')
-                    }
-                    // etc...
-            */
-            constructors: {}
+            _constructors: {}
         },
 
         /**
@@ -1911,26 +1727,7 @@ function Gaffa(){
             */
             trigger: triggerActions,
 
-            /**
-                ### .constructors
-
-                An overridable object used by Gaffa to instantiate actions.
-
-                The constructors for any actions your application requires should be added to this object.
-
-                Either:
-                    gaffa.actions.constructors.set = require('gaffa/actions/set');
-                    gaffa.actions.constructors.remove = require('gaffa/actions/remove');
-                    // etc...
-
-                Or:
-                    gaffa.actions.constructors = {
-                        set: require('gaffa/views/set'),
-                        remove: require('gaffa/views/remove')
-                    }
-                    // etc...
-            */
-            constructors: {}
+            _constructors: {}
         },
 
         /**
@@ -1941,40 +1738,11 @@ function Gaffa(){
             contains functions and properties for manipulating the application's behaviours.
         */
         behaviours: {
-
-            /**
-                ### .add(behaviour)
-
-                add a behaviour to the root of the appliaction
-
-                    gaffa.behaviours.add(someBehaviour);
-            */
-            add: addBehaviour,
-
-            /**
-                ### .constructors
-
-                An overridable object used by Gaffa to instantiate behaviours.
-
-                The constructors for any behaviours your application requires should be added to this object.
-
-                Either:
-                    gaffa.behaviours.constructors.pageLoad = require('gaffa/behaviours/pageLoad');
-                    gaffa.behaviours.constructors.modelChange = require('gaffa/behaviours/modelChange');
-                    // etc...
-
-                Or:
-                    gaffa.behaviours.constructors = {
-                        pageLoad: require('gaffa/views/pageLoad'),
-                        modelChange: require('gaffa/views/modelChange')
-                    }
-                    // etc...
-            */
-            constructors: {}
+            _constructors: {}
         },
 
         utils: {
-            //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
+            // Get a deep property on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
             getProp: function (object, propertiesString) {
                 var properties = propertiesString.split(Gaffa.pathSeparator).reverse();
                 while (properties.length) {
@@ -1987,7 +1755,7 @@ function Gaffa(){
                 }
                 return object;
             },
-            //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
+            // See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
             propExists: function (object, propertiesString) {
                 var properties = propertiesString.split(".").reverse();
                 while (properties.length) {
@@ -2002,53 +1770,7 @@ function Gaffa(){
             },
             deDom: deDom
         },
-
-        /**
-
-            ## Navigate
-
-            Navigates the app to a gaffa-app endpoint
-
-                gaffa.navigate(url);
-
-            To navigate into a named view:
-
-                gaffa.navigate(url, target);
-
-            Where target is: [viewName].[viewContainerName], eg:
-
-                gaffa.navigate('/someroute', 'myPageContainer.content');
-
-            myPageContainer would be a named ContainerView and content is the viewContainer on the view to target.
-        */
-        navigate: navigate,
-
-        notifications:{
-            add: addNotification,
-            notify: notify
-        },
-
-        load: function(app, pushPageState){
-
-            var title;
-
-            if(app !== undefined && app !== null && app.title){
-                title = app.title;
-            }
-
-            if(pushPageState){
-                // ToDo: Push state no worksies in exploder.
-                gaffa.pushState(app, title, document.location);
-            }
-            load(app);
-        },
-
-        //If you want to load the values in query strings into the pages model.
-        queryStringToModel: queryStringToModel,
-
-        //This is here so i can remove it later and replace with a better verson.
         extend: extend,
-
         clone: clone,
         ajax: ajax,
         crel: crel,
@@ -2063,7 +1785,6 @@ function Gaffa(){
     extend(gaffa, gaffaPublicObject);
 
     return gaffa;
-
 }
 
 
