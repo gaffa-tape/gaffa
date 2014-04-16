@@ -2028,20 +2028,7 @@ function Gaffa(){
             notify: notify
         },
 
-        load: function(app, pushPageState){
-
-            var title;
-
-            if(app !== undefined && app !== null && app.title){
-                title = app.title;
-            }
-
-            if(pushPageState){
-                // ToDo: Push state no worksies in exploder.
-                gaffa.pushState(app, title, document.location);
-            }
-            load(app);
-        },
+        load: load,
 
         //If you want to load the values in query strings into the pages model.
         queryStringToModel: queryStringToModel,
