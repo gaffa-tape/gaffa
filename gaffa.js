@@ -1463,7 +1463,7 @@ function Gaffa(){
 
             pageCache[url] = JSON.stringify(data);
 
-            load(data, target);
+            gaffa.load(data, target);
 
             gaffa.notifications.notify("navigation.success");
 
