@@ -733,7 +733,7 @@ Property.prototype.get = function(scope, asTokens){
     if(this.binding){
         var value = this.gaffa.model.get(this.binding, this, scope, asTokens);
         if(this.getTransform){
-            scope.value = asTokens ? value[value.length].result : value;
+            scope.value = asTokens ? value[value.length-1].result : value;
             return this.gaffa.model.get(this.getTransform, this, scope, asTokens);
         }
         return value;
