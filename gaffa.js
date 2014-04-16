@@ -498,17 +498,17 @@ function initialiseViewItem(viewItem, gaffa, specCollection, references) {
 
 
 function initialiseView(viewItem, gaffa, references) {
-    return initialiseViewItem(viewItem, gaffa, gaffa.views.constructors, references);
+    return initialiseViewItem(viewItem, gaffa, gaffa.views._constructors, references);
 }
 
 
 function initialiseAction(viewItem, gaffa, references) {
-    return initialiseViewItem(viewItem, gaffa, gaffa.actions.constructors, references);
+    return initialiseViewItem(viewItem, gaffa, gaffa.actions._constructors, references);
 }
 
 
 function initialiseBehaviour(viewItem, gaffa, references) {
-    return initialiseViewItem(viewItem, gaffa, gaffa.behaviours.constructors, references);
+    return initialiseViewItem(viewItem, gaffa, gaffa.behaviours._constructors, references);
 }
 
 
@@ -835,7 +835,7 @@ ViewContainer.prototype.add = function(view, insertIndex){
 
     if(this._bound){
         if(!(view instanceof View)){
-            view = this[this.indexOf(view)] = initialiseViewItem(view, this.gaffa, this.gaffa.views.constructors);
+            view = this[this.indexOf(view)] = initialiseViewItem(view, this.gaffa, this.gaffa.views._constructors);
         }
         view.gaffa = this.gaffa;
 
@@ -1590,7 +1590,7 @@ function Gaffa(){
 
             if(constructorType){
                 // ToDo: Deprecate .type
-                gaffa[constructorType].constructors[constructor.prototype._type || constructor.prototype.type] = constructor;
+                gaffa[constructorType]._constructors[constructor.prototype._type || constructor.prototype.type] = constructor;
             }else{
                 throw "The provided constructor was not an instance of a View, Action, or Behaviour";
             }
@@ -1856,26 +1856,7 @@ function Gaffa(){
                 removeViews(internalViewItems);
             },
 
-            /**
-                ### .constructors
-
-                An overridable object used by Gaffa to instantiate views.
-
-                The constructors for any views your application requires should be added to this object.
-
-                Either:
-                    gaffa.views.constructors.textbox = require('gaffa/views/textbox');
-                    gaffa.views.constructors.label = require('gaffa/views/label');
-                    // etc...
-
-                Or:
-                    gaffa.views.constructors = {
-                        textbox: require('gaffa/views/textbox'),
-                        label: require('gaffa/views/label')
-                    }
-                    // etc...
-            */
-            constructors: {}
+            _constructors: {}
         },
 
         /**
@@ -1911,26 +1892,7 @@ function Gaffa(){
             */
             trigger: triggerActions,
 
-            /**
-                ### .constructors
-
-                An overridable object used by Gaffa to instantiate actions.
-
-                The constructors for any actions your application requires should be added to this object.
-
-                Either:
-                    gaffa.actions.constructors.set = require('gaffa/actions/set');
-                    gaffa.actions.constructors.remove = require('gaffa/actions/remove');
-                    // etc...
-
-                Or:
-                    gaffa.actions.constructors = {
-                        set: require('gaffa/views/set'),
-                        remove: require('gaffa/views/remove')
-                    }
-                    // etc...
-            */
-            constructors: {}
+            _constructors: {}
         },
 
         /**
@@ -1951,26 +1913,7 @@ function Gaffa(){
             */
             add: addBehaviour,
 
-            /**
-                ### .constructors
-
-                An overridable object used by Gaffa to instantiate behaviours.
-
-                The constructors for any behaviours your application requires should be added to this object.
-
-                Either:
-                    gaffa.behaviours.constructors.pageLoad = require('gaffa/behaviours/pageLoad');
-                    gaffa.behaviours.constructors.modelChange = require('gaffa/behaviours/modelChange');
-                    // etc...
-
-                Or:
-                    gaffa.behaviours.constructors = {
-                        pageLoad: require('gaffa/views/pageLoad'),
-                        modelChange: require('gaffa/views/modelChange')
-                    }
-                    // etc...
-            */
-            constructors: {}
+            _constructors: {}
         },
 
         utils: {

@@ -4,68 +4,7 @@
 
 ## Recently changed
 
-### v1.4.0
-
-viewItem constructors can now (and should be) added to gaffa via .registerConstructor
-
-eg:
-
-	var Button = require('gaffa-button');
-
-	gaffa.registerConstructor(Button);
-
-	// Use button as usual..
-
-Also, gaffa 1.3.0 looks for a viewItems type at:
-
-	viewItem._type
-
-And then, for compatibility, looks for the type at:
-
-	viewItem.type
-
-All new viewItems should put their type on the _type key.
-
-This change will allow for views such as textbox and select to have 'type' properties, rather than subType as they have now.
-
-### v1.3.0
-
-Added 'load' and 'unload' actions to the base View prototype.
-
-'load' effectivly makes the pageLoad behavior redundant.
-
-'unload' allows for easy data cleanup when a chunk of UI is removed.
-
-### v1.2.0
-
-The Property prototype now has a .get method which has the siganture:
-
-	property.get(scope, asTokens);
-
-Which allows views to more easily obtain the value of a property, with custom scope, eg:
-
-	// Assuming a binding of:
-	// '(* someScopeProperty 2)'
-
-	var value = property.get({ someScopeProperty: 123 });
-
-	// value === 246
-
-### v1.1.x
-
-gaffa no longer ships with default viewItems, they have been moved to their own repo's and their own npm modules, for easier maintenance.
-
-eg:
-
-[gaffa-textbox](https://www.npmjs.org/package/gaffa-textbox)
-
-Install:
-
-    npm i --save gaffa-textbox
-
-Require:
-
-    var textbox = require('gaffa-textbox');
+A list of changes, and how to upgrade is available in the [wiki](https://github.com/gaffa-tape/gaffa-js/wiki/_pages)
 
 ## Example
 
