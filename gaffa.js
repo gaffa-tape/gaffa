@@ -714,9 +714,10 @@ Property.prototype.set = function(value, isDirty){
     var gaffa = this.gaffa;
 
     if(this.binding){
+        var setValue = this.setTransform ? gaffa.model.get(this.setTransform, this, {value: value}) : value;
         gaffa.model.set(
             this.binding,
-            this.setTransform ? gaffa.model.get(this.setTransform, this, {value: value}) : value,
+            setValue,
             this,
             isDirty
         );
@@ -755,6 +756,7 @@ Property.prototype.getPreviousHash = function(hash){
 };
 Property.prototype.bind = bindProperty;
 Property.prototype.debind = function(){
+    cancelAnimationFrame(this.nextUpdate);
     this.gaffa && this.gaffa.model.debind(this);
 };
 Property.prototype.getPath = function(){
@@ -1068,6 +1070,9 @@ ViewItem.prototype.toJSON = function(){
     return jsonConverter(this);
 };
 ViewItem.prototype.triggerActions = function(actionName, scope, event){
+    if(!this._bound){
+        return;
+    }
     this.gaffa.actions.trigger(this.actions[actionName], this, scope, event);
 };
 
