@@ -1070,7 +1070,7 @@ ViewItem.prototype.toJSON = function(){
     return jsonConverter(this);
 };
 ViewItem.prototype.triggerActions = function(actionName, scope, event){
-    if(!this._bound){
+    if(!this.gaffa){
         return;
     }
     this.gaffa.actions.trigger(this.actions[actionName], this, scope, event);
