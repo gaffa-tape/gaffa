@@ -1121,12 +1121,6 @@ View = createSpec(View, ViewItem);
 View.prototype.bind = function(parent){
     ViewItem.prototype.bind.apply(this, arguments);
 
-    for(var i = 0; i < this.behaviours.length; i++){
-        this.behaviours[i].gaffa = this.gaffa;
-        Behaviour.prototype.bind.call(this.behaviours[i], this);
-        this.behaviours[i].bind(this);
-    }
-
     for(var key in this.actions){
         var actions = this.actions[key],
             off;
@@ -1145,6 +1139,12 @@ View.prototype.bind = function(parent){
     }
 
     this.triggerActions('load');
+
+    for(var i = 0; i < this.behaviours.length; i++){
+        this.behaviours[i].gaffa = this.gaffa;
+        Behaviour.prototype.bind.call(this.behaviours[i], this);
+        this.behaviours[i].bind(this);
+    }
 };
 
 View.prototype.detach = function(){
@@ -1157,16 +1157,19 @@ View.prototype.remove = function(){
 }
 
 View.prototype.debind = function () {
-    this.triggerActions('unload');
     for(var i = 0; i < this.behaviours.length; i++){
         this.behaviours[i].debind();
     }
+
+    this.triggerActions('unload');
+
     while(this._removeHandlers.length){
         this._removeHandlers.pop()();
     }
     for(var key in this.actions){
         this.actions[key].__bound = false;
     }
+
     debindViewItem(this);
 };
 
