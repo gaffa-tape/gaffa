@@ -18,6 +18,9 @@ var Gedi = require('gedi'),
     createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
     animationFrame = require('./raf.js'),
+    laidout = require('laidout'),
+    merge = require('merge'),
+    statham = require('statham'),
     requestAnimationFrame = animationFrame.requestAnimationFrame,
     cancelAnimationFrame = animationFrame.cancelAnimationFrame;
 
@@ -103,16 +106,7 @@ function toQueryString(data){
 
 
 function clone(value){
-    if(value != null && typeof value === "object"){
-        if(Array.isArray(value)){
-            return extend([], value);
-        }else if (value instanceof Date) {
-            return new Date(value);
-        }else{
-            return extend({}, value);
-        }
-    }
-    return value;
+    return statham.revive(value);
 }
 
 
@@ -344,50 +338,6 @@ function getItemPath(item){
 
     return gedi.paths.resolve.apply(this, paths.reverse());
 }
-
-
-function extend(target, source){
-    var args = Array.prototype.slice.call(arguments),
-        target = args[0] || {},
-        source = args[1] || {},
-        visited = [];
-
-    function internalExtend(target, source){
-        for(var key in source){
-            var sourceProperty = source[key],
-                targetProperty = target[key];
-
-            if(typeof sourceProperty === "object" && sourceProperty != null){
-                if(!(targetProperty instanceof sourceProperty.constructor)){
-                    targetProperty = new sourceProperty.constructor();
-                }
-                if(sourceProperty instanceof Date){
-                    targetProperty = new Date(sourceProperty);
-                }else{
-                    if(visited.indexOf(sourceProperty)>=0){
-                        target[key] = sourceProperty;
-                        continue;
-                    }
-                    visited.push(sourceProperty);
-                    internalExtend(targetProperty, sourceProperty);
-                }
-            }else{
-                targetProperty = sourceProperty;
-            }
-            target[key] = targetProperty;
-        }
-    }
-
-    internalExtend(target, source);
-
-    if(args[2] !== undefined && args[2] !== null){
-        args[0] = args.shift();
-        extend.apply(this, args);
-    }
-
-    return target;
-}
-
 
 function sameAs(a,b){
     var typeofA = typeof a,
@@ -1180,11 +1130,8 @@ function insert(view, viewContainer, insertIndex){
         renderTarget = view.insertSelector || view.renderTarget || viewContainer && viewContainer.element || gaffa.views.renderTarget;
 
     if(view.afterInsert){
-        var off = doc.on('DOMNodeInserted', renderTarget, function (event) {
-            if(doc.closest(view.renderedElement, event.target)){
-                view.afterInsert();
-                off();
-            }
+        laidout(view.renderedElement, function(){
+            view.afterInsert();
         });
     }
 
@@ -1985,7 +1932,9 @@ function Gaffa(){
         queryStringToModel: queryStringToModel,
 
         //This is here so i can remove it later and replace with a better verson.
-        extend: extend,
+        extend: merge, // DEPRICATED
+
+        merge: merge,
 
         clone: clone,
         ajax: ajax,
@@ -1998,7 +1947,7 @@ function Gaffa(){
         }
     };
 
-    extend(gaffa, gaffaPublicObject);
+    merge(gaffa, gaffaPublicObject);
 
     return gaffa;
 
