@@ -6297,8 +6297,8 @@ Lang.Scope = Scope;
 Lang.Token = Token;
 
 module.exports = Lang;
-}).call(this,require("/usr/lib/node_modules/watchify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./token":22,"/usr/lib/node_modules/watchify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":35}],22:[function(require,module,exports){
+}).call(this,require("/usr/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
+},{"./token":22,"/usr/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":35}],22:[function(require,module,exports){
 function Token(substring, length){
     this.original = substring;
     this.length = length;

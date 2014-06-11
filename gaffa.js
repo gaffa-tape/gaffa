@@ -1210,6 +1210,8 @@ function Gaffa(){
 
     function load(app, target){
 
+        app = statham.revive(app);
+
         var targetView = gaffa.views;
 
         if(target){
@@ -1278,7 +1280,7 @@ function Gaffa(){
                 gaffa.pushState(data, title, url);
             }
 
-            pageCache[url] = JSON.stringify(data);
+            pageCache[url] = data;
 
             gaffa.load(data, target);
 
