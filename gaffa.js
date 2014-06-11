@@ -27,50 +27,6 @@ var Gedi = require('gedi'),
 // Storage for applications default styles.
 var defaultViewStyles;
 
-//internal functions
-
-
-//http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format/4673436#4673436
-//changed to a single array argument
-String.prototype.format = function (values) {
-    return this.replace(/{(\d+)}/g, function (match, number) {
-        return (values[number] == undefined || values[number] == null) ? match : values[number];
-    }).replace(/{(\d+)}/g, "");
-};
-
-//http://stackoverflow.com/questions/5346158/parse-string-using-format-template
-//Haxy de-formatter
-String.prototype.deformat = function (template) {
-
-    var findFormatNumbers = /{(\d+)}/g,
-        currentMatch,
-        matchOrder = [],
-        index = 0;
-
-    while ((currentMatch = findFormatNumbers.exec(template)) != null) {
-        matchOrder[index] = parseInt(currentMatch[1]);
-        index++;
-    }
-
-    //http://simonwillison.net/2006/Jan/20/escape/
-    var pattern = new RegExp("^" + template.replace(/[-[\]()*+?.,\\^$|#\s]/g, "\\$&").replace(/(\{\d+\})/g, "(.*?)") + "$", "g");
-
-    var matches = pattern.exec(this);
-
-    if (!matches) {
-        return false;
-    }
-
-    var values = [];
-
-    for (var i = 0; i < matchOrder.length; i++) {
-        values.push(matches[matchOrder[i] + 1]);
-    }
-
-    return values;
-};
-
-
 function parseQueryString(url){
     var urlParts = url.split('?'),
         result = {};
@@ -603,6 +559,8 @@ function createPropertyCallback(property){
 function bindProperty(parent) {
     this.parent = parent;
 
+    parent.on('debind', this.debind.bind(this));
+
     // Shortcut for properties that have no binding.
     // This has a significant impact on performance.
     if(this.binding == null){
@@ -732,6 +690,8 @@ ViewContainer = createSpec(ViewContainer, Array);
 ViewContainer.prototype.bind = function(parent){
     this.parent = parent;
     this.gaffa = parent.gaffa;
+
+    parent.on('debind', this.debind.bind(this));
 
     if(this._bound){
         return;
@@ -874,11 +834,6 @@ function copyProperties(source, target){
 
 
 function debindViewItem(viewItem){
-    for(var key in viewItem){
-        if(viewItem[key] instanceof Property){
-            viewItem[key].debind();
-        }
-    }
     viewItem.emit('debind');
     viewItem._bound = false;
 }
@@ -1210,13 +1165,6 @@ ContainerView.prototype.bind = function(parent){
 };
 ContainerView.prototype.debind = function(){
     View.prototype.debind.apply(this, arguments);
-    for(var key in this.views){
-        var viewContainer = this.views[key];
-
-        if(viewContainer instanceof ViewContainer){
-            viewContainer.debind();
-        }
-    }
 };
 
 
