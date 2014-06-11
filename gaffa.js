@@ -1300,7 +1300,7 @@ function Gaffa(){
         gaffa.emit("navigate");
 
         if(gaffa.cacheNavigates !== false && pageCache[url]){
-            success(JSON.parse(pageCache[url]));
+            success(pageCache[url]);
             complete();
             return;
         }
