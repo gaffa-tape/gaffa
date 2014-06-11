@@ -1,4 +1,4 @@
-var Gaffa = require('gaffa'),
+var Gaffa = require('../'),
     Text = require('gaffa-text'),
     Textbox = require('gaffa-textbox'),
     gaffa = new Gaffa();

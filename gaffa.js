@@ -217,29 +217,6 @@ function getDistinctGroups(gaffa, collection, expression){
 
 
 
-function deDom(node){
-    var parent = node.parentNode,
-        nextSibling;
-
-    if(!parent){
-        return false;
-    }
-
-    nextSibling = node.nextSibling;
-
-    parent.removeChild(node);
-
-    return function(){
-        if(nextSibling){
-            parent.insertBefore(node, nextSibling && nextSibling.parent && nextSibling);
-        }else {
-            parent.appendChild(node);
-        }
-    };
-}
-
-
-
 function triggerAction(action, parent, scope, event) {
     Action.prototype.trigger.call(action, parent, scope, event);
     action.trigger(parent, scope, event);
@@ -293,29 +270,6 @@ function getItemPath(item){
     }
 
     return gedi.paths.resolve.apply(this, paths.reverse());
-}
-
-function sameAs(a,b){
-    var typeofA = typeof a,
-        typeofB = typeof b;
-
-    if(typeofA !== typeofB){
-        return false;
-    }
-
-    switch (typeof a){
-        case 'string': return a === b;
-
-        case 'number':
-            if(isNaN(a) && isNaN(b)){
-                return true;
-            }
-            return a === b;
-
-        case 'date': return +a === +b;
-
-        default: return false;
-    }
 }
 
 
@@ -1207,7 +1161,7 @@ function Gaffa(){
 
 
     var gedi,
-        gaffa = {};
+        gaffa = Object.create(EventEmitter.prototype);
 
 
     // internal varaibles
@@ -1223,9 +1177,6 @@ function Gaffa(){
 
         // Storage for application behaviours.
         internalBehaviours = [],
-
-        // Storage for application notifications.
-        internalNotifications = {},
 
         // Storage for interval based behaviours.
         internalIntervals = [];
@@ -1254,48 +1205,6 @@ function Gaffa(){
         behaviour.bind();
 
         internalBehaviours.push(behaviour);
-    }
-
-
-    function addNotification(kind, callback){
-        internalNotifications[kind] = internalNotifications[kind] || [];
-        internalNotifications[kind].push(callback);
-    }
-
-
-    function callbackNotification(notifications, data){
-        for(var i = 0; i < notifications.length; i++) {
-            notifications[i](data);
-        }
-    }
-
-    function notify(kind, data){
-        var subKinds = kind.split(".");
-
-        for(var i = 0; i < subKinds.length; i++) {
-            var notificationKind = subKinds.slice(0, i + 1).join(".");
-
-            if(internalNotifications[notificationKind]){
-                callbackNotification(internalNotifications[notificationKind]);
-            }
-        }
-    }
-
-
-    function queryStringToModel(){
-        var queryStringData = parseQueryString(window.location.search);
-
-        for(var key in queryStringData){
-            if(!queryStringData.hasOwnProperty(key)){
-                continue;
-            }
-
-            if(queryStringData[key]){
-                gaffa.model.set(key, queryStringData[key]);
-            }else{
-                gaffa.model.set(key, null);
-            }
-        }
     }
 
 
@@ -1338,7 +1247,7 @@ function Gaffa(){
             gaffa.behaviours.add(app.behaviours);
         }
 
-        queryStringToModel();
+        gaffa.emit("load");
     }
 
 
@@ -1349,6 +1258,11 @@ function Gaffa(){
         // Data will be passed to the route as a querystring
         // but will not be displayed visually in the address bar.
         // This is to help resolve caching issues.
+
+        // default target
+        if(target === undefined){
+            target = gaffa.navigateTarget;
+        }
 
         function success (data) {
             var title;
@@ -1368,20 +1282,20 @@ function Gaffa(){
 
             gaffa.load(data, target);
 
-            gaffa.notifications.notify("navigation.success");
+            gaffa.emit("navigate.success");
 
             window.scrollTo(0,0);
         }
 
         function error(error){
-            gaffa.notifications.notify("navigation.error", error);
+            gaffa.emit("navigate.error", error);
         }
 
         function complete(){
-            gaffa.notifications.notify("navigation.complete");
+            gaffa.emit("navigate.complete");
         }
 
-        gaffa.notifications.notify("navigation.begin");
+        gaffa.emit("navigate");
 
         if(gaffa.cacheNavigates !== false && pageCache[url]){
             success(JSON.parse(pageCache[url]));
@@ -1390,13 +1304,9 @@ function Gaffa(){
         }
 
         gaffa.ajax({
-            headers:{
-                'x-gaffa': 'navigate'
-            },
-            cache: navigator.appName !== 'Microsoft Internet Explorer',
-            url: url,
+            url: gaffa.createNavigateUrl(url),
             type: "get",
-            data: data, // This is to avoid the cached HTML version of a page if you are bootstrapping.
+            data: data,
             dataType: "json",
             success: success,
             error: error,
@@ -1404,6 +1314,9 @@ function Gaffa(){
         });
     }
 
+    gaffa.createNavigateUrl = function(url){
+        return url;
+    };
 
     gaffa.onpopstate = function(event){
         if(event.state){
@@ -1471,7 +1384,21 @@ function Gaffa(){
 
             Also recurses through the ViewItem's tree and inflates children.
         */
-        initialiseViewItem: initialiseViewItem,
+        initialiseViewItem: function(viewItem, specCollection, references){
+            return initialiseViewItem(viewItem, this, specCollection, references);
+        },
+
+        initialiseView: function(view, references){
+            return initialiseView(view, this, references);
+        },
+
+        initialiseAction: function(action, references){
+            return initialiseAction(action, this, references);
+        },
+
+        initialiseBehaviour: function(behaviour, references){
+            return initialiseBehaviour(behaviour, this, references);
+        },
 
         /**
             ### .initialiseViewItem
@@ -1845,8 +1772,7 @@ function Gaffa(){
                     }
                 }
                 return true;
-            },
-            deDom: deDom
+            }
         },
 
         /**
@@ -1869,15 +1795,7 @@ function Gaffa(){
         */
         navigate: navigate,
 
-        notifications:{
-            add: addNotification,
-            notify: notify
-        },
-
         load: load,
-
-        //If you want to load the values in query strings into the pages model.
-        queryStringToModel: queryStringToModel,
 
         //This is here so i can remove it later and replace with a better verson.
         extend: merge, // DEPRICATED

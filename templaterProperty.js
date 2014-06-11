@@ -124,7 +124,7 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
             }
         }
         if(this._emptyTemplateCache){
-            newView = gaffa.initialiseViewItem(JSON.parse(this._emptyTemplateCache), this.gaffa, this.gaffa.views._constructors);
+            newView = gaffa.initialiseView(JSON.parse(this._emptyTemplateCache));
             newView.containerName = viewsName;
             childViews.add(newView, itemIndex);
         }
