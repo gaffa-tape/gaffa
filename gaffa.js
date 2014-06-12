@@ -699,10 +699,11 @@ ViewContainer.prototype.add = function(view, insertIndex){
 
     view.parentContainer = this;
 
+    if(!(view instanceof View)){
+        view = this[this.indexOf(view)] = initialiseViewItem(view, this.gaffa, this.gaffa.views._constructors);
+    }
+
     if(this._bound){
-        if(!(view instanceof View)){
-            view = this[this.indexOf(view)] = initialiseViewItem(view, this.gaffa, this.gaffa.views._constructors);
-        }
         view.gaffa = this.gaffa;
 
         this.gaffa.namedViews[view.name] = view;
