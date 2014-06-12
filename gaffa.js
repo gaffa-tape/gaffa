@@ -715,8 +715,7 @@ ViewContainer.prototype.add = function(view, insertIndex){
         view.insert(this, insertIndex);
     }
 
-
-    return this;
+    return view;
 };
 
 /*
