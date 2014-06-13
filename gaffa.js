@@ -21,6 +21,7 @@ var Gedi = require('gedi'),
     laidout = require('laidout'),
     merge = require('merge'),
     statham = require('statham'),
+    Consuela = require('consuela'),
     requestAnimationFrame = animationFrame.requestAnimationFrame,
     cancelAnimationFrame = animationFrame.cancelAnimationFrame;
 
@@ -572,6 +573,7 @@ function Property(propertyDescription){
     this.gediCallbacks = [];
 }
 Property = createSpec(Property);
+Property = Consuela.init(Property);
 Property.prototype.set = function(value, isDirty){
     var gaffa = this.gaffa;
 
@@ -620,6 +622,7 @@ Property.prototype.bind = bindProperty;
 Property.prototype.debind = function(){
     cancelAnimationFrame(this.nextUpdate);
     this.gaffa && this.gaffa.model.debind(this);
+    this._cleanup();
 };
 Property.prototype.getPath = function(){
     return getItemPath(this);
@@ -789,6 +792,7 @@ function copyProperties(source, target){
 function debindViewItem(viewItem){
     viewItem.emit('debind');
     viewItem._bound = false;
+    viewItem._cleanup();
 }
 
 
@@ -862,6 +866,7 @@ function ViewItem(viewItemDescription){
     }
 }
 ViewItem = createSpec(ViewItem, EventEmitter);
+ViewItem = Consuela.init(ViewItem);
 
     /**
         ## .path
@@ -971,13 +976,15 @@ function bindViewEvent(view, eventName){
 function View(viewDescription){
     var view = this;
 
-    view._removeHandlers = [];
+    //view._removeHandlers = [];
     view.behaviours = view.behaviours || [];
 }
 View = createSpec(View, ViewItem);
 
 View.prototype.bind = function(parent){
     ViewItem.prototype.bind.apply(this, arguments);
+
+    this._watch(this.renderedElement);
 
     for(var key in this.actions){
         var actions = this.actions[key],
@@ -989,11 +996,7 @@ View.prototype.bind = function(parent){
 
         actions.__bound = true;
 
-        off = bindViewEvent(this, key);
-
-        if(off){
-            this._removeHandlers.push(off);
-        }
+        bindViewEvent(this, key);
     }
 
     this.triggerActions('load');
@@ -1021,13 +1024,15 @@ View.prototype.debind = function () {
 
     this.triggerActions('unload');
 
-    while(this._removeHandlers.length){
-        this._removeHandlers.pop()();
-    }
     for(var key in this.actions){
         this.actions[key].__bound = false;
     }
-
+    delete this.renderedElement.viewModel;
+    for(var key in this){
+        if(crel.isNode(this[key])){
+            delete this[key];
+        }
+    }
     debindViewItem(this);
 };
 
