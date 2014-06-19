@@ -687,14 +687,16 @@ ViewContainer.prototype.getPath = function(){
 ViewContainer.prototype.add = function(view, insertIndex){
     // If passed an array
     if(Array.isArray(view)){
-        for(var i = 0; i < view.length; i++){
-            this.add(view[i]);
+        // Clone the array so splicing can't cause issues
+        var views = view.slice();
+        for(var i = 0; i < views.length; i++){
+            this.add(views[i]);
         }
         return this;
     }
 
     // Is already in the tree somewhere? remove it.
-    if(view.parentContainer){
+    if(view.parentContainer instanceof ViewContainer){
         view.parentContainer.splice(view.parentContainer.indexOf(view),1);
     }
 
