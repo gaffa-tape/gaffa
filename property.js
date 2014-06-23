@@ -1,5 +1,6 @@
 var createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
+    jsonConverter = require('./jsonConverter'),
     Consuela = require('consuela');
 
 function getItemPath(item){

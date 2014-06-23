@@ -130,6 +130,7 @@ function setValue(event){
         view = input.viewModel;
 
     view.value.set(input.value);
+    view.value.value = this.setTransform ? gaffa.model.get(this.setTransform, this, {value: input.value}) : input.value;
 }
 
 function FormElement(){}
@@ -208,7 +209,7 @@ FormElement.prototype.validity = new Gaffa.Property(function(view, value){
 });
 
 module.exports = FormElement;
-},{"crel":1,"doc-js":4,"gaffa":15}],3:[function(require,module,exports){
+},{"crel":1,"doc-js":4,"gaffa":16}],3:[function(require,module,exports){
 var doc = {
     document: typeof document !== 'undefined' ? document : null,
     setDocument: function(d){
@@ -901,7 +902,34 @@ Heading.prototype.text = new Gaffa.Property(function(view, value){
 });
 
 module.exports = Heading;
-},{"crel":1,"gaffa":15}],9:[function(require,module,exports){
+},{"crel":1,"gaffa":16}],9:[function(require,module,exports){
+var Gaffa = require('gaffa'),
+    crel = require('crel'),
+    TemplaterProperty = require('gaffa/templaterProperty');
+
+function List(){
+    this.views.list = new Gaffa.ViewContainer(this.views.list);
+    this.views.empty = new Gaffa.ViewContainer(this.views.empty);
+}
+List = Gaffa.createSpec(List, Gaffa.ContainerView);
+List.prototype._type = 'list';
+
+List.prototype.render = function(){
+    var renderedElement = crel(this.tagName || 'div');
+
+    this.views.content.element = renderedElement;
+    this.views.list.element = renderedElement;
+    this.views.empty.element = renderedElement;
+    this.renderedElement = renderedElement;
+
+};
+
+List.prototype.list = new TemplaterProperty({
+    viewsName: 'list'
+});
+
+module.exports = List;
+},{"crel":1,"gaffa":16,"gaffa/templaterProperty":54}],10:[function(require,module,exports){
 var Gaffa = require('gaffa'),
     crel = require('crel'),
     viewType = "text";
@@ -928,7 +956,7 @@ Text.prototype.enabled = undefined;
 Text.prototype.classes = undefined;
 
 module.exports = Text;
-},{"crel":1,"gaffa":15}],10:[function(require,module,exports){
+},{"crel":1,"gaffa":16}],11:[function(require,module,exports){
 var Gaffa = require('gaffa'),
     FormElement = require('gaffa-formelement');
 
@@ -949,7 +977,7 @@ Textbox.prototype.maxLength = new Gaffa.Property(function(view, value){
 });
 
 module.exports = Textbox;
-},{"gaffa":15,"gaffa-formelement":2}],11:[function(require,module,exports){
+},{"gaffa":16,"gaffa-formelement":2}],12:[function(require,module,exports){
 var createSpec = require('spec-js'),
     ViewItem = require('./viewItem');
 
@@ -981,7 +1009,7 @@ Action.prototype.trigger = function(parent, scope, event){
 };
 
 module.exports = Action;
-},{"./viewItem":49,"spec-js":38}],12:[function(require,module,exports){
+},{"./viewItem":57,"spec-js":45}],13:[function(require,module,exports){
 function addDefaultStyle(style){
     defaultViewStyles = defaultViewStyles || (function(){
         defaultViewStyles = crel('style', {type: 'text/css', 'class':'dropdownDefaultStyle'});
@@ -1008,7 +1036,7 @@ function addDefaultStyle(style){
 }
 
 module.exports = addDefaultStyle;
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var createSpec = require('spec-js'),
     ViewItem = require('./viewItem');
 
@@ -1019,7 +1047,7 @@ Behaviour.prototype.toJSON = function(){
 };
 
 module.exports = Behaviour;
-},{"./viewItem":49,"spec-js":38}],14:[function(require,module,exports){
+},{"./viewItem":57,"spec-js":45}],15:[function(require,module,exports){
 /**
     ## ContainerView
 
@@ -1031,7 +1059,8 @@ module.exports = Behaviour;
 */
 
 var createSpec = require('spec-js'),
-    View = require('./view');
+    View = require('./view'),
+    ViewContainer = require('./viewContainer');
 
 function ContainerView(viewDescription){
     this.views = this.views || {};
@@ -1053,7 +1082,7 @@ ContainerView.prototype.debind = function(){
 };
 
 module.exports = ContainerView;
-},{"./view":47,"spec-js":38}],15:[function(require,module,exports){
+},{"./view":55,"./viewContainer":56,"spec-js":45}],16:[function(require,module,exports){
 //Copyright (C) 2012 Kory Nunn, Matt Ginty & Maurice Butler
 
 //Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -1070,7 +1099,6 @@ var Gedi = require('gedi'),
     doc = require('doc-js'),
     crel = require('crel'),
     fastEach = require('fasteach'),
-    deepEqual = require('deep-equal'),
     createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
     animationFrame = require('./raf.js'),
@@ -1083,23 +1111,16 @@ var Gedi = require('gedi'),
 // Storage for applications default styles.
 var defaultViewStyles;
 
-var removeViews = require('./removeViews');
+var removeViews = require('./removeViews'),
+    jsonConverter = require('./jsonConverter');
 
-var jsonConverter = require('./jsonConverter');
-
-var Property = require('./property');
-
-var ViewContainer = require('./viewContainer');
-
-var ViewItem = require('./viewItem');
-
-var View = require('./view');
-
-var ContainerView = require('./containerView');
-
-var Action = require('./action');
-
-var Behaviour = require('./behaviour');
+var Property = require('./property'),
+    ViewContainer = require('./viewContainer'),
+    ViewItem = require('./viewItem'),
+    View = require('./view'),
+    ContainerView = require('./containerView'),
+    Action = require('./action'),
+    Behaviour = require('./behaviour');
 
 function parseQueryString(url){
     var urlParts = url.split('?'),
@@ -1272,73 +1293,10 @@ function triggerActions(actions, parent, scope, event) {
 
 var addDefaultStyle = require('./addDefaultStyle');
 
-function initialiseViewItem(viewItem, gaffa, specCollection, references) {
-    references = references || {
-        objects: [],
-        viewItems: []
-    };
-
-    // ToDo: Deprecate .type
-    var viewItemType = viewItem._type || viewItem.type;
-
-    if(!(viewItem instanceof ViewItem)){
-        if (!specCollection[viewItemType]) {
-            throw "No constructor is loaded to handle view of type " + viewItemType;
-        }
-
-        var referenceIndex = references.objects.indexOf(viewItem);
-        if(referenceIndex >= 0){
-            return references.viewItems[referenceIndex];
-        }
-
-        references.objects.push(viewItem);
-        viewItem = new specCollection[viewItemType](viewItem);
-        references.viewItems.push(viewItem);
-    }
-
-    for(var key in viewItem.views){
-        if(!(viewItem.views[key] instanceof ViewContainer)){
-            viewItem.views[key] = new ViewContainer(viewItem.views[key]);
-        }
-        var views = viewItem.views[key];
-        for (var viewIndex = 0; viewIndex < views.length; viewIndex++) {
-            var view = initialiseView(views[viewIndex], gaffa, references);
-            views[viewIndex] = view;
-            view.parentContainer = views;
-        }
-    }
-
-    for(var key in viewItem.actions){
-        var actions = viewItem.actions[key];
-        for (var actionIndex = 0; actionIndex < actions.length; actionIndex++) {
-            var action = initialiseAction(actions[actionIndex], gaffa, references);
-            actions[actionIndex] = action;
-            action.parentContainer = actions;
-        }
-    }
-
-    if(viewItem.behaviours){
-        for (var behaviourIndex = 0; behaviourIndex < viewItem.behaviours.length; behaviourIndex++) {
-            var behaviour = initialiseBehaviour(viewItem.behaviours[behaviourIndex], gaffa, references);
-            viewItem.behaviours[behaviourIndex] = behaviour;
-            behaviour.parentContainer = viewItem.behaviours;
-        }
-    }
-
-    return viewItem;
-}
-
-function initialiseView(viewItem, gaffa, references) {
-    return initialiseViewItem(viewItem, gaffa, gaffa.views._constructors, references);
-}
-
-function initialiseAction(viewItem, gaffa, references) {
-    return initialiseViewItem(viewItem, gaffa, gaffa.actions._constructors, references);
-}
-
-function initialiseBehaviour(viewItem, gaffa, references) {
-    return initialiseViewItem(viewItem, gaffa, gaffa.behaviours._constructors, references);
-}
+var initialiseViewItem = require('./initialiseViewItem');
+var initialiseView = require('./initialiseView');
+var initialiseAction = require('./initialiseAction');
+var initialiseBehaviour = require('./initialiseBehaviour');
 
 function Gaffa(){
 
@@ -2023,7 +1981,93 @@ module.exports = Gaffa;
 
 ///[license.md]
 
-},{"./action":11,"./addDefaultStyle":12,"./behaviour":13,"./containerView":14,"./jsonConverter":16,"./property":44,"./raf.js":45,"./removeViews":46,"./view":47,"./viewContainer":48,"./viewItem":49,"crel":18,"deep-equal":19,"doc-js":21,"events":51,"fasteach":25,"gedi":27,"laidout":36,"merge":37,"spec-js":38,"statham":42}],16:[function(require,module,exports){
+},{"./action":12,"./addDefaultStyle":13,"./behaviour":14,"./containerView":15,"./initialiseAction":17,"./initialiseBehaviour":18,"./initialiseView":19,"./initialiseViewItem":20,"./jsonConverter":21,"./property":51,"./raf.js":52,"./removeViews":53,"./view":55,"./viewContainer":56,"./viewItem":57,"crel":23,"doc-js":26,"events":61,"fasteach":30,"gedi":32,"laidout":43,"merge":44,"spec-js":45,"statham":49}],17:[function(require,module,exports){
+var initialiseViewItem = require('./initialiseViewItem');
+
+function initialiseAction(viewItem, gaffa, references) {
+    return initialiseViewItem(viewItem, gaffa, gaffa.actions._constructors, references);
+}
+
+module.exports = initialiseAction;
+},{"./initialiseViewItem":20}],18:[function(require,module,exports){
+var initialiseViewItem = require('./initialiseViewItem');
+
+function initialiseBehaviour(viewItem, gaffa, references) {
+    return initialiseViewItem(viewItem, gaffa, gaffa.behaviours._constructors, references);
+}
+
+module.exports = initialiseBehaviour;
+},{"./initialiseViewItem":20}],19:[function(require,module,exports){
+var initialiseViewItem = require('./initialiseViewItem');
+
+function initialiseView(viewItem, gaffa, references) {
+    return initialiseViewItem(viewItem, gaffa, gaffa.views._constructors, references);
+}
+
+module.exports = initialiseView;
+},{"./initialiseViewItem":20}],20:[function(require,module,exports){
+var ViewItem = require('./viewItem');
+
+function initialiseViewItem(viewItem, gaffa, specCollection, references) {
+    references = references || {
+        objects: [],
+        viewItems: []
+    };
+
+    // ToDo: Deprecate .type
+    var viewItemType = viewItem._type || viewItem.type;
+
+    if(!(viewItem instanceof ViewItem)){
+        if (!specCollection[viewItemType]) {
+            throw "No constructor is loaded to handle view of type " + viewItemType;
+        }
+
+        var referenceIndex = references.objects.indexOf(viewItem);
+        if(referenceIndex >= 0){
+            return references.viewItems[referenceIndex];
+        }
+
+        references.objects.push(viewItem);
+        viewItem = new specCollection[viewItemType](viewItem);
+        references.viewItems.push(viewItem);
+    }
+
+    for(var key in viewItem.views){
+        if(!(viewItem.views[key] instanceof ViewContainer)){
+            viewItem.views[key] = new ViewContainer(viewItem.views[key]);
+        }
+        var views = viewItem.views[key];
+        for (var viewIndex = 0; viewIndex < views.length; viewIndex++) {
+            var view = initialiseView(views[viewIndex], gaffa, references);
+            views[viewIndex] = view;
+            view.parentContainer = views;
+        }
+    }
+
+    for(var key in viewItem.actions){
+        var actions = viewItem.actions[key];
+        for (var actionIndex = 0; actionIndex < actions.length; actionIndex++) {
+            var action = initialiseAction(actions[actionIndex], gaffa, references);
+            actions[actionIndex] = action;
+            action.parentContainer = actions;
+        }
+    }
+
+    if(viewItem.behaviours){
+        for (var behaviourIndex = 0; behaviourIndex < viewItem.behaviours.length; behaviourIndex++) {
+            var behaviour = initialiseBehaviour(viewItem.behaviours[behaviourIndex], gaffa, references);
+            viewItem.behaviours[behaviourIndex] = behaviour;
+            behaviour.parentContainer = viewItem.behaviours;
+        }
+    }
+
+    return viewItem;
+}
+
+module.exports = initialiseViewItem;
+},{"./viewItem":57}],21:[function(require,module,exports){
+var deepEqual = require('deep-equal');
+
 function jsonConverter(object, exclude, include){
     var plainInstance = new object.constructor(),
         tempObject = Array.isArray(object) || object instanceof Array && [] || {},
@@ -2059,7 +2103,7 @@ function jsonConverter(object, exclude, include){
 }
 
 module.exports = jsonConverter;
-},{}],17:[function(require,module,exports){
+},{"deep-equal":24}],22:[function(require,module,exports){
 function getListenerMethod(emitter, methodNames){
     if(typeof methodNames === 'string'){
         methodNames = methodNames.split(' ');
@@ -2139,9 +2183,9 @@ Consuela.prototype._watch = function(emitter, onName, offName){
 };
 
 module.exports = Consuela;
-},{}],18:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports=require(1)
-},{}],19:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
 var Object_keys = typeof Object.keys === 'function'
     ? Object.keys
@@ -2227,9 +2271,9 @@ function objEquiv(a, b) {
   return true;
 }
 
-},{}],20:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports=require(3)
-},{"./getTarget":22,"./getTargets":23,"./isList":24}],21:[function(require,module,exports){
+},{"./getTarget":27,"./getTargets":28,"./isList":29}],26:[function(require,module,exports){
 var doc = require('./doc'),
     isList = require('./isList'),
     getTargets = require('./getTargets')(doc.document),
@@ -2293,20 +2337,20 @@ flocProto.off = function(events, target, callback){
 };
 
 module.exports = floc;
-},{"./doc":20,"./getTargets":23,"./isList":24}],22:[function(require,module,exports){
+},{"./doc":25,"./getTargets":28,"./isList":29}],27:[function(require,module,exports){
 module.exports=require(5)
-},{}],23:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 module.exports=require(6)
-},{}],24:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports=require(7)
-},{}],25:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 function fastEach(items, callback) {
     for (var i = 0; i < items.length && !callback(items[i], i, items);i++) {}
     return items;
 }
 
 module.exports = fastEach;
-},{}],26:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 var WM = typeof WM !== 'undefined' ? WeakMap : require('weak-map'),
     paths = require('gedi-paths'),
     pathConstants = paths.constants
@@ -2708,7 +2752,7 @@ module.exports = function(modelGet, gel, PathToken){
         removeModelReference: removeModelReference
     };
 };
-},{"./modelOperations":28,"gedi-paths":30,"weak-map":34}],27:[function(require,module,exports){
+},{"./modelOperations":33,"gedi-paths":60,"weak-map":36}],32:[function(require,module,exports){
 //Copyright (C) 2012 Kory Nunn
 
 //Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -3339,7 +3383,7 @@ function newGedi(model) {
 }
 
 module.exports = gediConstructor;
-},{"./events":26,"./modelOperations":28,"./pathToken":35,"gedi-paths":30,"gel-js":31,"spec-js":38}],28:[function(require,module,exports){
+},{"./events":31,"./modelOperations":33,"./pathToken":37,"gedi-paths":60,"gel-js":38,"spec-js":45}],33:[function(require,module,exports){
 var paths = require('gedi-paths'),
     memoiseCache = {};
 
@@ -3469,1656 +3513,7 @@ module.exports = {
     get: get,
     set: set
 };
-},{"gedi-paths":30}],29:[function(require,module,exports){
-module.exports = function detectPath(substring){
-    if (substring.charAt(0) === '[') {
-        var index = 1;
-
-        do {
-            if (
-                (substring.charAt(index) === '\\' && substring.charAt(index + 1) === '\\') || // escaped escapes
-                (substring.charAt(index) === '\\' && (substring.charAt(index + 1) === '[' || substring.charAt(index + 1) === ']')) //escaped braces
-            ) {
-                index++;
-            }
-            else if(substring.charAt(index) === ']'){
-                return substring.slice(0, index+1);
-            }
-            index++;
-        } while (index < substring.length);
-    }
-};
-},{}],30:[function(require,module,exports){
-var detectPath = require('./detectPath');
-
-var pathSeparator = "/",
-    upALevel = "..",
-    bubbleCapture = "...",
-    currentKey = "#",
-    rootPath = "",
-    pathStart = "[",
-    pathEnd = "]",
-    pathWildcard = "*";
-
-function pathToRaw(path) {
-    return path && path.slice(1, -1);
-}
-
-//***********************************************
-//
-//      Raw To Path
-//
-//***********************************************
-
-function rawToPath(rawPath) {
-    return pathStart + (rawPath == null ? '' : rawPath) + pathEnd;
-}
-
-var memoisePathCache = {};
-function resolvePath() {
-    var memoiseKey,
-        pathParts = [];
-
-    for(var argumentIndex = arguments.length; argumentIndex--;){
-        pathParts.unshift.apply(pathParts, pathToParts(arguments[argumentIndex]));
-        if(isPathAbsolute(arguments[argumentIndex])){
-            break;
-        }
-    }
-
-    memoiseKey = pathParts.join(',');
-
-    if(memoisePathCache[memoiseKey]){
-        return memoisePathCache[memoiseKey];
-    }
-
-    var absoluteParts = [],
-        lastRemoved,
-        pathParts,
-        pathPart;
-
-    for(var pathPartIndex = 0; pathPartIndex < pathParts.length; pathPartIndex++){
-        pathPart = pathParts[pathPartIndex];
-
-        if (pathPart === currentKey) {
-            // Has a last removed? Add it back on.
-            if(lastRemoved != null){
-                absoluteParts.push(lastRemoved);
-                lastRemoved = null;
-            }
-        } else if (pathPart === rootPath) {
-            // Root path? Reset parts to be absolute.
-            absoluteParts = [''];
-
-        } else if (pathPart.slice(-bubbleCapture.length) === bubbleCapture) {
-            // deep bindings
-            if(pathPart !== bubbleCapture){
-                absoluteParts.push(pathPart.slice(0, -bubbleCapture.length));
-            }
-        } else if (pathPart === upALevel) {
-            // Up a level? Remove the last item in absoluteParts
-            lastRemoved = absoluteParts.pop();
-        } else if (pathPart.slice(0,2) === upALevel) {
-            var argument = pathPart.slice(2);
-            //named
-            while(absoluteParts[absoluteParts.length - 1] !== argument){
-                if(absoluteParts.length === 0){
-                    throw "Named path part was not found: '" + pathPart + "', in path: '" + arguments[argumentIndex] + "'.";
-                }
-                lastRemoved = absoluteParts.pop();
-            }
-        } else {
-            // any following valid part? Add it to the absoluteParts.
-            absoluteParts.push(pathPart);
-        }
-    }
-
-    // Convert the absoluteParts to a Path and memoise the result.
-    return memoisePathCache[memoiseKey] = createPath(absoluteParts);
-}
-
-var memoisedPathTokens = {};
-
-function createPath(path){
-
-    if(typeof path === 'number'){
-        path = path.toString();
-    }
-
-    if(path == null){
-        return rawToPath();
-    }
-
-    // passed in an Expression or an 'expression formatted' Path (eg: '[bla]')
-    if (typeof path === "string"){
-
-        if(memoisedPathTokens[path]){
-            return memoisedPathTokens[path];
-        }
-
-        if(path.charAt(0) === pathStart) {
-            var pathString = path.toString(),
-                detectedPath = detectPath(pathString);
-
-            if (detectedPath && detectedPath.length === pathString.length) {
-                return memoisedPathTokens[pathString] = detectedPath;
-            } else {
-                return false;
-            }
-        }else{
-            return createPath(rawToPath(path));
-        }
-    }
-
-    if(path instanceof Array) {
-
-        var parts = [];
-        for (var i = 0; i < path.length; i++) {
-            var pathPart = path[i];
-            pathPart = pathPart.replace(/([\[|\]|\\|\/])/g, '\\$1');
-            parts.push(pathPart);
-        }
-        if(parts.length === 1 && parts[0] === rootPath){
-            return createRootPath();
-        }
-        return rawToPath(parts.join(pathSeparator));
-    }
-}
-
-function createRootPath(){
-    return createPath([rootPath, rootPath]);
-}
-
-function pathToParts(path){
-    var pathType = typeof path;
-
-    if(pathType !== 'string' && pathType !== 'number'){
-        if(Array.isArray(path)){
-            return path;
-        }
-        return;
-    }
-
-    // if we haven't been passed a path, then turn the input into a path
-    if (!isPath(path)) {
-        path = createPath(path);
-        if(path === false){
-            return;
-        }
-    }
-
-    path = path.slice(1,-1);
-
-    var lastPartIndex = 0,
-        parts,
-        nextChar,
-        currentChar;
-
-    if(path.indexOf('\\') < 0){
-        if(path === ""){
-            return [];
-        }
-        return path.split(pathSeparator);
-    }
-
-    parts = [];
-
-    for(var i = 0; i < path.length; i++){
-        currentChar = path.charAt(i);
-        if(currentChar === pathSeparator){
-            parts.push(path.slice(lastPartIndex,i));
-            lastPartIndex = i+1;
-        }else if(currentChar === '\\'){
-            nextChar = path.charAt(i+1);
-            if(nextChar === '\\'){
-                path = path.slice(0, i) + path.slice(i + 1);
-            }else if(nextChar === ']' || nextChar === '['){
-                path = path.slice(0, i) + path.slice(i + 1);
-            }else if(nextChar === pathSeparator){
-                parts.push(path.slice(lastPartIndex), i);
-            }
-        }
-    }
-    parts.push(path.slice(lastPartIndex));
-
-    return parts;
-}
-
-function appendPath(){
-    var parts = pathToParts(arguments[0]);
-
-    if(!parts){
-        return;
-    }
-
-    if(isPathRoot(arguments[0])){
-        parts.pop();
-    }
-
-    for (var argumentIndex = 1; argumentIndex < arguments.length; argumentIndex++) {
-        var pathParts = pathToParts(arguments[argumentIndex]);
-
-        pathParts && parts.push.apply(parts, pathParts);
-    }
-
-    return createPath(parts);
-}
-
-function isPath(path) {
-    if(!(typeof path === 'string' || (path instanceof String))){
-        return;
-    }
-    var match = path.match(/\[.*?(?:\\\])*(?:\\\[)*\]/g);
-    if(match && match.length === 1 && match[0] === path){
-        return true;
-    }
-}
-
-function isPathAbsolute(path){
-    var parts = pathToParts(path);
-
-    if(parts == null){
-        return false;
-    }
-
-    return parts[0] === rootPath;
-}
-
-function isPathRoot(path){
-    var parts = pathToParts(path);
-    if(parts == null){
-        return false;
-    }
-    return (isPathAbsolute(parts) && parts[0] === parts[1]) || parts.length === 0;
-}
-
-function isBubbleCapturePath(path){
-    var parts = pathToParts(path),
-        lastPart = parts[parts.length-1];
-    return lastPart && lastPart.slice(-bubbleCapture.length) === bubbleCapture;
-}
-
-module.exports = {
-    resolve: resolvePath,
-    create: createPath,
-    is: isPath,
-    isAbsolute: isPathAbsolute,
-    isRoot: isPathRoot,
-    isBubbleCapture: isBubbleCapturePath,
-    append: appendPath,
-    toParts: pathToParts,
-    createRoot: createRootPath,
-    constants:{
-        separator: pathSeparator,
-        upALevel: upALevel,
-        currentKey: currentKey,
-        root: rootPath,
-        start: pathStart,
-        end: pathEnd,
-        wildcard: pathWildcard
-    }
-};
-},{"./detectPath":29}],31:[function(require,module,exports){
-var Lang = require('lang-js'),
-    paths = require('gedi-paths'),
-    merge = require('merge'),
-    createNestingParser = Lang.createNestingParser,
-    detectString = Lang.detectString,
-    Token = Lang.Token,
-    Scope = Lang.Scope,
-    createSpec = require('spec-js');
-
-function fastEach(items, callback) {
-    for (var i = 0; i < items.length; i++) {
-        if (callback(items[i], i, items)) break;
-    }
-    return items;
-}
-
-function quickIndexOf(array, value){
-    var length = array.length
-    for(var i = 0; i < length && array[i] !== value;i++) {}
-    return i < length ? i : -1;
-}
-
-function stringFormat(string, values){
-    return string.replace(/{(\d+)}/g, function(match, number) {
-        return values[number] != null
-          ? values[number]
-          : ''
-        ;
-    });
-}
-
-function isIdentifier(substring){
-    var valid = /^[$A-Z_][0-9A-Z_$]*/i,
-        possibleIdentifier = substring.match(valid);
-
-    if (possibleIdentifier && possibleIdentifier.index === 0) {
-        return possibleIdentifier[0];
-    }
-}
-
-function tokeniseIdentifier(substring){
-    // searches for valid identifiers or operators
-    //operators
-    var operators = "!=<>/&|*%-^?+\\",
-        index = 0;
-
-    while (operators.indexOf(substring.charAt(index)||null) >= 0 && ++index) {}
-
-    if (index > 0) {
-        return substring.slice(0, index);
-    }
-
-    var identifier = isIdentifier(substring);
-
-    if(identifier != null){
-        return identifier;
-    }
-}
-
-function createKeywordTokeniser(Constructor, keyword){
-    return function(substring){
-        substring = isIdentifier(substring);
-        if (substring === keyword) {
-            return new Constructor(substring, substring.length);
-        }
-    };
-}
-
-function StringToken(){}
-StringToken = createSpec(StringToken, Token);
-StringToken.tokenPrecedence = 2;
-StringToken.prototype.parsePrecedence = 2;
-StringToken.prototype.stringTerminal = '"';
-StringToken.prototype.name = 'StringToken';
-StringToken.tokenise = function (substring) {
-    if (substring.charAt(0) === this.prototype.stringTerminal) {
-        var index = 0,
-        escapes = 0;
-
-        while (substring.charAt(++index) !== this.prototype.stringTerminal)
-        {
-           if(index >= substring.length){
-                   throw "Unclosed " + this.name;
-           }
-           if (substring.charAt(index) === '\\' && substring.charAt(index+1) === this.prototype.stringTerminal) {
-                   substring = substring.slice(0, index) + substring.slice(index + 1);
-                   escapes++;
-           }
-        }
-
-        return new this(
-            substring.slice(0, index+1),
-            index + escapes + 1
-        );
-    }
-}
-StringToken.prototype.evaluate = function () {
-    this.result = this.original.slice(1,-1);
-}
-
-function String2Token(){}
-String2Token = createSpec(String2Token, StringToken);
-String2Token.tokenPrecedence = 1;
-String2Token.prototype.parsePrecedence = 1;
-String2Token.prototype.stringTerminal = "'";
-String2Token.prototype.name = 'String2Token';
-String2Token.tokenise = StringToken.tokenise;
-
-function ParenthesesToken(){
-}
-ParenthesesToken = createSpec(ParenthesesToken, Token);
-ParenthesesToken.tokenPrecedence = 1;
-ParenthesesToken.prototype.parsePrecedence = 4;
-ParenthesesToken.prototype.name = 'ParenthesesToken';
-ParenthesesToken.tokenise = function(substring) {
-    if(substring.charAt(0) === '('){
-        return new ParenthesesToken(substring.charAt(0), 1);
-    }
-}
-ParenthesesToken.prototype.parse = createNestingParser(ParenthesesEndToken);
-ParenthesesToken.prototype.evaluate = function(scope){
-    scope = new Scope(scope);
-
-    var functionToken = this.childTokens[0];
-
-    if(!functionToken){
-        throw "Invalid function call. No function was provided to execute.";
-    }
-
-    functionToken.evaluate(scope);
-
-    if(typeof functionToken.result !== 'function'){
-        throw functionToken.original + " (" + functionToken.result + ")" + " is not a function";
-    }
-
-    this.result = scope.callWith(functionToken.result, this.childTokens.slice(1), this);
-};
-
-function ParenthesesEndToken(){}
-ParenthesesEndToken = createSpec(ParenthesesEndToken, Token);
-ParenthesesEndToken.tokenPrecedence = 1;
-ParenthesesEndToken.prototype.parsePrecedence = 4;
-ParenthesesEndToken.prototype.name = 'ParenthesesEndToken';
-ParenthesesEndToken.tokenise = function(substring) {
-    if(substring.charAt(0) === ')'){
-        return new ParenthesesEndToken(substring.charAt(0), 1);
-    }
-};
-
-function NumberToken(){}
-NumberToken = createSpec(NumberToken, Token);
-NumberToken.tokenPrecedence = 2;
-NumberToken.prototype.parsePrecedence = 2;
-NumberToken.prototype.name = 'NumberToken';
-NumberToken.tokenise = function(substring) {
-    var specials = {
-        "NaN": Number.NaN,
-        "-NaN": -Number.NaN,
-        "Infinity": Infinity,
-        "-Infinity": -Infinity
-    };
-    for (var key in specials) {
-        if (substring.slice(0, key.length) === key) {
-            return new NumberToken(key, key.length);
-        }
-    }
-
-    var valids = "0123456789-.Eex",
-        index = 0;
-
-    while (valids.indexOf(substring.charAt(index)||null) >= 0 && ++index) {}
-
-    if (index > 0) {
-        var result = substring.slice(0, index);
-        if(isNaN(parseFloat(result))){
-            return;
-        }
-        return new NumberToken(result, index);
-    }
-
-    return;
-};
-NumberToken.prototype.evaluate = function(scope){
-    this.result = parseFloat(this.original);
-};
-
-function ValueToken(value, path, key){
-    this.result = value;
-    this.sourcePathInfo = new SourcePathInfo();
-    this.sourcePathInfo.path = path;
-    this.sourcePathInfo.drillTo(key);
-}
-ValueToken = createSpec(ValueToken, Token);
-ValueToken.tokenPrecedence = 2;
-ValueToken.prototype.parsePrecedence = 2;
-ValueToken.prototype.name = 'ValueToken';
-ValueToken.prototype.evaluate = function(){};
-
-function NullToken(){}
-NullToken = createSpec(NullToken, Token);
-NullToken.tokenPrecedence = 2;
-NullToken.prototype.parsePrecedence = 2;
-NullToken.prototype.name = 'NullToken';
-NullToken.tokenise = createKeywordTokeniser(NullToken, "null");
-NullToken.prototype.evaluate = function(scope){
-    this.result = null;
-};
-
-function UndefinedToken(){}
-UndefinedToken = createSpec(UndefinedToken, Token);
-UndefinedToken.tokenPrecedence = 2;
-UndefinedToken.prototype.parsePrecedence = 2;
-UndefinedToken.prototype.name = 'UndefinedToken';
-UndefinedToken.tokenise = createKeywordTokeniser(UndefinedToken, 'undefined');
-UndefinedToken.prototype.evaluate = function(scope){
-    this.result = undefined;
-};
-
-function TrueToken(){}
-TrueToken = createSpec(TrueToken, Token);
-TrueToken.tokenPrecedence = 2;
-TrueToken.prototype.parsePrecedence = 2;
-TrueToken.prototype.name = 'TrueToken';
-TrueToken.tokenise = createKeywordTokeniser(TrueToken, 'true');
-TrueToken.prototype.evaluate = function(scope){
-    this.result = true;
-};
-
-function FalseToken(){}
-FalseToken = createSpec(FalseToken, Token);
-FalseToken.tokenPrecedence = 2;
-FalseToken.prototype.parsePrecedence = 2;
-FalseToken.prototype.name = 'FalseToken';
-FalseToken.tokenise = createKeywordTokeniser(FalseToken, 'false');
-FalseToken.prototype.evaluate = function(scope){
-    this.result = false;
-};
-
-function DelimiterToken(){}
-DelimiterToken = createSpec(DelimiterToken, Token);
-DelimiterToken.tokenPrecedence = 1;
-DelimiterToken.prototype.parsePrecedence = 1;
-DelimiterToken.prototype.name = 'DelimiterToken';
-DelimiterToken.tokenise = function(substring) {
-    var i = 0;
-    while(i < substring.length && substring.charAt(i).trim() === "" || substring.charAt(i) === ',') {
-        i++;
-    }
-
-    if(i){
-        return new DelimiterToken(substring.slice(0, i), i);
-    }
-};
-DelimiterToken.prototype.parse = function(tokens, position){
-    tokens.splice(position, 1);
-};
-
-function IdentifierToken(){}
-IdentifierToken = createSpec(IdentifierToken, Token);
-IdentifierToken.tokenPrecedence = 3;
-IdentifierToken.prototype.parsePrecedence = 3;
-IdentifierToken.prototype.name = 'IdentifierToken';
-IdentifierToken.tokenise = function(substring){
-    var result = tokeniseIdentifier(substring);
-
-    if(result != null){
-        return new IdentifierToken(result, result.length);
-    }
-};
-IdentifierToken.prototype.evaluate = function(scope){
-    var value = scope.get(this.original);
-    if(value instanceof Token){
-        this.result = value.result;
-        this.sourcePathInfo = value.sourcePathInfo;
-    }else{
-        this.result = value;
-    }
-};
-
-function PeriodToken(){}
-PeriodToken = createSpec(PeriodToken, Token);
-PeriodToken.prototype.name = 'PeriodToken';
-PeriodToken.tokenPrecedence = 2;
-PeriodToken.prototype.parsePrecedence = 5;
-PeriodToken.tokenise = function(substring){
-    var periodConst = ".";
-    return (substring.charAt(0) === periodConst) ? new PeriodToken(periodConst, 1) : undefined;
-};
-PeriodToken.prototype.parse = function(tokens, position){
-    this.targetToken = tokens.splice(position-1,1)[0];
-    this.identifierToken = tokens.splice(position,1)[0];
-};
-PeriodToken.prototype.evaluate = function(scope){
-    this.targetToken.evaluate(scope);
-    if(
-        this.targetToken.result &&
-        (typeof this.targetToken.result === 'object' || typeof this.targetToken.result === 'function')
-        && this.targetToken.result.hasOwnProperty(this.identifierToken.original)
-    ){
-        this.result = this.targetToken.result[this.identifierToken.original];
-    }else{
-        this.result = undefined;
-    }
-
-    var targetPath;
-
-    if(this.targetToken.sourcePathInfo){
-        targetPath = this.targetToken.sourcePathInfo.path
-    }
-
-    if(targetPath){
-        this.sourcePathInfo = {
-            path: paths.append(targetPath, paths.create(this.identifierToken.original))
-        };
-    }
-};
-
-function PipeToken(){}
-PipeToken = createSpec(PipeToken, Token);
-PipeToken.prototype.name = 'PipeToken';
-PipeToken.tokenPrecedence = 1;
-PipeToken.prototype.parsePrecedence = 6;
-PipeToken.tokenise = function(substring){
-    var pipeConst = "|>";
-    return (substring.slice(0,2) === pipeConst) ? new PipeToken(pipeConst, pipeConst.length) : undefined;
-};
-PipeToken.prototype.parse = function(tokens, position){
-    this.argumentToken = tokens.splice(position-1,1)[0];
-    this.functionToken = tokens.splice(position,1)[0];
-};
-PipeToken.prototype.evaluate = function(scope){
-    scope = new Scope(scope);
-
-    if(!this.functionToken){
-        throw "Invalid function call. No function was provided to execute.";
-    }
-
-    this.functionToken.evaluate(scope);
-
-    if(typeof this.functionToken.result !== 'function'){
-        throw this.functionToken.original + " (" + this.functionToken.result + ")" + " is not a function";
-    }
-
-    this.result = scope.callWith(this.functionToken.result, [this.argumentToken], this);
-};
-
-function PipeApplyToken(){}
-PipeApplyToken = createSpec(PipeApplyToken, Token);
-PipeApplyToken.prototype.name = 'PipeApplyToken';
-PipeApplyToken.tokenPrecedence = 1;
-PipeApplyToken.prototype.parsePrecedence = 6;
-PipeApplyToken.tokenise = function(substring){
-    var pipeConst = "~>";
-    return (substring.slice(0,2) === pipeConst) ? new PipeApplyToken(pipeConst, pipeConst.length) : undefined;
-};
-PipeApplyToken.prototype.parse = function(tokens, position){
-    this.argumentsToken = tokens.splice(position-1,1)[0];
-    this.functionToken = tokens.splice(position,1)[0];
-};
-PipeApplyToken.prototype.evaluate = function(scope){
-    scope = new Scope(scope);
-
-    if(!this.functionToken){
-        throw "Invalid function call. No function was provided to execute.";
-    }
-
-    if(!this.argumentsToken){
-        throw "Invalid function call. No arguments were provided to apply.";
-    }
-
-    this.functionToken.evaluate(scope);
-    this.argumentsToken.evaluate(scope);
-
-    if(typeof this.functionToken.result !== 'function'){
-        throw this.functionToken.original + " (" + this.functionToken.result + ")" + " is not a function";
-    }
-
-    this.result = scope.callWith(this.functionToken.result, this.argumentsToken.result, this);
-};
-
-function BraceToken(){}
-BraceToken = createSpec(BraceToken, Token);
-BraceToken.tokenPrecedence = 1;
-BraceToken.prototype.parsePrecedence = 3;
-BraceToken.prototype.name = 'BraceToken';
-BraceToken.tokenise = function(substring) {
-    if(substring.charAt(0) === '{'){
-        return new BraceToken(substring.charAt(0), 1);
-    }
-};
-BraceToken.prototype.parse = createNestingParser(BraceEndToken);
-BraceToken.prototype.evaluate = function(scope){
-    var parameterNames = this.childTokens.slice();
-
-    // Object literal
-    if(parameterNames[0] instanceof TupleToken){
-        this.result = {};
-        this.sourcePathInfo = new SourcePathInfo(null, {}, true);
-
-        for(var i = 0; i < parameterNames.length; i++){
-            var token = parameterNames[i];
-            token.evaluate(scope);
-            this.result[token.keyToken.result] = token.valueToken.result;
-
-            if(token.valueToken.sourcePathInfo){
-                this.sourcePathInfo.subPaths[key] = token.valueToken.sourcePathInfo.path;
-            }
-        };
-
-        return;
-    }
-
-    // Function expression
-    var fnBody = parameterNames.pop();
-
-    this.result = function(scope, args){
-        scope = new Scope(scope);
-
-        for(var i = 0; i < parameterNames.length; i++){
-            var parameterToken = args.getRaw(i, true);
-            scope.set(parameterNames[i].original, parameterToken);
-        }
-
-        fnBody.evaluate(scope);
-
-        if(args.callee){
-            args.callee.sourcePathInfo = fnBody.sourcePathInfo;
-        }
-
-        return fnBody.result;
-    };
-};
-
-function BraceEndToken(){}
-BraceEndToken = createSpec(BraceEndToken, Token);
-BraceEndToken.tokenPrecedence = 1;
-BraceEndToken.prototype.parsePrecedence = 4;
-BraceEndToken.prototype.name = 'BraceEndToken';
-BraceEndToken.tokenise = function(substring) {
-    if(substring.charAt(0) === '}'){
-        return new BraceEndToken(substring.charAt(0), 1);
-    }
-};
-
-function Tuple(key, value){
-    this[key] = value;
-}
-
-function TupleToken(){}
-TupleToken = createSpec(TupleToken, Token);
-TupleToken.prototype.name = 'TupleToken';
-TupleToken.tokenPrecedence = 2;
-TupleToken.prototype.parsePrecedence = 5;
-TupleToken.tokenise = function(substring){
-    var tupleConst = ":";
-    return (substring.charAt(0) === tupleConst) ? new TupleToken(tupleConst, 1) : undefined;
-};
-TupleToken.prototype.parse = function(tokens, position){
-    this.keyToken = tokens.splice(position-1,1)[0];
-    this.valueToken = tokens.splice(position, 1)[0];
-};
-TupleToken.prototype.evaluate = function(scope){
-    this.keyToken.evaluate(scope);
-    this.valueToken.evaluate(scope);
-
-    this.result = new Tuple(this.keyToken.result, this.valueToken.result);
-};
-
-function SourcePathInfo(token, source, trackSubPaths){
-    var innerPathInfo;
-
-    if(trackSubPaths && source){
-        this.subPaths = typeof source === 'object' && new source.constructor();
-    }
-
-    if(token){
-        innerPathInfo = token.sourcePathInfo;
-
-        if(token instanceof Token && token.path){
-            originPath = token.original;
-            this.original = source;
-        }
-    }
-
-    this.innerPathInfo = innerPathInfo;
-
-
-    this.original = innerPathInfo && innerPathInfo.original || source;
-    this.path = innerPathInfo && innerPathInfo.path;
-}
-SourcePathInfo.prototype.setSubPath = function(to, key){
-    if(!this.subPaths){
-        return;
-    }
-    this.subPaths[to] = this.innerPathInfo && this.innerPathInfo.subPaths && this.innerPathInfo.subPaths[key] || paths.append(this.path, paths.create(key));
-};
-SourcePathInfo.prototype.pushSubPath = function(key){
-    if(!this.subPaths){
-        return;
-    }
-    this.setSubPath(this.subPaths.length, key);
-};
-SourcePathInfo.prototype.setSubPaths = function(paths){
-    if(!this.subPaths){
-        return;
-    }
-    this.subPaths = paths;
-};
-SourcePathInfo.prototype.drillTo = function(key){
-    if(this.subPaths){
-        this.path = this.subPaths[key];
-    }
-    if(this.path){
-        this.path = paths.append(this.path, paths.create(key));
-    }
-};
-
-function addFilterResult(filteredItems, item, key, sourcePathInfo, isArray){
-    if(isArray){
-        filteredItems.push(item);
-    }else{
-        filteredItems[key] = item;
-    }
-    sourcePathInfo.pushSubPath(key);
-}
-
-function gelFilter(scope, args) {
-    var source = args.get(0),
-        sourcePathInfo = new SourcePathInfo(args.getRaw(0), source, true),
-        filteredItems = source && typeof source === 'object' && new source.constructor();
-
-    var functionToCompare = args.get(1);
-
-    if(!filteredItems){
-        return undefined;
-    }
-
-    var isArray = Array.isArray(source),
-        item;
-
-    for(var key in source){
-        if(isArray && isNaN(key)){
-            continue;
-        }
-        item = source[key];
-        if(typeof functionToCompare === "function"){
-            if(scope.callWith(functionToCompare, [item])){
-                addFilterResult(filteredItems, item, key, sourcePathInfo, isArray);
-            }
-        }else{
-            if(item === functionToCompare){
-                addFilterResult(filteredItems, item, key, sourcePathInfo, isArray);
-            }
-        }
-    }
-
-    args.callee.sourcePathInfo = sourcePathInfo;
-
-    return filteredItems;
-}
-
-function gelMerge(scope, args){
-    var result = {};
-    while(args.hasNext()){
-        var nextObject = args.next();
-        result = merge(result, nextObject);
-    }
-    return result;
-}
-
-var tokenConverters = [
-        StringToken,
-        String2Token,
-        ParenthesesToken,
-        ParenthesesEndToken,
-        NumberToken,
-        NullToken,
-        UndefinedToken,
-        TrueToken,
-        FalseToken,
-        DelimiterToken,
-        IdentifierToken,
-        PeriodToken,
-        PipeToken,
-        PipeApplyToken,
-        BraceToken,
-        BraceEndToken,
-        TupleToken
-    ],
-    scope = {
-        "parseInt":function(scope, args){
-            return parseInt(args.next());
-        },
-        "parseFloat":function(scope, args){
-            return parseFloat(args.next());
-        },
-        "toFixed": function(scope, args){
-            var num = args.next(),
-                decimals = args.get(1) || 2;
-
-            if(isNaN(num)){
-                return;
-            }
-
-            return num.toFixed(decimals);
-        },
-        "toString":function(scope, args){
-            return "" + args.next();
-        },
-        "+":function(scope, args){
-            return args.next() + args.next();
-        },
-        "-":function(scope, args){
-            return args.next() - args.next();
-        },
-        "/":function(scope, args){
-            return args.next() / args.next();
-        },
-        "*":function(scope, args){
-            return args.next() * args.next();
-        },
-        "isNaN":function(scope, args){
-            return isNaN(args.get(0));
-        },
-        "max":function(scope, args){
-            var result = args.next();
-            while(args.hasNext()){
-                result = Math.max(result, args.next());
-            }
-            return result;
-        },
-        "min":function(scope, args){
-            var result = args.next();
-            while(args.hasNext()){
-                result = Math.min(result, args.next());
-            }
-            return result;
-        },
-        ">":function(scope, args){
-            return args.next() > args.next();
-        },
-        "<":function(scope, args){
-            return args.next() < args.next();
-        },
-        ">=":function(scope, args){
-            return args.next() >= args.next();
-        },
-        "<=":function(scope, args){
-            return args.next() <= args.next();
-        },
-        "?":function(scope, args){
-            var result,
-                resultToken;
-            if(args.next()){
-                result = args.get(1);
-                resultToken = args.getRaw(1);
-            }else{
-                result = args.get(2);
-                resultToken = args.getRaw(2);
-            }
-
-            args.callee.sourcePathInfo = resultToken && resultToken.sourcePathInfo;
-
-            return result;
-        },
-        "!":function(scope, args){
-            return !args.next();
-        },
-        "=":function(scope, args){
-            return args.next() == args.next();
-        },
-        "==":function(scope, args){
-            return args.next() === args.next();
-        },
-        "!=":function(scope, args){
-            return args.next() != args.next();
-        },
-        "!==":function(scope, args){
-            return args.next() !== args.next();
-        },
-        "||":function(scope, args){
-            var nextArg,
-                rawResult,
-                argIndex = -1;
-
-            while(args.hasNext()){
-                argIndex++;
-                nextArg = args.next();
-                if(nextArg){
-                    break;
-                }
-            }
-
-            rawResult = args.getRaw(argIndex);
-            args.callee.sourcePathInfo = rawResult && rawResult.sourcePathInfo;
-            return nextArg;
-        },
-        "|":function(scope, args){
-            var nextArg,
-                rawResult,
-                argIndex = -1;
-
-            while(args.hasNext()){
-                argIndex++;
-                nextArg = args.next();
-                if(nextArg === true){
-                    break;
-                }
-            }
-
-            rawResult = args.getRaw(argIndex);
-            args.callee.sourcePathInfo = rawResult && rawResult.sourcePathInfo;
-            return nextArg;
-        },
-        "&&":function(scope, args){
-            var nextArg;
-            while(args.hasNext()){
-                nextArg = args.next();
-                if(!nextArg){
-                    break;
-                }
-            }
-            var rawResult = args.getRaw(args.length-1);
-            args.callee.sourcePathInfo = rawResult && rawResult.sourcePathInfo;
-            return nextArg;
-        },
-        "keys":function(scope, args){
-            var object = args.next();
-            return typeof object === 'object' ? Object.keys(object) : undefined;
-        },
-        "values":function(scope, args){
-            var target = args.next(),
-                callee = args.callee,
-                sourcePathInfo = new SourcePathInfo(args.getRaw(0), target, true),
-                result = [];
-
-            for(var key in target){
-                result.push(target[key]);
-
-                sourcePathInfo.setSubPath(result.length - 1, key);
-            }
-
-            callee.sourcePathInfo = sourcePathInfo;
-
-            return result;
-        },
-        "invert":function(scope, args){
-            var target = args.next(),
-                result = {};
-            for(var key in target){
-                result[target[key]] = key;
-            }
-            return result;
-        },
-        "extend": gelMerge,
-        "merge": gelMerge,
-        "array":function(scope, args){
-            var argTokens = args.raw(),
-                argValues = args.all(),
-                result = [],
-                callee = args.callee,
-                sourcePathInfo = new SourcePathInfo(null, [], true);
-
-            for(var i = 0; i < argValues.length; i++) {
-                result.push(argValues[i]);
-                if(argTokens[i] instanceof Token && argTokens[i].sourcePathInfo){
-                    sourcePathInfo.subPaths[i] = argTokens[i].sourcePathInfo.path;
-                }
-            }
-
-            callee.sourcePathInfo = sourcePathInfo;
-
-            return result;
-        },
-        "object":function(scope, args){
-            var result = {},
-                callee = args.callee,
-                sourcePathInfo = new SourcePathInfo(null, {}, true);
-
-            for(var i = 0; i < args.length; i+=2){
-                var key = args.get(i),
-                    valueToken = args.getRaw(i+1),
-                    value = args.get(i+1);
-
-                result[key] = value;
-
-                if(valueToken instanceof Token && valueToken.sourcePathInfo){
-                    sourcePathInfo.subPaths[key] = valueToken.sourcePathInfo.path;
-                }
-            }
-
-            callee.sourcePathInfo = sourcePathInfo;
-
-            return result;
-        },
-        "pairs": function(scope, args){
-            var target = args.next(),
-                result = [];
-
-            for(var key in target){
-                if(target.hasOwnProperty(key)){
-                    result.push([key, target[key]]);
-                }
-            }
-
-            return result;
-        },
-        "flatten":function(scope, args){
-            var target = args.next(),
-                shallow = args.hasNext() && args.next();
-
-            function flatten(target){
-                var result = [],
-                    source;
-
-                for(var i = 0; i < target.length; i++){
-                    source = target[i];
-
-                    for(var j = 0; j < source.length; j++){
-                        if(!shallow && Array.isArray(source[j])){
-                            result.push(flatten(source));
-                        }else{
-                            result.push(target[i][j]);
-                        }
-                    }
-                }
-                return result;
-            }
-            return flatten(target);
-        },
-        "sort": function(scope, args) {
-            var source = args.next(),
-                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source, true),
-                sortFunction = args.next(),
-                result,
-                sourceArrayKeys,
-                caller = args.callee;
-
-            if(!Array.isArray(source)){
-                return;
-            }
-
-            // no subpaths, just do a normal sort.
-            if(!sourcePathInfo.path){
-                return source.slice().sort(function(value1, value2){
-                    return scope.callWith(sortFunction, [value1,value2], caller);
-                });
-            }
-
-            for(var i = 0; i < source.length; i++){
-                sourcePathInfo.setSubPath(i, i);
-            }
-
-            result = [];
-            sortedPaths = sourcePathInfo.subPaths.slice();
-            sortedPaths.sort(function(path1, path2){
-                var value1 = source[quickIndexOf(sourcePathInfo.subPaths, path1)],
-                    value2 = source[quickIndexOf(sourcePathInfo.subPaths, path2)];
-
-                return scope.callWith(sortFunction, [value1,value2], caller);
-            });
-
-            for(var i = 0; i < sortedPaths.length; i++) {
-                result[i] = sourcePathInfo.original[paths.toParts(sortedPaths[i]).pop()];
-            }
-
-            sourcePathInfo.setSubPaths(sortedPaths);
-
-            args.callee.sourcePathInfo = sourcePathInfo;
-
-            return result;
-        },
-        "filter": gelFilter,
-        "findOne": function(scope, args) {
-            var source = args.next(),
-                functionToCompare = args.next(),
-                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source),
-                result,
-                caller = args.callee;
-
-            if (Array.isArray(source)) {
-
-                fastEach(source, function(item, index){
-                    if(scope.callWith(functionToCompare, [item], caller)){
-                        result = item;
-                        sourcePathInfo.drillTo(index);
-                        args.callee.sourcePathInfo = sourcePathInfo;
-                        return true;
-                    }
-                });
-                return result;
-            }
-        },
-        "concat":function(scope, args){
-            var result = args.next(),
-                argCount = 0,
-                sourcePathInfo = new SourcePathInfo(),
-                sourcePaths = Array.isArray(result) && [];
-
-            var addPaths = function(){
-                if(sourcePaths){
-                    var argToken = args.getRaw(argCount++),
-                        argSourcePathInfo = argToken && argToken.sourcePathInfo;
-
-                    if(argSourcePathInfo){
-                        if(Array.isArray(argSourcePathInfo.subPaths)){
-                        sourcePaths = sourcePaths.concat(argSourcePathInfo.subPaths);
-                        }else{
-                            for(var i = 0; i < argToken.result.length; i++){
-                                sourcePaths.push(paths.append(argSourcePathInfo.path, paths.create(i)));
-                            }
-                        }
-                    }
-                }
-            };
-
-            addPaths();
-
-            while(args.hasNext()){
-                if(result == null || !result.concat){
-                    return undefined;
-                }
-                var next = args.next();
-                Array.isArray(next) && (result = result.concat(next));
-                addPaths();
-            }
-            sourcePathInfo.subPaths = sourcePaths;
-            args.callee.sourcePathInfo = sourcePathInfo;
-            return result;
-        },
-        "join":function(scope, args){
-            args = args.all();
-
-            return args.slice(1).join(args[0]);
-        },
-        "slice":function(scope, args){
-            var sourceTokenIndex = 0,
-                source = args.next(),
-                start,
-                end,
-                sourcePathInfo;
-
-            if(args.hasNext()){
-                start = source;
-                source = args.next();
-                sourceTokenIndex++;
-            }
-            if(args.hasNext()){
-                end = source;
-                source = args.next();
-                sourceTokenIndex++;
-            }
-
-            if(!source || !source.slice){
-                return;
-            }
-
-            // clone source
-            source = source.slice();
-
-            sourcePathInfo = new SourcePathInfo(args.getRaw(sourceTokenIndex), source, true);
-
-            var result = source.slice(start, end);
-
-            sourcePathInfo.setSubPaths(sourcePathInfo.innerPathInfo && sourcePathInfo.innerPathInfo.subPaths && sourcePathInfo.innerPathInfo.subPaths.slice(start, end));
-
-            args.callee.sourcePathInfo = sourcePathInfo;
-
-            return result;
-        },
-        "split":function(scope, args){
-            var target = args.next();
-            return target ? target.split(args.hasNext() && args.next()) : undefined;
-        },
-        "last":function(scope, args){
-            var source = args.next(),
-                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source);
-
-            sourcePathInfo.drillTo(source.length - 1);
-
-            args.callee.sourcePathInfo = sourcePathInfo;
-
-            if(!Array.isArray(source)){
-                return;
-            }
-            return source[source.length - 1];
-        },
-        "first":function(scope, args){
-            var source = args.next(),
-                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source);
-
-            sourcePathInfo.drillTo(0);
-
-            args.callee.sourcePathInfo = sourcePathInfo;
-
-            if(!Array.isArray(source)){
-                return;
-            }
-            return source[0];
-        },
-        "length":function(scope, args){
-            var value = args.next();
-            return value != null ? value.length : undefined;
-        },
-        "getValue":function(scope, args){
-            var source = args.next(),
-                key = args.next(),
-                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source);
-
-            sourcePathInfo.drillTo(key);
-
-            args.callee.sourcePathInfo = sourcePathInfo;
-
-            if(!source || typeof source !== 'object'){
-                return;
-            }
-
-            return source[key];
-        },
-        "compare":function(scope, args){
-            var args = args.all(),
-                comparitor = args.pop(),
-                reference = args.pop(),
-                result = true,
-                objectToCompare;
-
-            while(args.length){
-                objectToCompare = args.pop();
-                for(var key in objectToCompare){
-                    if(!scope.callWith(comparitor, [objectToCompare[key], reference[key]], this)){
-                        result = false;
-                    }
-                }
-            }
-
-            return result;
-        },
-        "contains": function(scope, args){
-            var args = args.all(),
-                target = args.shift(),
-                success = false,
-                strict = false,
-                arg;
-
-            if(target == null){
-                return;
-            }
-
-            if(typeof target === 'boolean'){
-                strict = target;
-                target = args.shift();
-            }
-
-            arg = args.pop();
-
-            if(target == null || !target.indexOf){
-                return;
-            }
-
-            if(typeof arg === "string" && !strict){
-                arg = arg.toLowerCase();
-
-                if(Array.isArray(target)){
-                    fastEach(target, function(targetItem){
-                        if(typeof targetItem === 'string' && targetItem.toLowerCase() === arg.toLowerCase()){
-                            return success = true;
-                        }
-                    });
-                }else{
-                    if(typeof target === 'string' && target.toLowerCase().indexOf(arg)>=0){
-                        return success = true;
-                    }
-                }
-                return success;
-            }else{
-                return target.indexOf(arg)>=0;
-            }
-        },
-        "charAt":function(scope, args){
-            var target = args.next(),
-                position;
-
-            if(args.hasNext()){
-                position = args.next();
-            }
-
-            if(typeof target !== 'string'){
-                return;
-            }
-
-            return target.charAt(position);
-        },
-        "toLowerCase":function(scope, args){
-            var target = args.next();
-
-            if(typeof target !== 'string'){
-                return undefined;
-            }
-
-            return target.toLowerCase();
-        },
-        "toUpperCase":function(scope, args){
-            var target = args.next();
-
-            if(typeof target !== 'string'){
-                return undefined;
-            }
-
-            return target.toUpperCase();
-        },
-        "format": function format(scope, args) {
-            var args = args.all();
-
-            if(!args[0]){
-                return;
-            }
-
-            return stringFormat(args.shift(), args);
-        },
-        "refine": function(scope, args){
-            var allArgs = args.all(),
-                exclude = typeof allArgs[0] === "boolean" && allArgs.shift(),
-                original = allArgs.shift(),
-                refined = {},
-                sourcePathInfo = new SourcePathInfo(args.getRaw(exclude ? 1 : 0), original, true);
-
-            for(var i = 0; i < allArgs.length; i++){
-                allArgs[i] = allArgs[i].toString();
-            }
-
-
-            for(var key in original){
-                if(allArgs.indexOf(key)>=0){
-                    if(!exclude){
-                        refined[key] = original[key];
-                        sourcePathInfo.setSubPath(key, key);
-                    }
-                }else if(exclude){
-                    refined[key] = original[key];
-                    sourcePathInfo.setSubPath(key, key);
-                }
-            }
-
-            args.callee.sourcePathInfo = sourcePathInfo;
-
-            return refined;
-        },
-        "date": (function(){
-            var date = function(scope, args) {
-                return args.length ? new Date(args.length > 1 ? args.all() : args.next()) : new Date();
-            };
-
-            date.addDays = function(scope, args){
-                var baseDate = args.next();
-
-                return new Date(baseDate.setDate(baseDate.getDate() + args.next()));
-            };
-
-            return date;
-        })(),
-        "toJSON":function(scope, args){
-            return JSON.stringify(args.next());
-        },
-        "fromJSON":function(scope, args){
-            return JSON.parse(args.next());
-        },
-        "map":function(scope, args){
-            var source = args.next(),
-                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source, true),
-                isArray = Array.isArray(source),
-                result = isArray ? [] : {},
-                functionToken = args.next();
-
-            if(isArray){
-                fastEach(source, function(item, index){
-                    var callee = {};
-                    result[index] = scope.callWith(functionToken, [new ValueToken(item, sourcePathInfo.path, index)], callee);
-                    if(callee.sourcePathInfo){
-                        sourcePathInfo.subPaths[index] = callee.sourcePathInfo.path;
-                    }
-                });
-            }else{
-                for(var key in source){
-                    var callee = {};
-                    result[key] = scope.callWith(functionToken, [new ValueToken(source[key], sourcePathInfo.path, key)], callee);
-                    if(callee.sourcePathInfo){
-                        sourcePathInfo.subPaths[key] = callee.sourcePathInfo.path;
-                    }
-                }
-            }
-
-            args.callee.sourcePathInfo = sourcePathInfo;
-
-            return result;
-        },
-        "fold": function(scope, args){
-            var argValues = args.all(),
-                fn = argValues.pop(),
-                seed = argValues.pop(),
-                source = argValues[0],
-                result = seed,
-                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source, true);
-
-            if(argValues.length > 1){
-                source = argValues;
-            }
-
-            if(!source || !source.length){
-                return result;
-            }
-
-            for(var i = 0; i < source.length; i++){
-                var callee = {};
-                result = scope.callWith(fn, [result, source[i]], callee);
-                if(callee.sourcePathInfo && callee.sourcePathInfo.subPaths){
-                    sourcePathInfo.subPaths[i] = callee.sourcePathInfo.subPaths[i];
-                }
-            }
-
-            args.callee.sourcePathInfo = sourcePathInfo;
-
-            return result;
-        },
-        "partial": function(scope, outerArgs){
-            var fn = outerArgs.get(0),
-                caller = outerArgs.callee;
-
-            return function(scope, innerArgs){
-                var result = scope.callWith(fn, outerArgs.raw().slice(1).concat(innerArgs.raw()), caller);
-
-                innerArgs.callee.sourcePathInfo = outerArgs.callee.sourcePathInfo;
-
-                return result;
-            };
-        },
-        "flip": function(scope, args){
-            var outerArgs = args.all().reverse(),
-                fn = outerArgs.pop(),
-                caller = args.callee;
-
-            return function(scope, args){
-                return scope.callWith(fn, outerArgs, caller);
-            };
-        },
-        "compose": function(scope, args){
-            var outerArgs = args.all().reverse(),
-                caller = args.callee;
-
-            return function(scope, args){
-                var result = scope.callWith(outerArgs[0], args.all(),caller);
-
-                for(var i = 1; i < outerArgs.length; i++){
-                    result = scope.callWith(outerArgs[i], [result],caller);
-                }
-
-                return result;
-            };
-        },
-        "apply": function(scope, args){
-            var fn = args.next(),
-                outerArgs = args.next();
-
-            return scope.callWith(fn, outerArgs, args.callee);
-        },
-        "zip": function(scope, args){
-            var allArgs = args.all(),
-                result = [],
-                maxLength = 0;
-
-            for(var i = 0; i < allArgs.length; i++){
-                if(!Array.isArray(allArgs[i])){
-                    allArgs.splice(i,1);
-                    i--;
-                    continue;
-                }
-                maxLength = Math.max(maxLength, allArgs[i].length);
-            }
-
-            for (var itemIndex = 0; itemIndex < maxLength; itemIndex++) {
-                for(var i = 0; i < allArgs.length; i++){
-                    if(allArgs[i].length >= itemIndex){
-                        result.push(allArgs[i][itemIndex]);
-                    }
-                }
-            }
-
-            return result;
-        },
-        "keyFor": function(scope, args){
-            var value = args.next(),
-                target = args.next();
-
-            for(var key in target){
-                if(!target.hasOwnProperty(key)){
-                    continue;
-                }
-
-                if(target[key] === value){
-                    return key;
-                }
-            }
-        },
-        "regex": function(scope, args){
-            var all = args.all();
-
-            return new RegExp(all[0], all[1]);
-        },
-        "match": function(scope, args){
-            var string = args.next();
-
-            if(typeof string !== 'string'){
-                return false;
-            }
-
-            return string.match(args.next());
-        }
-    };
-
-function createMathFunction(key){
-    return function(scope, args){
-        var all = args.all();
-        return Math[key].apply(Math, all);
-    };
-}
-
-scope.math = {};
-
-var mathFunctionNames = ['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','imul','log','max','min','pow','random','round','sin','sqrt','tan'];
-
-for(var i = 0; i < mathFunctionNames.length; i++){
-    var key = mathFunctionNames[i];
-    scope.math[key] = createMathFunction(key);
-}
-
-
-Gel = function(){
-    var gel = {},
-        lang = new Lang();
-
-    gel.lang = lang;
-    gel.tokenise = function(expression){
-        return gel.lang.tokenise(expression, this.tokenConverters);
-    };
-    gel.evaluate = function(expression, injectedScope, returnAsTokens){
-        var scope = new Scope(this.scope);
-
-        scope.add(injectedScope);
-
-        return lang.evaluate(expression, scope, this.tokenConverters, returnAsTokens);
-    };
-    gel.tokenConverters = tokenConverters.slice();
-    gel.scope = merge({}, scope);
-
-    return gel;
-};
-
-Gel.Token = Token;
-Gel.Scope = Scope;
-module.exports = Gel;
-},{"gedi-paths":30,"lang-js":32,"merge":37,"spec-js":38}],32:[function(require,module,exports){
+},{"gedi-paths":60}],34:[function(require,module,exports){
 (function (process){
 var Token = require('./token');
 
@@ -5482,7 +3877,7 @@ Lang.Token = Token;
 
 module.exports = Lang;
 }).call(this,require("/usr/lib/node_modules/watchify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./token":33,"/usr/lib/node_modules/watchify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":52}],33:[function(require,module,exports){
+},{"./token":35,"/usr/lib/node_modules/watchify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":62}],35:[function(require,module,exports){
 function Token(substring, length){
     this.original = substring;
     this.length = length;
@@ -5494,7 +3889,7 @@ Token.prototype.valueOf = function(){
 }
 
 module.exports = Token;
-},{}],34:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 // Copyright (C) 2011 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -6181,7 +4576,7 @@ module.exports = Token;
   }
 })();
 
-},{}],35:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 var Lang = require('lang-js'),
     Token = Lang.Token,
     paths = require('gedi-paths'),
@@ -6214,36 +4609,1385 @@ module.exports = function(get, model){
 
     return PathToken;
 }
-},{"gedi-paths":30,"gedi-paths/detectPath":29,"lang-js":32,"spec-js":38}],36:[function(require,module,exports){
-function checkElement(element){
-    if(!element){
-        return false;
+},{"gedi-paths":60,"gedi-paths/detectPath":59,"lang-js":34,"spec-js":45}],38:[function(require,module,exports){
+var Lang = require('lang-js'),
+    paths = require('gedi-paths'),
+    merge = require('merge'),
+    createNestingParser = Lang.createNestingParser,
+    detectString = Lang.detectString,
+    Token = Lang.Token,
+    Scope = Lang.Scope,
+    createSpec = require('spec-js');
+
+function fastEach(items, callback) {
+    for (var i = 0; i < items.length; i++) {
+        if (callback(items[i], i, items)) break;
     }
-    var parentNode = element.parentNode;
-    while(parentNode){
-        if(parentNode === element.ownerDocument){
-            return true;
-        }
-        parentNode = parentNode.parentNode;
-    }
-    return false;
+    return items;
 }
 
-module.exports = function laidout(element, callback){
-    if(checkElement(element)){
-        return callback();
+function quickIndexOf(array, value){
+    var length = array.length
+    for(var i = 0; i < length && array[i] !== value;i++) {}
+    return i < length ? i : -1;
+}
+
+function stringFormat(string, values){
+    return string.replace(/{(\d+)}/g, function(match, number) {
+        return values[number] != null
+          ? values[number]
+          : ''
+        ;
+    });
+}
+
+function isIdentifier(substring){
+    var valid = /^[$A-Z_][0-9A-Z_$]*/i,
+        possibleIdentifier = substring.match(valid);
+
+    if (possibleIdentifier && possibleIdentifier.index === 0) {
+        return possibleIdentifier[0];
+    }
+}
+
+function tokeniseIdentifier(substring){
+    // searches for valid identifiers or operators
+    //operators
+    var operators = "!=<>/&|*%-^?+\\",
+        index = 0;
+
+    while (operators.indexOf(substring.charAt(index)||null) >= 0 && ++index) {}
+
+    if (index > 0) {
+        return substring.slice(0, index);
     }
 
-    var recheckElement = function(){
-            if(checkElement(element)){
-                document.removeEventListener('DOMNodeInserted', recheckElement);
-                callback();
+    var identifier = isIdentifier(substring);
+
+    if(identifier != null){
+        return identifier;
+    }
+}
+
+function createKeywordTokeniser(Constructor, keyword){
+    return function(substring){
+        substring = isIdentifier(substring);
+        if (substring === keyword) {
+            return new Constructor(substring, substring.length);
+        }
+    };
+}
+
+function StringToken(){}
+StringToken = createSpec(StringToken, Token);
+StringToken.tokenPrecedence = 2;
+StringToken.prototype.parsePrecedence = 2;
+StringToken.prototype.stringTerminal = '"';
+StringToken.prototype.name = 'StringToken';
+StringToken.tokenise = function (substring) {
+    if (substring.charAt(0) === this.prototype.stringTerminal) {
+        var index = 0,
+        escapes = 0;
+
+        while (substring.charAt(++index) !== this.prototype.stringTerminal)
+        {
+           if(index >= substring.length){
+                   throw "Unclosed " + this.name;
+           }
+           if (substring.charAt(index) === '\\' && substring.charAt(index+1) === this.prototype.stringTerminal) {
+                   substring = substring.slice(0, index) + substring.slice(index + 1);
+                   escapes++;
+           }
+        }
+
+        return new this(
+            substring.slice(0, index+1),
+            index + escapes + 1
+        );
+    }
+}
+StringToken.prototype.evaluate = function () {
+    this.result = this.original.slice(1,-1);
+}
+
+function String2Token(){}
+String2Token = createSpec(String2Token, StringToken);
+String2Token.tokenPrecedence = 1;
+String2Token.prototype.parsePrecedence = 1;
+String2Token.prototype.stringTerminal = "'";
+String2Token.prototype.name = 'String2Token';
+String2Token.tokenise = StringToken.tokenise;
+
+function ParenthesesToken(){
+}
+ParenthesesToken = createSpec(ParenthesesToken, Token);
+ParenthesesToken.tokenPrecedence = 1;
+ParenthesesToken.prototype.parsePrecedence = 4;
+ParenthesesToken.prototype.name = 'ParenthesesToken';
+ParenthesesToken.tokenise = function(substring) {
+    if(substring.charAt(0) === '('){
+        return new ParenthesesToken(substring.charAt(0), 1);
+    }
+}
+ParenthesesToken.prototype.parse = createNestingParser(ParenthesesEndToken);
+ParenthesesToken.prototype.evaluate = function(scope){
+    scope = new Scope(scope);
+
+    var functionToken = this.childTokens[0];
+
+    if(!functionToken){
+        throw "Invalid function call. No function was provided to execute.";
+    }
+
+    functionToken.evaluate(scope);
+
+    if(typeof functionToken.result !== 'function'){
+        throw functionToken.original + " (" + functionToken.result + ")" + " is not a function";
+    }
+
+    this.result = scope.callWith(functionToken.result, this.childTokens.slice(1), this);
+};
+
+function ParenthesesEndToken(){}
+ParenthesesEndToken = createSpec(ParenthesesEndToken, Token);
+ParenthesesEndToken.tokenPrecedence = 1;
+ParenthesesEndToken.prototype.parsePrecedence = 4;
+ParenthesesEndToken.prototype.name = 'ParenthesesEndToken';
+ParenthesesEndToken.tokenise = function(substring) {
+    if(substring.charAt(0) === ')'){
+        return new ParenthesesEndToken(substring.charAt(0), 1);
+    }
+};
+
+function NumberToken(){}
+NumberToken = createSpec(NumberToken, Token);
+NumberToken.tokenPrecedence = 2;
+NumberToken.prototype.parsePrecedence = 2;
+NumberToken.prototype.name = 'NumberToken';
+NumberToken.tokenise = function(substring) {
+    var specials = {
+        "NaN": Number.NaN,
+        "-NaN": -Number.NaN,
+        "Infinity": Infinity,
+        "-Infinity": -Infinity
+    };
+    for (var key in specials) {
+        if (substring.slice(0, key.length) === key) {
+            return new NumberToken(key, key.length);
+        }
+    }
+
+    var valids = "0123456789-.Eex",
+        index = 0;
+
+    while (valids.indexOf(substring.charAt(index)||null) >= 0 && ++index) {}
+
+    if (index > 0) {
+        var result = substring.slice(0, index);
+        if(isNaN(parseFloat(result))){
+            return;
+        }
+        return new NumberToken(result, index);
+    }
+
+    return;
+};
+NumberToken.prototype.evaluate = function(scope){
+    this.result = parseFloat(this.original);
+};
+
+function ValueToken(value, path, key){
+    this.result = value;
+    this.sourcePathInfo = new SourcePathInfo();
+    this.sourcePathInfo.path = path;
+    this.sourcePathInfo.drillTo(key);
+}
+ValueToken = createSpec(ValueToken, Token);
+ValueToken.tokenPrecedence = 2;
+ValueToken.prototype.parsePrecedence = 2;
+ValueToken.prototype.name = 'ValueToken';
+ValueToken.prototype.evaluate = function(){};
+
+function NullToken(){}
+NullToken = createSpec(NullToken, Token);
+NullToken.tokenPrecedence = 2;
+NullToken.prototype.parsePrecedence = 2;
+NullToken.prototype.name = 'NullToken';
+NullToken.tokenise = createKeywordTokeniser(NullToken, "null");
+NullToken.prototype.evaluate = function(scope){
+    this.result = null;
+};
+
+function UndefinedToken(){}
+UndefinedToken = createSpec(UndefinedToken, Token);
+UndefinedToken.tokenPrecedence = 2;
+UndefinedToken.prototype.parsePrecedence = 2;
+UndefinedToken.prototype.name = 'UndefinedToken';
+UndefinedToken.tokenise = createKeywordTokeniser(UndefinedToken, 'undefined');
+UndefinedToken.prototype.evaluate = function(scope){
+    this.result = undefined;
+};
+
+function TrueToken(){}
+TrueToken = createSpec(TrueToken, Token);
+TrueToken.tokenPrecedence = 2;
+TrueToken.prototype.parsePrecedence = 2;
+TrueToken.prototype.name = 'TrueToken';
+TrueToken.tokenise = createKeywordTokeniser(TrueToken, 'true');
+TrueToken.prototype.evaluate = function(scope){
+    this.result = true;
+};
+
+function FalseToken(){}
+FalseToken = createSpec(FalseToken, Token);
+FalseToken.tokenPrecedence = 2;
+FalseToken.prototype.parsePrecedence = 2;
+FalseToken.prototype.name = 'FalseToken';
+FalseToken.tokenise = createKeywordTokeniser(FalseToken, 'false');
+FalseToken.prototype.evaluate = function(scope){
+    this.result = false;
+};
+
+function DelimiterToken(){}
+DelimiterToken = createSpec(DelimiterToken, Token);
+DelimiterToken.tokenPrecedence = 1;
+DelimiterToken.prototype.parsePrecedence = 1;
+DelimiterToken.prototype.name = 'DelimiterToken';
+DelimiterToken.tokenise = function(substring) {
+    var i = 0;
+    while(i < substring.length && substring.charAt(i).trim() === "" || substring.charAt(i) === ',') {
+        i++;
+    }
+
+    if(i){
+        return new DelimiterToken(substring.slice(0, i), i);
+    }
+};
+DelimiterToken.prototype.parse = function(tokens, position){
+    tokens.splice(position, 1);
+};
+
+function IdentifierToken(){}
+IdentifierToken = createSpec(IdentifierToken, Token);
+IdentifierToken.tokenPrecedence = 3;
+IdentifierToken.prototype.parsePrecedence = 3;
+IdentifierToken.prototype.name = 'IdentifierToken';
+IdentifierToken.tokenise = function(substring){
+    var result = tokeniseIdentifier(substring);
+
+    if(result != null){
+        return new IdentifierToken(result, result.length);
+    }
+};
+IdentifierToken.prototype.evaluate = function(scope){
+    var value = scope.get(this.original);
+    if(value instanceof Token){
+        this.result = value.result;
+        this.sourcePathInfo = value.sourcePathInfo;
+    }else{
+        this.result = value;
+    }
+};
+
+function PeriodToken(){}
+PeriodToken = createSpec(PeriodToken, Token);
+PeriodToken.prototype.name = 'PeriodToken';
+PeriodToken.tokenPrecedence = 2;
+PeriodToken.prototype.parsePrecedence = 5;
+PeriodToken.tokenise = function(substring){
+    var periodConst = ".";
+    return (substring.charAt(0) === periodConst) ? new PeriodToken(periodConst, 1) : undefined;
+};
+PeriodToken.prototype.parse = function(tokens, position){
+    this.targetToken = tokens.splice(position-1,1)[0];
+    this.identifierToken = tokens.splice(position,1)[0];
+};
+PeriodToken.prototype.evaluate = function(scope){
+    this.targetToken.evaluate(scope);
+    if(
+        this.targetToken.result &&
+        (typeof this.targetToken.result === 'object' || typeof this.targetToken.result === 'function')
+        && this.targetToken.result.hasOwnProperty(this.identifierToken.original)
+    ){
+        this.result = this.targetToken.result[this.identifierToken.original];
+    }else{
+        this.result = undefined;
+    }
+
+    var targetPath;
+
+    if(this.targetToken.sourcePathInfo){
+        targetPath = this.targetToken.sourcePathInfo.path
+    }
+
+    if(targetPath){
+        this.sourcePathInfo = {
+            path: paths.append(targetPath, paths.create(this.identifierToken.original))
+        };
+    }
+};
+
+function PipeToken(){}
+PipeToken = createSpec(PipeToken, Token);
+PipeToken.prototype.name = 'PipeToken';
+PipeToken.tokenPrecedence = 1;
+PipeToken.prototype.parsePrecedence = 6;
+PipeToken.tokenise = function(substring){
+    var pipeConst = "|>";
+    return (substring.slice(0,2) === pipeConst) ? new PipeToken(pipeConst, pipeConst.length) : undefined;
+};
+PipeToken.prototype.parse = function(tokens, position){
+    this.argumentToken = tokens.splice(position-1,1)[0];
+    this.functionToken = tokens.splice(position,1)[0];
+};
+PipeToken.prototype.evaluate = function(scope){
+    scope = new Scope(scope);
+
+    if(!this.functionToken){
+        throw "Invalid function call. No function was provided to execute.";
+    }
+
+    this.functionToken.evaluate(scope);
+
+    if(typeof this.functionToken.result !== 'function'){
+        throw this.functionToken.original + " (" + this.functionToken.result + ")" + " is not a function";
+    }
+
+    this.result = scope.callWith(this.functionToken.result, [this.argumentToken], this);
+};
+
+function PipeApplyToken(){}
+PipeApplyToken = createSpec(PipeApplyToken, Token);
+PipeApplyToken.prototype.name = 'PipeApplyToken';
+PipeApplyToken.tokenPrecedence = 1;
+PipeApplyToken.prototype.parsePrecedence = 6;
+PipeApplyToken.tokenise = function(substring){
+    var pipeConst = "~>";
+    return (substring.slice(0,2) === pipeConst) ? new PipeApplyToken(pipeConst, pipeConst.length) : undefined;
+};
+PipeApplyToken.prototype.parse = function(tokens, position){
+    this.argumentsToken = tokens.splice(position-1,1)[0];
+    this.functionToken = tokens.splice(position,1)[0];
+};
+PipeApplyToken.prototype.evaluate = function(scope){
+    scope = new Scope(scope);
+
+    if(!this.functionToken){
+        throw "Invalid function call. No function was provided to execute.";
+    }
+
+    if(!this.argumentsToken){
+        throw "Invalid function call. No arguments were provided to apply.";
+    }
+
+    this.functionToken.evaluate(scope);
+    this.argumentsToken.evaluate(scope);
+
+    if(typeof this.functionToken.result !== 'function'){
+        throw this.functionToken.original + " (" + this.functionToken.result + ")" + " is not a function";
+    }
+
+    this.result = scope.callWith(this.functionToken.result, this.argumentsToken.result, this);
+};
+
+function BraceToken(){}
+BraceToken = createSpec(BraceToken, Token);
+BraceToken.tokenPrecedence = 1;
+BraceToken.prototype.parsePrecedence = 3;
+BraceToken.prototype.name = 'BraceToken';
+BraceToken.tokenise = function(substring) {
+    if(substring.charAt(0) === '{'){
+        return new BraceToken(substring.charAt(0), 1);
+    }
+};
+BraceToken.prototype.parse = createNestingParser(BraceEndToken);
+BraceToken.prototype.evaluate = function(scope){
+    var parameterNames = this.childTokens.slice();
+
+    // Object literal
+    if(parameterNames[0] instanceof TupleToken){
+        this.result = {};
+        this.sourcePathInfo = new SourcePathInfo(null, {}, true);
+
+        for(var i = 0; i < parameterNames.length; i++){
+            var token = parameterNames[i];
+            token.evaluate(scope);
+            this.result[token.keyToken.result] = token.valueToken.result;
+
+            if(token.valueToken.sourcePathInfo){
+                this.sourcePathInfo.subPaths[key] = token.valueToken.sourcePathInfo.path;
             }
         };
 
-    document.addEventListener('DOMNodeInserted', recheckElement);
+        return;
+    }
+
+    // Function expression
+    var fnBody = parameterNames.pop();
+
+    this.result = function(scope, args){
+        scope = new Scope(scope);
+
+        for(var i = 0; i < parameterNames.length; i++){
+            var parameterToken = args.getRaw(i, true);
+            scope.set(parameterNames[i].original, parameterToken);
+        }
+
+        fnBody.evaluate(scope);
+
+        if(args.callee){
+            args.callee.sourcePathInfo = fnBody.sourcePathInfo;
+        }
+
+        return fnBody.result;
+    };
 };
-},{}],37:[function(require,module,exports){
+
+function BraceEndToken(){}
+BraceEndToken = createSpec(BraceEndToken, Token);
+BraceEndToken.tokenPrecedence = 1;
+BraceEndToken.prototype.parsePrecedence = 4;
+BraceEndToken.prototype.name = 'BraceEndToken';
+BraceEndToken.tokenise = function(substring) {
+    if(substring.charAt(0) === '}'){
+        return new BraceEndToken(substring.charAt(0), 1);
+    }
+};
+
+function Tuple(key, value){
+    this[key] = value;
+}
+
+function TupleToken(){}
+TupleToken = createSpec(TupleToken, Token);
+TupleToken.prototype.name = 'TupleToken';
+TupleToken.tokenPrecedence = 2;
+TupleToken.prototype.parsePrecedence = 5;
+TupleToken.tokenise = function(substring){
+    var tupleConst = ":";
+    return (substring.charAt(0) === tupleConst) ? new TupleToken(tupleConst, 1) : undefined;
+};
+TupleToken.prototype.parse = function(tokens, position){
+    this.keyToken = tokens.splice(position-1,1)[0];
+    this.valueToken = tokens.splice(position, 1)[0];
+};
+TupleToken.prototype.evaluate = function(scope){
+    this.keyToken.evaluate(scope);
+    this.valueToken.evaluate(scope);
+
+    this.result = new Tuple(this.keyToken.result, this.valueToken.result);
+};
+
+function SourcePathInfo(token, source, trackSubPaths){
+    var innerPathInfo;
+
+    if(trackSubPaths && source){
+        this.subPaths = typeof source === 'object' && new source.constructor();
+    }
+
+    if(token){
+        innerPathInfo = token.sourcePathInfo;
+
+        if(token instanceof Token && token.path){
+            originPath = token.original;
+            this.original = source;
+        }
+    }
+
+    this.innerPathInfo = innerPathInfo;
+
+
+    this.original = innerPathInfo && innerPathInfo.original || source;
+    this.path = innerPathInfo && innerPathInfo.path;
+}
+SourcePathInfo.prototype.setSubPath = function(to, key){
+    if(!this.subPaths){
+        return;
+    }
+    this.subPaths[to] = this.innerPathInfo && this.innerPathInfo.subPaths && this.innerPathInfo.subPaths[key] || paths.append(this.path, paths.create(key));
+};
+SourcePathInfo.prototype.pushSubPath = function(key){
+    if(!this.subPaths){
+        return;
+    }
+    this.setSubPath(this.subPaths.length, key);
+};
+SourcePathInfo.prototype.setSubPaths = function(paths){
+    if(!this.subPaths){
+        return;
+    }
+    this.subPaths = paths;
+};
+SourcePathInfo.prototype.mapSubPaths = function(object){
+    for(var key in object){
+        if(object.hasOwnProperty(key)){
+            this.setSubPath(key, key);
+        }
+    }
+};
+SourcePathInfo.prototype.drillTo = function(key){
+    if(this.subPaths){
+        this.path = this.subPaths[key];
+    }
+    if(this.path){
+        this.path = paths.append(this.path, paths.create(key));
+    }
+};
+
+function addFilterResult(filteredItems, item, key, sourcePathInfo, isArray){
+    if(isArray){
+        filteredItems.push(item);
+    }else{
+        filteredItems[key] = item;
+    }
+    sourcePathInfo.pushSubPath(key);
+}
+
+function gelFilter(scope, args) {
+    var source = args.get(0),
+        sourcePathInfo = new SourcePathInfo(args.getRaw(0), source, true),
+        filteredItems = source && typeof source === 'object' && new source.constructor();
+
+    var functionToCompare = args.get(1);
+
+    if(!filteredItems){
+        return undefined;
+    }
+
+    var isArray = Array.isArray(source),
+        item;
+
+    for(var key in source){
+        if(isArray && isNaN(key)){
+            continue;
+        }
+        item = source[key];
+        if(typeof functionToCompare === "function"){
+            if(scope.callWith(functionToCompare, [item])){
+                addFilterResult(filteredItems, item, key, sourcePathInfo, isArray);
+            }
+        }else{
+            if(item === functionToCompare){
+                addFilterResult(filteredItems, item, key, sourcePathInfo, isArray);
+            }
+        }
+    }
+
+    args.callee.sourcePathInfo = sourcePathInfo;
+
+    return filteredItems;
+}
+
+function gelMerge(scope, args){
+    var result = {};
+    while(args.hasNext()){
+        var nextObject = args.next();
+        result = merge(result, nextObject);
+    }
+    return result;
+}
+
+var tokenConverters = [
+        StringToken,
+        String2Token,
+        ParenthesesToken,
+        ParenthesesEndToken,
+        NumberToken,
+        NullToken,
+        UndefinedToken,
+        TrueToken,
+        FalseToken,
+        DelimiterToken,
+        IdentifierToken,
+        PeriodToken,
+        PipeToken,
+        PipeApplyToken,
+        BraceToken,
+        BraceEndToken,
+        TupleToken
+    ],
+    scope = {
+        "parseInt":function(scope, args){
+            return parseInt(args.next());
+        },
+        "parseFloat":function(scope, args){
+            return parseFloat(args.next());
+        },
+        "toFixed": function(scope, args){
+            var num = args.next(),
+                decimals = args.get(1) || 2;
+
+            if(isNaN(num)){
+                return;
+            }
+
+            return num.toFixed(decimals);
+        },
+        "toString":function(scope, args){
+            return "" + args.next();
+        },
+        "+":function(scope, args){
+            return args.next() + args.next();
+        },
+        "-":function(scope, args){
+            return args.next() - args.next();
+        },
+        "/":function(scope, args){
+            return args.next() / args.next();
+        },
+        "*":function(scope, args){
+            return args.next() * args.next();
+        },
+        "isNaN":function(scope, args){
+            return isNaN(args.get(0));
+        },
+        "max":function(scope, args){
+            var result = args.next();
+            while(args.hasNext()){
+                result = Math.max(result, args.next());
+            }
+            return result;
+        },
+        "min":function(scope, args){
+            var result = args.next();
+            while(args.hasNext()){
+                result = Math.min(result, args.next());
+            }
+            return result;
+        },
+        ">":function(scope, args){
+            return args.next() > args.next();
+        },
+        "<":function(scope, args){
+            return args.next() < args.next();
+        },
+        ">=":function(scope, args){
+            return args.next() >= args.next();
+        },
+        "<=":function(scope, args){
+            return args.next() <= args.next();
+        },
+        "?":function(scope, args){
+            var result,
+                resultToken;
+            if(args.next()){
+                result = args.get(1);
+                resultToken = args.getRaw(1);
+            }else{
+                result = args.get(2);
+                resultToken = args.getRaw(2);
+            }
+
+            args.callee.sourcePathInfo = resultToken && resultToken.sourcePathInfo;
+
+            return result;
+        },
+        "!":function(scope, args){
+            return !args.next();
+        },
+        "=":function(scope, args){
+            return args.next() == args.next();
+        },
+        "==":function(scope, args){
+            return args.next() === args.next();
+        },
+        "!=":function(scope, args){
+            return args.next() != args.next();
+        },
+        "!==":function(scope, args){
+            return args.next() !== args.next();
+        },
+        "||":function(scope, args){
+            var nextArg,
+                rawResult,
+                argIndex = -1;
+
+            while(args.hasNext()){
+                argIndex++;
+                nextArg = args.next();
+                if(nextArg){
+                    break;
+                }
+            }
+
+            rawResult = args.getRaw(argIndex);
+            args.callee.sourcePathInfo = rawResult && rawResult.sourcePathInfo;
+            return nextArg;
+        },
+        "|":function(scope, args){
+            var nextArg,
+                rawResult,
+                argIndex = -1;
+
+            while(args.hasNext()){
+                argIndex++;
+                nextArg = args.next();
+                if(nextArg === true){
+                    break;
+                }
+            }
+
+            rawResult = args.getRaw(argIndex);
+            args.callee.sourcePathInfo = rawResult && rawResult.sourcePathInfo;
+            return nextArg;
+        },
+        "&&":function(scope, args){
+            var nextArg;
+            while(args.hasNext()){
+                nextArg = args.next();
+                if(!nextArg){
+                    break;
+                }
+            }
+            var rawResult = args.getRaw(args.length-1);
+            args.callee.sourcePathInfo = rawResult && rawResult.sourcePathInfo;
+            return nextArg;
+        },
+        "keys":function(scope, args){
+            var object = args.next();
+            return typeof object === 'object' ? Object.keys(object) : undefined;
+        },
+        "values":function(scope, args){
+            var target = args.next(),
+                callee = args.callee,
+                sourcePathInfo = new SourcePathInfo(args.getRaw(0), target, true),
+                result = [];
+
+            for(var key in target){
+                result.push(target[key]);
+
+                sourcePathInfo.setSubPath(result.length - 1, key);
+            }
+
+            callee.sourcePathInfo = sourcePathInfo;
+
+            return result;
+        },
+        "invert":function(scope, args){
+            var target = args.next(),
+                result = {};
+            for(var key in target){
+                result[target[key]] = key;
+            }
+            return result;
+        },
+        "extend": gelMerge,
+        "merge": gelMerge,
+        "array":function(scope, args){
+            var argTokens = args.raw(),
+                argValues = args.all(),
+                result = [],
+                callee = args.callee,
+                sourcePathInfo = new SourcePathInfo(null, [], true);
+
+            for(var i = 0; i < argValues.length; i++) {
+                result.push(argValues[i]);
+                if(argTokens[i] instanceof Token && argTokens[i].sourcePathInfo){
+                    sourcePathInfo.subPaths[i] = argTokens[i].sourcePathInfo.path;
+                }
+            }
+
+            callee.sourcePathInfo = sourcePathInfo;
+
+            return result;
+        },
+        "object":function(scope, args){
+            var result = {},
+                callee = args.callee,
+                sourcePathInfo = new SourcePathInfo(null, {}, true);
+
+            for(var i = 0; i < args.length; i+=2){
+                var key = args.get(i),
+                    valueToken = args.getRaw(i+1),
+                    value = args.get(i+1);
+
+                result[key] = value;
+
+                if(valueToken instanceof Token && valueToken.sourcePathInfo){
+                    sourcePathInfo.subPaths[key] = valueToken.sourcePathInfo.path;
+                }
+            }
+
+            callee.sourcePathInfo = sourcePathInfo;
+
+            return result;
+        },
+        "pairs": function(scope, args){
+            var target = args.next(),
+                result = [];
+
+            for(var key in target){
+                if(target.hasOwnProperty(key)){
+                    result.push([key, target[key]]);
+                }
+            }
+
+            return result;
+        },
+        "flatten":function(scope, args){
+            var target = args.next(),
+                shallow = args.hasNext() && args.next();
+
+            function flatten(target){
+                var result = [],
+                    source;
+
+                for(var i = 0; i < target.length; i++){
+                    source = target[i];
+
+                    for(var j = 0; j < source.length; j++){
+                        if(!shallow && Array.isArray(source[j])){
+                            result.push(flatten(source));
+                        }else{
+                            result.push(target[i][j]);
+                        }
+                    }
+                }
+                return result;
+            }
+            return flatten(target);
+        },
+        "sort": function(scope, args) {
+            var source = args.next(),
+                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source, true),
+                sortFunction = args.next(),
+                result,
+                sourceArrayKeys,
+                caller = args.callee;
+
+            if(!Array.isArray(source)){
+                return;
+            }
+
+            // no subpaths, just do a normal sort.
+            if(!sourcePathInfo.path){
+                return source.slice().sort(function(value1, value2){
+                    return scope.callWith(sortFunction, [value1,value2], caller);
+                });
+            }
+
+            for(var i = 0; i < source.length; i++){
+                sourcePathInfo.setSubPath(i, i);
+            }
+
+            result = [];
+            sortedPaths = sourcePathInfo.subPaths.slice();
+            sortedPaths.sort(function(path1, path2){
+                var value1 = source[quickIndexOf(sourcePathInfo.subPaths, path1)],
+                    value2 = source[quickIndexOf(sourcePathInfo.subPaths, path2)];
+
+                return scope.callWith(sortFunction, [value1,value2], caller);
+            });
+
+            for(var i = 0; i < sortedPaths.length; i++) {
+                result[i] = sourcePathInfo.original[paths.toParts(sortedPaths[i]).pop()];
+            }
+
+            sourcePathInfo.setSubPaths(sortedPaths);
+
+            args.callee.sourcePathInfo = sourcePathInfo;
+
+            return result;
+        },
+        "filter": gelFilter,
+        "findOne": function(scope, args) {
+            var source = args.next(),
+                functionToCompare = args.next(),
+                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source),
+                result,
+                caller = args.callee;
+
+            if (Array.isArray(source)) {
+
+                fastEach(source, function(item, index){
+                    if(scope.callWith(functionToCompare, [item], caller)){
+                        result = item;
+                        sourcePathInfo.drillTo(index);
+                        args.callee.sourcePathInfo = sourcePathInfo;
+                        return true;
+                    }
+                });
+                return result;
+            }
+        },
+        "concat":function(scope, args){
+            var result = args.next(),
+                argCount = 0,
+                sourcePathInfo = new SourcePathInfo(),
+                sourcePaths = Array.isArray(result) && [];
+
+            var addPaths = function(){
+                if(sourcePaths){
+                    var argToken = args.getRaw(argCount++),
+                        argSourcePathInfo = argToken && argToken.sourcePathInfo;
+
+                    if(argSourcePathInfo){
+                        if(Array.isArray(argSourcePathInfo.subPaths)){
+                        sourcePaths = sourcePaths.concat(argSourcePathInfo.subPaths);
+                        }else{
+                            for(var i = 0; i < argToken.result.length; i++){
+                                sourcePaths.push(paths.append(argSourcePathInfo.path, paths.create(i)));
+                            }
+                        }
+                    }
+                }
+            };
+
+            addPaths();
+
+            while(args.hasNext()){
+                if(result == null || !result.concat){
+                    return undefined;
+                }
+                var next = args.next();
+                Array.isArray(next) && (result = result.concat(next));
+                addPaths();
+            }
+            sourcePathInfo.subPaths = sourcePaths;
+            args.callee.sourcePathInfo = sourcePathInfo;
+            return result;
+        },
+        "join":function(scope, args){
+            args = args.all();
+
+            return args.slice(1).join(args[0]);
+        },
+        "slice":function(scope, args){
+            var sourceTokenIndex = 0,
+                source = args.next(),
+                start,
+                end,
+                sourcePathInfo;
+
+            if(args.hasNext()){
+                start = source;
+                source = args.next();
+                sourceTokenIndex++;
+            }
+            if(args.hasNext()){
+                end = source;
+                source = args.next();
+                sourceTokenIndex++;
+            }
+
+            if(!source || !source.slice){
+                return;
+            }
+
+            // clone source
+            source = source.slice();
+
+            sourcePathInfo = new SourcePathInfo(args.getRaw(sourceTokenIndex), source, true);
+
+            if(sourcePathInfo.path){
+                if(sourcePathInfo.innerPathInfo && sourcePathInfo.innerPathInfo.subPaths){
+                    sourcePathInfo.setSubPaths(sourcePathInfo.innerPathInfo.subPaths.slice(start, end));
+                }else{
+                    sourcePathInfo.mapSubPaths(source);
+                    sourcePathInfo.setSubPaths(sourcePathInfo.subPaths.slice(start, end));
+                }
+            }
+
+            var result = source.slice(start, end);
+
+            args.callee.sourcePathInfo = sourcePathInfo;
+
+            return result;
+        },
+        "split":function(scope, args){
+            var target = args.next();
+            return target ? target.split(args.hasNext() && args.next()) : undefined;
+        },
+        "last":function(scope, args){
+            var source = args.next(),
+                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source);
+
+            sourcePathInfo.drillTo(source.length - 1);
+
+            args.callee.sourcePathInfo = sourcePathInfo;
+
+            if(!Array.isArray(source)){
+                return;
+            }
+            return source[source.length - 1];
+        },
+        "first":function(scope, args){
+            var source = args.next(),
+                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source);
+
+            sourcePathInfo.drillTo(0);
+
+            args.callee.sourcePathInfo = sourcePathInfo;
+
+            if(!Array.isArray(source)){
+                return;
+            }
+            return source[0];
+        },
+        "length":function(scope, args){
+            var value = args.next();
+            return value != null ? value.length : undefined;
+        },
+        "getValue":function(scope, args){
+            var source = args.next(),
+                key = args.next(),
+                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source);
+
+            sourcePathInfo.drillTo(key);
+
+            args.callee.sourcePathInfo = sourcePathInfo;
+
+            if(!source || typeof source !== 'object'){
+                return;
+            }
+
+            return source[key];
+        },
+        "compare":function(scope, args){
+            var args = args.all(),
+                comparitor = args.pop(),
+                reference = args.pop(),
+                result = true,
+                objectToCompare;
+
+            while(args.length){
+                objectToCompare = args.pop();
+                for(var key in objectToCompare){
+                    if(!scope.callWith(comparitor, [objectToCompare[key], reference[key]], this)){
+                        result = false;
+                    }
+                }
+            }
+
+            return result;
+        },
+        "contains": function(scope, args){
+            var args = args.all(),
+                target = args.shift(),
+                success = false,
+                strict = false,
+                arg;
+
+            if(target == null){
+                return;
+            }
+
+            if(typeof target === 'boolean'){
+                strict = target;
+                target = args.shift();
+            }
+
+            arg = args.pop();
+
+            if(target == null || !target.indexOf){
+                return;
+            }
+
+            if(typeof arg === "string" && !strict){
+                arg = arg.toLowerCase();
+
+                if(Array.isArray(target)){
+                    fastEach(target, function(targetItem){
+                        if(typeof targetItem === 'string' && targetItem.toLowerCase() === arg.toLowerCase()){
+                            return success = true;
+                        }
+                    });
+                }else{
+                    if(typeof target === 'string' && target.toLowerCase().indexOf(arg)>=0){
+                        return success = true;
+                    }
+                }
+                return success;
+            }else{
+                return target.indexOf(arg)>=0;
+            }
+        },
+        "charAt":function(scope, args){
+            var target = args.next(),
+                position;
+
+            if(args.hasNext()){
+                position = args.next();
+            }
+
+            if(typeof target !== 'string'){
+                return;
+            }
+
+            return target.charAt(position);
+        },
+        "toLowerCase":function(scope, args){
+            var target = args.next();
+
+            if(typeof target !== 'string'){
+                return undefined;
+            }
+
+            return target.toLowerCase();
+        },
+        "toUpperCase":function(scope, args){
+            var target = args.next();
+
+            if(typeof target !== 'string'){
+                return undefined;
+            }
+
+            return target.toUpperCase();
+        },
+        "format": function format(scope, args) {
+            var args = args.all();
+
+            if(!args[0]){
+                return;
+            }
+
+            return stringFormat(args.shift(), args);
+        },
+        "refine": function(scope, args){
+            var allArgs = args.all(),
+                exclude = typeof allArgs[0] === "boolean" && allArgs.shift(),
+                original = allArgs.shift(),
+                refined = {},
+                sourcePathInfo = new SourcePathInfo(args.getRaw(exclude ? 1 : 0), original, true);
+
+            for(var i = 0; i < allArgs.length; i++){
+                allArgs[i] = allArgs[i].toString();
+            }
+
+
+            for(var key in original){
+                if(allArgs.indexOf(key)>=0){
+                    if(!exclude){
+                        refined[key] = original[key];
+                        sourcePathInfo.setSubPath(key, key);
+                    }
+                }else if(exclude){
+                    refined[key] = original[key];
+                    sourcePathInfo.setSubPath(key, key);
+                }
+            }
+
+            args.callee.sourcePathInfo = sourcePathInfo;
+
+            return refined;
+        },
+        "date": (function(){
+            var date = function(scope, args) {
+                return args.length ? new Date(args.length > 1 ? args.all() : args.next()) : new Date();
+            };
+
+            date.addDays = function(scope, args){
+                var baseDate = args.next();
+
+                return new Date(baseDate.setDate(baseDate.getDate() + args.next()));
+            };
+
+            return date;
+        })(),
+        "toJSON":function(scope, args){
+            return JSON.stringify(args.next());
+        },
+        "fromJSON":function(scope, args){
+            return JSON.parse(args.next());
+        },
+        "map":function(scope, args){
+            var source = args.next(),
+                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source, true),
+                isArray = Array.isArray(source),
+                result = isArray ? [] : {},
+                functionToken = args.next();
+
+            if(isArray){
+                fastEach(source, function(item, index){
+                    var callee = {};
+                    result[index] = scope.callWith(functionToken, [new ValueToken(item, sourcePathInfo.path, index)], callee);
+                    if(callee.sourcePathInfo){
+                        sourcePathInfo.subPaths[index] = callee.sourcePathInfo.path;
+                    }
+                });
+            }else{
+                for(var key in source){
+                    var callee = {};
+                    result[key] = scope.callWith(functionToken, [new ValueToken(source[key], sourcePathInfo.path, key)], callee);
+                    if(callee.sourcePathInfo){
+                        sourcePathInfo.subPaths[key] = callee.sourcePathInfo.path;
+                    }
+                }
+            }
+
+            args.callee.sourcePathInfo = sourcePathInfo;
+
+            return result;
+        },
+        "fold": function(scope, args){
+            var argValues = args.all(),
+                fn = argValues.pop(),
+                seed = argValues.pop(),
+                source = argValues[0],
+                result = seed,
+                sourcePathInfo = new SourcePathInfo(args.getRaw(0), source, true);
+
+            if(argValues.length > 1){
+                source = argValues;
+            }
+
+            if(!source || !source.length){
+                return result;
+            }
+
+            for(var i = 0; i < source.length; i++){
+                var callee = {};
+                result = scope.callWith(fn, [result, source[i]], callee);
+                if(callee.sourcePathInfo && callee.sourcePathInfo.subPaths){
+                    sourcePathInfo.subPaths[i] = callee.sourcePathInfo.subPaths[i];
+                }
+            }
+
+            args.callee.sourcePathInfo = sourcePathInfo;
+
+            return result;
+        },
+        "partial": function(scope, outerArgs){
+            var fn = outerArgs.get(0),
+                caller = outerArgs.callee;
+
+            return function(scope, innerArgs){
+                var result = scope.callWith(fn, outerArgs.raw().slice(1).concat(innerArgs.raw()), caller);
+
+                innerArgs.callee.sourcePathInfo = outerArgs.callee.sourcePathInfo;
+
+                return result;
+            };
+        },
+        "flip": function(scope, args){
+            var outerArgs = args.all().reverse(),
+                fn = outerArgs.pop(),
+                caller = args.callee;
+
+            return function(scope, args){
+                return scope.callWith(fn, outerArgs, caller);
+            };
+        },
+        "compose": function(scope, args){
+            var outerArgs = args.all().reverse(),
+                caller = args.callee;
+
+            return function(scope, args){
+                var result = scope.callWith(outerArgs[0], args.all(),caller);
+
+                for(var i = 1; i < outerArgs.length; i++){
+                    result = scope.callWith(outerArgs[i], [result],caller);
+                }
+
+                return result;
+            };
+        },
+        "apply": function(scope, args){
+            var fn = args.next(),
+                outerArgs = args.next();
+
+            return scope.callWith(fn, outerArgs, args.callee);
+        },
+        "zip": function(scope, args){
+            var allArgs = args.all(),
+                result = [],
+                maxLength = 0;
+
+            for(var i = 0; i < allArgs.length; i++){
+                if(!Array.isArray(allArgs[i])){
+                    allArgs.splice(i,1);
+                    i--;
+                    continue;
+                }
+                maxLength = Math.max(maxLength, allArgs[i].length);
+            }
+
+            for (var itemIndex = 0; itemIndex < maxLength; itemIndex++) {
+                for(var i = 0; i < allArgs.length; i++){
+                    if(allArgs[i].length >= itemIndex){
+                        result.push(allArgs[i][itemIndex]);
+                    }
+                }
+            }
+
+            return result;
+        },
+        "keyFor": function(scope, args){
+            var value = args.next(),
+                target = args.next();
+
+            for(var key in target){
+                if(!target.hasOwnProperty(key)){
+                    continue;
+                }
+
+                if(target[key] === value){
+                    return key;
+                }
+            }
+        },
+        "regex": function(scope, args){
+            var all = args.all();
+
+            return new RegExp(all[0], all[1]);
+        },
+        "match": function(scope, args){
+            var string = args.next();
+
+            if(typeof string !== 'string'){
+                return false;
+            }
+
+            return string.match(args.next());
+        }
+    };
+
+function createMathFunction(key){
+    return function(scope, args){
+        var all = args.all();
+        return Math[key].apply(Math, all);
+    };
+}
+
+scope.math = {};
+
+var mathFunctionNames = ['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','imul','log','max','min','pow','random','round','sin','sqrt','tan'];
+
+for(var i = 0; i < mathFunctionNames.length; i++){
+    var key = mathFunctionNames[i];
+    scope.math[key] = createMathFunction(key);
+}
+
+
+Gel = function(){
+    var gel = {},
+        lang = new Lang();
+
+    gel.lang = lang;
+    gel.tokenise = function(expression){
+        return gel.lang.tokenise(expression, this.tokenConverters);
+    };
+    gel.evaluate = function(expression, injectedScope, returnAsTokens){
+        var scope = new Scope(this.scope);
+
+        scope.add(injectedScope);
+
+        return lang.evaluate(expression, scope, this.tokenConverters, returnAsTokens);
+    };
+    gel.tokenConverters = tokenConverters.slice();
+    gel.scope = merge({}, scope);
+
+    return gel;
+};
+
+Gel.Token = Token;
+Gel.Scope = Scope;
+module.exports = Gel;
+},{"gedi-paths":60,"lang-js":39,"merge":41,"spec-js":42}],39:[function(require,module,exports){
+module.exports=require(34)
+},{"./token":40,"/usr/lib/node_modules/watchify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":62}],40:[function(require,module,exports){
+module.exports=require(35)
+},{}],41:[function(require,module,exports){
 /*!
  * @name JavaScript/NodeJS Merge v1.1.3
  * @author yeikos
@@ -6325,7 +6069,7 @@ module.exports = function laidout(element, callback){
 	}
 
 })(typeof module === 'object' && module && typeof module.exports === 'object' && module.exports);
-},{}],38:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 Object.create = Object.create || function (o) {
     if (arguments.length > 1) {
         throw new Error('Object.create implementation only accepts the first parameter.');
@@ -6363,7 +6107,40 @@ function createSpec(child, parent){
 }
 
 module.exports = createSpec;
-},{}],39:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
+function checkElement(element){
+    if(!element){
+        return false;
+    }
+    var parentNode = element.parentNode;
+    while(parentNode){
+        if(parentNode === element.ownerDocument){
+            return true;
+        }
+        parentNode = parentNode.parentNode;
+    }
+    return false;
+}
+
+module.exports = function laidout(element, callback){
+    if(checkElement(element)){
+        return callback();
+    }
+
+    var recheckElement = function(){
+            if(checkElement(element)){
+                document.removeEventListener('DOMNodeInserted', recheckElement);
+                callback();
+            }
+        };
+
+    document.addEventListener('DOMNodeInserted', recheckElement);
+};
+},{}],44:[function(require,module,exports){
+module.exports=require(41)
+},{}],45:[function(require,module,exports){
+module.exports=require(42)
+},{}],46:[function(require,module,exports){
 function escapeHex(hex){
     return String.fromCharCode(hex);
 }
@@ -6376,7 +6153,7 @@ function createKey(number){
 }
 
 module.exports = createKey;
-},{}],40:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 var revive = require('./revive');
 
 function parse(json, reviver){
@@ -6384,7 +6161,7 @@ function parse(json, reviver){
 }
 
 module.exports = parse;
-},{"./revive":41}],41:[function(require,module,exports){
+},{"./revive":48}],48:[function(require,module,exports){
 var createKey = require('./createKey'),
     keyKey = createKey(-1);
 
@@ -6443,13 +6220,13 @@ function revive(input){
 }
 
 module.exports = revive;
-},{"./createKey":39}],42:[function(require,module,exports){
+},{"./createKey":46}],49:[function(require,module,exports){
 module.exports = {
     stringify: require('./stringify'),
     parse: require('./parse'),
     revive: require('./revive')
 };
-},{"./parse":40,"./revive":41,"./stringify":43}],43:[function(require,module,exports){
+},{"./parse":47,"./revive":48,"./stringify":50}],50:[function(require,module,exports){
 var createKey = require('./createKey'),
     keyKey = createKey(-1);
 
@@ -6505,9 +6282,10 @@ function stringify(input, replacer, spacer){
 }
 
 module.exports = stringify;
-},{"./createKey":39}],44:[function(require,module,exports){
+},{"./createKey":46}],51:[function(require,module,exports){
 var createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
+    jsonConverter = require('./jsonConverter'),
     Consuela = require('consuela');
 
 function getItemPath(item){
@@ -6738,7 +6516,7 @@ Property.prototype.toJSON = function(){
 };
 
 module.exports = Property;
-},{"consuela":17,"events":51,"spec-js":38}],45:[function(require,module,exports){
+},{"./jsonConverter":21,"consuela":22,"events":61,"spec-js":45}],52:[function(require,module,exports){
 /*
  * raf.js
  * https://github.com/ngryman/raf.js
@@ -6791,7 +6569,7 @@ module.exports = {
     requestAnimationFrame: requestAnimationFrame,
     cancelAnimationFrame: cancelAnimationFrame
 };
-},{}],46:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 function removeViews(views){
     if(!views){
         return;
@@ -6807,7 +6585,143 @@ function removeViews(views){
 }
 
 module.exports = removeViews;
-},{}],47:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
+var Property = require('./property'),
+    statham = require('statham'),
+    createSpec = require('spec-js');
+
+function TemplaterProperty(){}
+TemplaterProperty = createSpec(TemplaterProperty, Property);
+TemplaterProperty.prototype.trackKeys = true;
+
+function findValueIn(value, source){
+    var isArray = Array.isArray(source);
+    for(var key in source){
+        if(isArray && isNaN(key)){
+            continue;
+        }
+        if(source[key] === value){
+            return key;
+        }
+    }
+}
+
+TemplaterProperty.prototype.sameAsPrevious = function(){
+    var oldKeys = this.getPreviousHash(),
+        value = this.value,
+        newKeys = value && (this._sourcePathInfo && this._sourcePathInfo.subPaths || typeof value === 'object' && Object.keys(value));
+
+    this.setPreviousHash(newKeys || value);
+
+    if(newKeys && oldKeys && oldKeys.length){
+        if(oldKeys.length !== newKeys.length){
+            return;
+        }
+        for (var i = 0; i < newKeys.length; i++) {
+            if(newKeys[i] !== oldKeys[i]){
+                return;
+            }
+        };
+        return true;
+    }
+
+    return value === oldKeys;
+};
+
+TemplaterProperty.prototype.update =function (viewModel, value) {
+    if(!this.template){
+        return;
+    }
+    this._templateCache || (this._templateCache = this.template && JSON.parse(statham.stringify(this.template)));
+    this._emptyTemplateCache || (this._emptyTemplateCache = this.emptyTemplate && JSON.parse(statham.stringify(this.emptyTemplate)));
+    var property = this,
+        gaffa = this.gaffa,
+        paths = gaffa.gedi.paths,
+        viewsName = this.viewsName,
+        childViews = viewModel.views[viewsName],
+        sourcePathInfo = this._sourcePathInfo,
+        viewsToRemove = childViews.slice(),
+        isEmpty = true;
+
+    childViews.abortDeferredAdd();
+
+    if (value && typeof value === "object" && sourcePathInfo){
+
+        if(!sourcePathInfo.subPaths){
+            sourcePathInfo.subPaths = new value.constructor();
+
+            for(var key in value){
+                if(Array.isArray(value) && isNaN(key)){
+                    continue;
+                }
+                sourcePathInfo.subPaths[key] = paths.append(sourcePathInfo.path, paths.create(key));
+            }
+        }
+
+        var newView,
+            itemIndex = 0;
+
+        for(var i = 0; i < childViews.length; i++){
+
+            var childSourcePath = childViews[i].sourcePath;
+
+            if(!findValueIn(childSourcePath, sourcePathInfo.subPaths)){
+                if(childViews[i].containerName === viewsName){
+                    childViews[i].remove();
+                    i--;
+                }
+            }
+        }
+
+        for(var key in sourcePathInfo.subPaths){
+            if(Array.isArray(sourcePathInfo.subPaths) && isNaN(key)){
+                continue;
+            }
+            isEmpty = false;
+            var sourcePath = sourcePathInfo.subPaths[key],
+                existingChild = null,
+                existingIndex = null;
+
+            for(var i = 0; i < childViews.length; i++){
+                var child = childViews[i];
+
+                if(child.sourcePath === sourcePath){
+                    existingChild = child;
+                    existingIndex = i;
+                    break;
+                }
+            }
+
+            if(!existingChild){
+                newView = statham.revive(this._templateCache);
+                newView.sourcePath = sourcePath;
+                newView.containerName = viewsName;
+                childViews.deferredAdd(newView, itemIndex);
+            }else if(itemIndex !== existingIndex){
+                childViews.deferredAdd(existingChild, itemIndex);
+            }
+
+            itemIndex++;
+        }
+    }
+
+    if(isEmpty){
+        for(var i = 0; i < childViews.length; i++){
+            if(childViews[i].containerName === viewsName){
+                childViews[i].remove();
+                i--;
+            }
+        }
+        if(this._emptyTemplateCache){
+            newView = gaffa.initialiseView(statham.revive(this._emptyTemplateCache));
+            newView.containerName = viewsName;
+            childViews.add(newView, itemIndex);
+        }
+    }
+};
+
+module.exports = TemplaterProperty;
+},{"./property":51,"spec-js":45,"statham":49}],55:[function(require,module,exports){
 /**
     ## View
 
@@ -6820,6 +6734,7 @@ module.exports = removeViews;
 
 var createSpec = require('spec-js'),
     doc = require('doc-js'),
+    crel = require('crel'),
     ViewItem = require('./viewItem'),
     Property = require('./property');
 
@@ -6900,7 +6815,7 @@ View.prototype.detach = function(){
 
 View.prototype.remove = function(){
     this.detach();
-    removeViewItem(this);
+    View.__super__.prototype.remove.call(this);
 }
 
 View.prototype.debind = function () {
@@ -6919,7 +6834,7 @@ View.prototype.debind = function () {
             delete this[key];
         }
     }
-    debindViewItem(this);
+    View.__super__.prototype.debind.call(this);
 };
 
 View.prototype.render = function(){};
@@ -6983,9 +6898,11 @@ View.prototype.title = new Title();
 View.prototype.insertFunction = insertFunction;
 
 module.exports = View;
-},{"./property":44,"./viewItem":49,"doc-js":21,"spec-js":38}],48:[function(require,module,exports){
+},{"./property":51,"./viewItem":57,"crel":23,"doc-js":26,"spec-js":45}],56:[function(require,module,exports){
 var createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
+    View = require('./view'),
+    initialiseViewItem = require('./initialiseViewItem'),
     Consuela = require('consuela');
 
 function ViewContainer(viewContainerDescription){
@@ -7129,9 +7046,10 @@ ViewContainer.prototype.toJSON = function(){
 };
 
 module.exports = ViewContainer;
-},{"consuela":17,"events":51,"spec-js":38}],49:[function(require,module,exports){
+},{"./initialiseViewItem":20,"./view":55,"consuela":22,"events":61,"spec-js":45}],57:[function(require,module,exports){
 var createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
+    jsonConverter = require('./jsonConverter'),
     Consuela = require('consuela'),
     Property = require('./property');
 
@@ -7172,19 +7090,12 @@ function removeViewItem(viewItem){
     viewItem.emit('remove');
 }
 
+function inflateViewItem(viewItem, description){
+    var ViewContainer = require('./viewContainer');
 
-/**
-    ## ViewItem
-
-    The base constructor for all gaffa ViewItems.
-
-    Views, Behaviours, and Actions inherrit from ViewItem.
-*/
-function ViewItem(viewItemDescription){
-
-    for(var key in this){
-        if(this[key] instanceof Property){
-            this[key] = new this[key].constructor(this[key]);
+    for(var key in viewItem){
+        if(viewItem[key] instanceof Property){
+            viewItem[key] = new viewItem[key].constructor(viewItem[key]);
         }
     }
 
@@ -7215,16 +7126,27 @@ function ViewItem(viewItemDescription){
                 // actions to trigger when a 'click' event is raised by the views renderedElement
             ];
     */
-    this.actions = this.actions ? clone(this.actions) : {};
+    viewItem.actions = viewItem.actions ? clone(viewItem.actions) : {};
 
-    for(var key in viewItemDescription){
-        var prop = this[key];
+    for(var key in description){
+        var prop = viewItem[key];
         if(prop instanceof Property || prop instanceof ViewContainer){
-            copyProperties(viewItemDescription[key], prop);
+            copyProperties(description[key], prop);
         }else{
-            this[key] = viewItemDescription[key];
+            viewItem[key] = description[key];
         }
     }
+}
+
+/**
+    ## ViewItem
+
+    The base constructor for all gaffa ViewItems.
+
+    Views, Behaviours, and Actions inherrit from ViewItem.
+*/
+function ViewItem(viewItemDescription){
+    inflateViewItem(this, viewItemDescription);
 }
 ViewItem = createSpec(ViewItem, EventEmitter);
 ViewItem = Consuela.init(ViewItem);
@@ -7301,11 +7223,12 @@ ViewItem.prototype.triggerActions = function(actionName, scope, event){
 };
 
 module.exports = ViewItem;
-},{"./property":44,"consuela":17,"events":51,"spec-js":38}],50:[function(require,module,exports){
+},{"./jsonConverter":21,"./property":51,"./viewContainer":56,"consuela":22,"events":61,"spec-js":45}],58:[function(require,module,exports){
 var Gaffa = require('gaffa'),
     Heading = require('gaffa-heading'),
     Text = require('gaffa-text'),
     Textbox = require('gaffa-textbox'),
+    List = require('gaffa-list'),
     gaffa = new Gaffa();
 
 // Register used viewItems with gaffa
@@ -7329,23 +7252,328 @@ textbox.updateEventName = 'keyup';
 var characters = new Text();
 characters.text.binding = '(join " " "[value] has" (length [value]) "characters")';
 
+var listTemplate = new Heading();
+listTemplate.text.binding = '[label]';
+
+var list = new List();
+list.list.binding = '(slice (length [value]) [items])';
+list.list.template = listTemplate;
+
 // An example model
 gaffa.model.set({
     value:'things'
-})
+});
+
+// Test lots of items
+var items = [];
+for (var i = 0; i < 100; i++) {
+    items.push({label:'item ' + i});
+};
+gaffa.model.set('[items]', items);
 
 // Add the view on load.
 window.onload = function(){
     gaffa.views.add([
         heading,
         textbox,
-        characters
+        characters,
+        list
     ]);
 };
 
 // Globalise gaffa for easy debugging.
 window.gaffa = gaffa;
-},{"gaffa":15,"gaffa-heading":8,"gaffa-text":9,"gaffa-textbox":10}],51:[function(require,module,exports){
+},{"gaffa":16,"gaffa-heading":8,"gaffa-list":9,"gaffa-text":10,"gaffa-textbox":11}],59:[function(require,module,exports){
+module.exports = function detectPath(substring){
+    if (substring.charAt(0) === '[') {
+        var index = 1;
+
+        do {
+            if (
+                (substring.charAt(index) === '\\' && substring.charAt(index + 1) === '\\') || // escaped escapes
+                (substring.charAt(index) === '\\' && (substring.charAt(index + 1) === '[' || substring.charAt(index + 1) === ']')) //escaped braces
+            ) {
+                index++;
+            }
+            else if(substring.charAt(index) === ']'){
+                return substring.slice(0, index+1);
+            }
+            index++;
+        } while (index < substring.length);
+    }
+};
+},{}],60:[function(require,module,exports){
+var detectPath = require('./detectPath');
+
+var pathSeparator = "/",
+    upALevel = "..",
+    bubbleCapture = "...",
+    currentKey = "#",
+    rootPath = "",
+    pathStart = "[",
+    pathEnd = "]",
+    pathWildcard = "*";
+
+function pathToRaw(path) {
+    return path && path.slice(1, -1);
+}
+
+//***********************************************
+//
+//      Raw To Path
+//
+//***********************************************
+
+function rawToPath(rawPath) {
+    return pathStart + (rawPath == null ? '' : rawPath) + pathEnd;
+}
+
+var memoisePathCache = {};
+function resolvePath() {
+    var memoiseKey,
+        pathParts = [];
+
+    for(var argumentIndex = arguments.length; argumentIndex--;){
+        pathParts.unshift.apply(pathParts, pathToParts(arguments[argumentIndex]));
+        if(isPathAbsolute(arguments[argumentIndex])){
+            break;
+        }
+    }
+
+    memoiseKey = pathParts.join(',');
+
+    if(memoisePathCache[memoiseKey]){
+        return memoisePathCache[memoiseKey];
+    }
+
+    var absoluteParts = [],
+        lastRemoved,
+        pathParts,
+        pathPart;
+
+    for(var pathPartIndex = 0; pathPartIndex < pathParts.length; pathPartIndex++){
+        pathPart = pathParts[pathPartIndex];
+
+        if (pathPart === currentKey) {
+            // Has a last removed? Add it back on.
+            if(lastRemoved != null){
+                absoluteParts.push(lastRemoved);
+                lastRemoved = null;
+            }
+        } else if (pathPart === rootPath) {
+            // Root path? Reset parts to be absolute.
+            absoluteParts = [''];
+
+        } else if (pathPart.slice(-bubbleCapture.length) === bubbleCapture) {
+            // deep bindings
+            if(pathPart !== bubbleCapture){
+                absoluteParts.push(pathPart.slice(0, -bubbleCapture.length));
+            }
+        } else if (pathPart === upALevel) {
+            // Up a level? Remove the last item in absoluteParts
+            lastRemoved = absoluteParts.pop();
+        } else if (pathPart.slice(0,2) === upALevel) {
+            var argument = pathPart.slice(2);
+            //named
+            while(absoluteParts[absoluteParts.length - 1] !== argument){
+                if(absoluteParts.length === 0){
+                    throw "Named path part was not found: '" + pathPart + "', in path: '" + arguments[argumentIndex] + "'.";
+                }
+                lastRemoved = absoluteParts.pop();
+            }
+        } else {
+            // any following valid part? Add it to the absoluteParts.
+            absoluteParts.push(pathPart);
+        }
+    }
+
+    // Convert the absoluteParts to a Path and memoise the result.
+    return memoisePathCache[memoiseKey] = createPath(absoluteParts);
+}
+
+var memoisedPathTokens = {};
+
+function createPath(path){
+
+    if(typeof path === 'number'){
+        path = path.toString();
+    }
+
+    if(path == null){
+        return rawToPath();
+    }
+
+    // passed in an Expression or an 'expression formatted' Path (eg: '[bla]')
+    if (typeof path === "string"){
+
+        if(memoisedPathTokens[path]){
+            return memoisedPathTokens[path];
+        }
+
+        if(path.charAt(0) === pathStart) {
+            var pathString = path.toString(),
+                detectedPath = detectPath(pathString);
+
+            if (detectedPath && detectedPath.length === pathString.length) {
+                return memoisedPathTokens[pathString] = detectedPath;
+            } else {
+                return false;
+            }
+        }else{
+            return createPath(rawToPath(path));
+        }
+    }
+
+    if(path instanceof Array) {
+
+        var parts = [];
+        for (var i = 0; i < path.length; i++) {
+            var pathPart = path[i];
+            pathPart = pathPart.replace(/([\[|\]|\\|\/])/g, '\\$1');
+            parts.push(pathPart);
+        }
+        if(parts.length === 1 && parts[0] === rootPath){
+            return createRootPath();
+        }
+        return rawToPath(parts.join(pathSeparator));
+    }
+}
+
+function createRootPath(){
+    return createPath([rootPath, rootPath]);
+}
+
+function pathToParts(path){
+    var pathType = typeof path;
+
+    if(pathType !== 'string' && pathType !== 'number'){
+        if(Array.isArray(path)){
+            return path;
+        }
+        return;
+    }
+
+    // if we haven't been passed a path, then turn the input into a path
+    if (!isPath(path)) {
+        path = createPath(path);
+        if(path === false){
+            return;
+        }
+    }
+
+    path = path.slice(1,-1);
+
+    if(path === ""){
+        return [];
+    }
+
+    var lastPartIndex = 0,
+        parts,
+        nextChar,
+        currentChar;
+
+    if(path.indexOf('\\') < 0){
+        return path.split(pathSeparator);
+    }
+
+    parts = [];
+
+    for(var i = 0; i < path.length; i++){
+        currentChar = path.charAt(i);
+        if(currentChar === pathSeparator){
+            parts.push(path.slice(lastPartIndex,i));
+            lastPartIndex = i+1;
+        }else if(currentChar === '\\'){
+            nextChar = path.charAt(i+1);
+            if(nextChar === '\\'){
+                path = path.slice(0, i) + path.slice(i + 1);
+            }else if(nextChar === ']' || nextChar === '['){
+                path = path.slice(0, i) + path.slice(i + 1);
+            }else if(nextChar === pathSeparator){
+                parts.push(path.slice(lastPartIndex), i);
+            }
+        }
+    }
+    parts.push(path.slice(lastPartIndex));
+
+    return parts;
+}
+
+function appendPath(){
+    var parts = pathToParts(arguments[0]);
+
+    if(!parts){
+        return;
+    }
+
+    if(isPathRoot(arguments[0])){
+        parts.pop();
+    }
+
+    for (var argumentIndex = 1; argumentIndex < arguments.length; argumentIndex++) {
+        var pathParts = pathToParts(arguments[argumentIndex]);
+
+        pathParts && parts.push.apply(parts, pathParts);
+    }
+
+    return createPath(parts);
+}
+
+function isPath(path) {
+    if(!(typeof path === 'string' || (path instanceof String))){
+        return;
+    }
+    var match = path.match(/\[.*?(?:\\\])*(?:\\\[)*\]/g);
+    if(match && match.length === 1 && match[0] === path){
+        return true;
+    }
+}
+
+function isPathAbsolute(path){
+    var parts = pathToParts(path);
+
+    if(parts == null){
+        return false;
+    }
+
+    return parts[0] === rootPath;
+}
+
+function isPathRoot(path){
+    var parts = pathToParts(path);
+    if(parts == null){
+        return false;
+    }
+    return (isPathAbsolute(parts) && parts[0] === parts[1]) || parts.length === 0;
+}
+
+function isBubbleCapturePath(path){
+    var parts = pathToParts(path),
+        lastPart = parts[parts.length-1];
+    return lastPart && lastPart.slice(-bubbleCapture.length) === bubbleCapture;
+}
+
+module.exports = {
+    resolve: resolvePath,
+    create: createPath,
+    is: isPath,
+    isAbsolute: isPathAbsolute,
+    isRoot: isPathRoot,
+    isBubbleCapture: isBubbleCapturePath,
+    append: appendPath,
+    toParts: pathToParts,
+    createRoot: createRootPath,
+    constants:{
+        separator: pathSeparator,
+        upALevel: upALevel,
+        currentKey: currentKey,
+        root: rootPath,
+        start: pathStart,
+        end: pathEnd,
+        wildcard: pathWildcard
+    }
+};
+},{"./detectPath":59}],61:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7647,7 +7875,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],52:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -7702,4 +7930,4 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}]},{},[50])
+},{}]},{},[58])

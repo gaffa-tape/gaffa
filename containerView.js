@@ -9,7 +9,8 @@
 */
 
 var createSpec = require('spec-js'),
-    View = require('./view');
+    View = require('./view'),
+    ViewContainer = require('./viewContainer');
 
 function ContainerView(viewDescription){
     this.views = this.views || {};

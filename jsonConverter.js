@@ -1,3 +1,5 @@
+var deepEqual = require('deep-equal');
+
 function jsonConverter(object, exclude, include){
     var plainInstance = new object.constructor(),
         tempObject = Array.isArray(object) || object instanceof Array && [] || {},

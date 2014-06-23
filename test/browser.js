@@ -2,6 +2,7 @@ var Gaffa = require('gaffa'),
     Heading = require('gaffa-heading'),
     Text = require('gaffa-text'),
     Textbox = require('gaffa-textbox'),
+    List = require('gaffa-list'),
     gaffa = new Gaffa();
 
 // Register used viewItems with gaffa
@@ -25,17 +26,32 @@ textbox.updateEventName = 'keyup';
 var characters = new Text();
 characters.text.binding = '(join " " "[value] has" (length [value]) "characters")';
 
+var listTemplate = new Heading();
+listTemplate.text.binding = '[label]';
+
+var list = new List();
+list.list.binding = '(slice (length [value]) [items])';
+list.list.template = listTemplate;
+
 // An example model
 gaffa.model.set({
     value:'things'
-})
+});
+
+// Test lots of items
+var items = [];
+for (var i = 0; i < 100; i++) {
+    items.push({label:'item ' + i});
+};
+gaffa.model.set('[items]', items);
 
 // Add the view on load.
 window.onload = function(){
     gaffa.views.add([
         heading,
         textbox,
-        characters
+        characters,
+        list
     ]);
 };
 

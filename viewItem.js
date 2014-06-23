@@ -1,5 +1,6 @@
 var createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
+    jsonConverter = require('./jsonConverter'),
     Consuela = require('consuela'),
     Property = require('./property');
 
@@ -40,19 +41,12 @@ function removeViewItem(viewItem){
     viewItem.emit('remove');
 }
 
+function inflateViewItem(viewItem, description){
+    var ViewContainer = require('./viewContainer');
 
-/**
-    ## ViewItem
-
-    The base constructor for all gaffa ViewItems.
-
-    Views, Behaviours, and Actions inherrit from ViewItem.
-*/
-function ViewItem(viewItemDescription){
-
-    for(var key in this){
-        if(this[key] instanceof Property){
-            this[key] = new this[key].constructor(this[key]);
+    for(var key in viewItem){
+        if(viewItem[key] instanceof Property){
+            viewItem[key] = new viewItem[key].constructor(viewItem[key]);
         }
     }
 
@@ -83,16 +77,27 @@ function ViewItem(viewItemDescription){
                 // actions to trigger when a 'click' event is raised by the views renderedElement
             ];
     */
-    this.actions = this.actions ? clone(this.actions) : {};
+    viewItem.actions = viewItem.actions ? clone(viewItem.actions) : {};
 
-    for(var key in viewItemDescription){
-        var prop = this[key];
+    for(var key in description){
+        var prop = viewItem[key];
         if(prop instanceof Property || prop instanceof ViewContainer){
-            copyProperties(viewItemDescription[key], prop);
+            copyProperties(description[key], prop);
         }else{
-            this[key] = viewItemDescription[key];
+            viewItem[key] = description[key];
         }
     }
+}
+
+/**
+    ## ViewItem
+
+    The base constructor for all gaffa ViewItems.
+
+    Views, Behaviours, and Actions inherrit from ViewItem.
+*/
+function ViewItem(viewItemDescription){
+    inflateViewItem(this, viewItemDescription);
 }
 ViewItem = createSpec(ViewItem, EventEmitter);
 ViewItem = Consuela.init(ViewItem);

@@ -10,6 +10,7 @@
 
 var createSpec = require('spec-js'),
     doc = require('doc-js'),
+    crel = require('crel'),
     ViewItem = require('./viewItem'),
     Property = require('./property');
 
@@ -90,7 +91,7 @@ View.prototype.detach = function(){
 
 View.prototype.remove = function(){
     this.detach();
-    removeViewItem(this);
+    View.__super__.prototype.remove.call(this);
 }
 
 View.prototype.debind = function () {
@@ -109,7 +110,7 @@ View.prototype.debind = function () {
             delete this[key];
         }
     }
-    debindViewItem(this);
+    View.__super__.prototype.debind.call(this);
 };
 
 View.prototype.render = function(){};

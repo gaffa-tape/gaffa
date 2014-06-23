@@ -1,5 +1,7 @@
 var createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
+    View = require('./view'),
+    initialiseViewItem = require('./initialiseViewItem'),
     Consuela = require('consuela');
 
 function ViewContainer(viewContainerDescription){
