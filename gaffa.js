@@ -214,11 +214,8 @@ var initialiseAction = require('./initialiseAction');
 var initialiseBehaviour = require('./initialiseBehaviour');
 
 function Gaffa(){
-
-
     var gedi,
         gaffa = Object.create(EventEmitter.prototype);
-
 
     // internal varaibles
 
@@ -243,7 +240,6 @@ function Gaffa(){
 
     // Add gedi instance to gaffa.
     gaffa.gedi = gedi;
-
 
     function addBehaviour(behaviour) {
         //if the views isnt an array, make it one.
@@ -807,7 +803,7 @@ function Gaffa(){
         },
 
         utils: {
-            //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
+            // Get a deep property on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
             getProp: function (object, propertiesString) {
                 var properties = propertiesString.split(Gaffa.pathSeparator).reverse();
                 while (properties.length) {
@@ -820,7 +816,7 @@ function Gaffa(){
                 }
                 return object;
             },
-            //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
+            // See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
             propExists: function (object, propertiesString) {
                 var properties = propertiesString.split(".").reverse();
                 while (properties.length) {
@@ -854,13 +850,9 @@ function Gaffa(){
             myPageContainer would be a named ContainerView and content is the viewContainer on the view to target.
         */
         navigate: navigate,
-
         load: load,
-
         extend: merge, // DEPRICATED
-
         merge: merge,
-
         clone: clone,
         ajax: ajax,
         crel: crel,
@@ -875,7 +867,6 @@ function Gaffa(){
     merge(gaffa, gaffaPublicObject);
 
     return gaffa;
-
 }
 
 
