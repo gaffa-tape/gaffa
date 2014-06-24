@@ -11,6 +11,7 @@
 var createSpec = require('spec-js'),
     doc = require('doc-js'),
     crel = require('crel'),
+    laidout = require('laidout'),
     ViewItem = require('./viewItem'),
     Property = require('./property'),
     Behaviour = require('./behaviour');
