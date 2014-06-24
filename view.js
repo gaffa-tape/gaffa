@@ -12,7 +12,8 @@ var createSpec = require('spec-js'),
     doc = require('doc-js'),
     crel = require('crel'),
     ViewItem = require('./viewItem'),
-    Property = require('./property');
+    Property = require('./property'),
+    Behaviour = require('./behaviour');
 
 function insertFunction(selector, renderedElement, insertIndex){
     var target = ((typeof selector === "string") ? document.querySelectorAll(selector)[0] : selector),
