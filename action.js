@@ -1,4 +1,5 @@
 var createSpec = require('spec-js'),
+    Property = require('./property'),
     ViewItem = require('./viewItem');
 
 function Action(actionDescription){
