@@ -17,7 +17,8 @@
     "lang-js": "^2.1.0",
     "merge": "^1.1.3",
     "spec-js": "0.0.x",
-    "statham": "^1.0.0"
+    "statham": "^1.0.0",
+    "consuela": "^1.0.0"
   },
   "peerDependencies": {
     "gel-js": "^1.5.0"
@@ -31,13 +32,14 @@
   },
   "contributors": [],
   "devDependencies": {
-    "gaffa": "x.x.x",
+    "gaffa": "^1.8.0",
     "gaffa-container": "^1.0.0",
     "gaffa-formelement": "^1.0.3",
     "gaffa-heading": "^1.0.0",
     "gaffa-list": "^1.2.0",
     "gaffa-text": "^1.0.0",
     "gaffa-textbox": "^1.3.0",
+    "gel-js": "^1.5.0",
     "grape": ">=0.1.x",
     "mockery": "1.x.x"
   },
