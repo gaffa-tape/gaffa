@@ -1,4 +1,5 @@
-var ViewItem = require('./viewItem');
+var ViewItem = require('./viewItem'),
+    ViewContainer = require('./viewContainer');
 
 function initialiseViewItem(viewItem, gaffa, specCollection, references) {
     references = references || {
