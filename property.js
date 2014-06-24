@@ -1,5 +1,6 @@
 var createSpec = require('spec-js'),
-    EventEmitter = require('events').EventEmitter,
+    Bindable = require('./bindable'),
+    IdentifierToken = require('gel-js').IdentifierToken,
     jsonConverter = require('./jsonConverter'),
     Consuela = require('consuela');
 
@@ -50,20 +51,47 @@ function updateProperty(property, firstUpdate){
     }
 }
 
+function createViewItemScope(parent, scope){
+    if(!scope){
+        scope = {};
+    }
+
+    if(!parent){
+        return scope;
+    }
+
+    if(parent.itemScope){
+        var itemScopeToken = new IdentifierToken(),
+            path = '[/_scope_' + parent.iuid + '_' + parent.itemScope + ']';
+
+        itemScopeToken.path = path;
+        itemScopeToken.sourcePathInfo = {
+            path: path
+        };
+        itemScopeToken.result = parent.gaffa.model.get(path);
+        scope[parent.itemScope] = itemScopeToken;
+    }
+
+    return createViewItemScope(parent.parent, scope);
+}
+
 function createModelScope(parent, gediEvent){
     var possibleGroup = parent,
-        groupKey;
+        groupKey,
+        scope = {};
 
     while(possibleGroup && !groupKey){
         groupKey = possibleGroup.group;
         possibleGroup = possibleGroup.parent;
     }
 
-    return {
-        viewItem: parent,
-        groupKey: groupKey,
-        modelTarget: gediEvent && gediEvent.target
-    };
+    scope.viewItem = parent;
+    scope.groupKey = groupKey;
+    scope.modelTarget = gediEvent && gediEvent.target;
+
+    createViewItemScope(parent, scope);
+
+    return scope;
 }
 
 function createPropertyCallback(property){
@@ -129,7 +157,9 @@ function bindProperty(parent) {
 
     var propertyCallback = createPropertyCallback(this);
 
-    this.gaffa.model.bind(this.binding, propertyCallback, this);
+    var scope = createViewItemScope(this);
+
+    this.gaffa.model.bind(this.binding, propertyCallback, this, scope);
     propertyCallback(true);
 }
 
@@ -171,7 +201,7 @@ function Property(propertyDescription){
 
     this.gediCallbacks = [];
 }
-Property = createSpec(Property);
+Property = createSpec(Property, Bindable);
 Property.prototype.set = function(value, isDirty){
     var gaffa = this.gaffa;
 
@@ -181,7 +211,8 @@ Property.prototype.set = function(value, isDirty){
             this.binding,
             setValue,
             this,
-            isDirty
+            isDirty,
+            createViewItemScope(this)
         );
     }else{
         this.value = value;
@@ -220,14 +251,8 @@ Property.prototype.bind = bindProperty;
 Property.prototype.debind = function(){
     cancelAnimationFrame(this.nextUpdate);
     this.gaffa && this.gaffa.model.debind(this);
+    Bindable.prototype.debind.call(this);
 };
-Property.prototype.getPath = function(){
-    return getItemPath(this);
-};
-Property.prototype.toJSON = function(){
-    var tempObject = jsonConverter(this, ['_previousHash']);
-
-    return tempObject;
-};
+Property.prototype.__serialiseExclude__ = ['_previousHash'];
 
 module.exports = Property;

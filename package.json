@@ -8,15 +8,19 @@
   "version": "1.7.6",
   "main": "gaffa.js",
   "dependencies": {
-    "fasteach": ">= 1.0.0",
-    "gedi": "^1.0.0",
-    "doc-js": "0.4.x",
     "crel": "1.0.x",
     "deep-equal": "0.0.x",
-    "spec-js": "0.0.x",
+    "doc-js": "0.4.x",
+    "fasteach": ">= 1.0.0",
+    "gedi": "^1.2.0",
     "laidout": "^1.0.0",
+    "lang-js": "^2.1.0",
     "merge": "^1.1.3",
+    "spec-js": "0.0.x",
     "statham": "^1.0.0"
+  },
+  "peerDependencies": {
+    "gel-js": "^1.5.0"
   },
   "repository": {
     "type": "git",

@@ -1,8 +1,9 @@
 var createSpec = require('spec-js'),
-    EventEmitter = require('events').EventEmitter,
+    Bindable = require('./bindable'),
     View = require('./view'),
     initialiseViewItem = require('./initialiseViewItem'),
-    Consuela = require('consuela');
+    Consuela = require('consuela'),
+    arrayProto = Array.prototype;
 
 function ViewContainer(viewContainerDescription){
     var viewContainer = this;
@@ -13,7 +14,10 @@ function ViewContainer(viewContainerDescription){
         viewContainer.add(viewContainerDescription);
     }
 }
-ViewContainer = createSpec(ViewContainer, Array);
+ViewContainer = createSpec(ViewContainer, Bindable);
+ViewContainer.prototype.slice = arrayProto.slice;
+ViewContainer.prototype.splice = arrayProto.splice;
+ViewContainer.prototype.indexOf = arrayProto.indexOf;
 ViewContainer.prototype.bind = function(parent){
     this.parent = parent;
     this.gaffa = parent.gaffa;
@@ -43,6 +47,7 @@ ViewContainer.prototype.debind = function(){
         this[i].detach();
         this[i].debind();
     }
+    Bindable.prototype.debind.call(this);
 };
 ViewContainer.prototype.getPath = function(){
     return getItemPath(this);
@@ -140,8 +145,6 @@ ViewContainer.prototype.remove = function(viewModel){
 ViewContainer.prototype.empty = function(){
     removeViews(this);
 };
-ViewContainer.prototype.toJSON = function(){
-    return jsonConverter(this, ['element']);
-};
+ViewContainer.prototype.__serialiseExclude__ = ['element'];
 
 module.exports = ViewContainer;

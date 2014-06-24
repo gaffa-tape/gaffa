@@ -1,7 +1,6 @@
 var createSpec = require('spec-js'),
-    EventEmitter = require('events').EventEmitter,
+    Bindable = require('./bindable'),
     jsonConverter = require('./jsonConverter'),
-    Consuela = require('consuela'),
     Property = require('./property');
 
 function copyProperties(source, target){
@@ -22,7 +21,6 @@ function copyProperties(source, target){
 function debindViewItem(viewItem){
     viewItem.emit('debind');
     viewItem._bound = false;
-    viewItem._cleanup();
 }
 
 
@@ -99,8 +97,7 @@ function inflateViewItem(viewItem, description){
 function ViewItem(viewItemDescription){
     inflateViewItem(this, viewItemDescription);
 }
-ViewItem = createSpec(ViewItem, EventEmitter);
-ViewItem = Consuela.init(ViewItem);
+ViewItem = createSpec(ViewItem, Bindable);
 
     /**
         ## .path
@@ -147,24 +144,15 @@ ViewItem.prototype.bind = function(parent){
             property.bind(this);
         }
     }
+
+    // Create item scope
 };
 ViewItem.prototype.debind = function(){
     debindViewItem(this);
+    Bindable.prototype.debind.call(this);
 };
 ViewItem.prototype.remove = function(){
     removeViewItem(this);
-};
-ViewItem.prototype.getPath = function(){
-    return getItemPath(this);
-};
-ViewItem.prototype.getDataAtPath = function(){
-    if(!this.gaffa){
-        return;
-    }
-    return this.gaffa.model.get(getItemPath(this));
-};
-ViewItem.prototype.toJSON = function(){
-    return jsonConverter(this);
 };
 ViewItem.prototype.triggerActions = function(actionName, scope, event){
     if(!this.gaffa){

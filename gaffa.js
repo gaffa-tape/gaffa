@@ -385,6 +385,105 @@ function Gaffa(){
         scope.windowLocation = window.location.toString();
     }
 
+    function resolvePath(viewItem){
+        var parentPath = '[]';
+
+        if(viewItem && viewItem.getPath){
+            parentPath = viewItem.getPath();
+        }
+
+        var prefixMatch = parentPath.match(/^\[(\_scope\_.*?)\/.*$/);
+
+        if(!prefixMatch){
+            parentPath = gedi.paths.resolve(gedi.paths.create('$'), parentPath)
+        }
+
+
+        return parentPath;
+    }
+
+    function modelGet(path, viewItem, scope, asTokens) {
+        if(!(viewItem instanceof ViewItem || viewItem instanceof Property)){
+            scope = viewItem;
+            viewItem = undefined;
+        }
+
+        scope = scope || {};
+
+        addDefaultsToScope(scope);
+        var parentPath = resolvePath(viewItem);
+
+        return gedi.get(path, parentPath, scope, asTokens);
+    }
+
+    function modelSet(path, value, viewItem, dirty, scope){
+        if(path == null){
+            return;
+        }
+
+        var parentPath = resolvePath(viewItem);
+
+        if(typeof path === 'object'){
+            value = path;
+            path = '[]';
+        }
+
+        gedi.set(path, value, parentPath, dirty, scope);
+    }
+
+    function modelRemove(path, viewItem, dirty) {
+        var parentPath;
+
+        if(path == null){
+            return;
+        }
+
+        var parentPath = resolvePath(viewItem);
+
+        gedi.remove(path, parentPath, dirty);
+    }
+
+    function modelBind(path, callback, viewItem, scope) {
+        var parentPath = resolvePath(viewItem);
+
+        if(!viewItem.gediCallbacks){
+            viewItem.gediCallbacks = [];
+        }
+
+        // Add the callback to the list of handlers associated with the viewItem
+        viewItem.gediCallbacks.push(function(){
+            gedi.debind(path, callback, parentPath, scope);
+        });
+
+        gedi.bind(path, callback, parentPath, scope);
+    }
+
+    function modelDebind(viewItem) {
+        while(viewItem.gediCallbacks && viewItem.gediCallbacks.length){
+            viewItem.gediCallbacks.pop()();
+        }
+    }
+
+    function modelIsDirty(path, viewItem) {
+        if(path == null){
+            return;
+        }
+
+        var parentPath = resolvePath(viewItem);
+
+        return gedi.isDirty(path, parentPath);
+    }
+
+    function modelSetDirtyState(path, value, viewItem) {
+        if(path == null){
+            return;
+        }
+
+        var parentPath = resolvePath(viewItem);
+
+        gedi.setDirtyState(path, value, parentPath);
+    }
+
 
 /**
     ## The gaffa instance
@@ -518,22 +617,7 @@ function Gaffa(){
 
                     gaffa.model.get('[someProp]', parentViewItem);
             */
-            get:function(path, viewItem, scope, asTokens) {
-                if(!(viewItem instanceof ViewItem || viewItem instanceof Property)){
-                    scope = viewItem;
-                    viewItem = undefined;
-                }
-
-                var parentPath;
-                if(viewItem && viewItem.getPath){
-                    parentPath = viewItem.getPath();
-                }
-
-                scope = scope || {};
-
-                addDefaultsToScope(scope);
-                return gedi.get(path, parentPath, scope, asTokens);
-            },
+            get: modelGet,
 
             /**
                 ### .set(path, value, viewItem, dirty)
@@ -543,19 +627,7 @@ function Gaffa(){
 
                     gaffa.model.set('[someProp]', 'hello', parentViewItem);
             */
-            set:function(path, value, viewItem, dirty) {
-                var parentPath;
-
-                if(path == null){
-                    return;
-                }
-
-                if(viewItem && viewItem.getPath){
-                    parentPath = viewItem.getPath();
-                }
-
-                gedi.set(path, value, parentPath, dirty);
-            },
+            set: modelSet,
 
             /**
                 ### .remove(path, viewItem, dirty)
@@ -565,19 +637,7 @@ function Gaffa(){
 
                     gaffa.model.remove('[someProp]', parentViewItem);
             */
-            remove: function(path, viewItem, dirty) {
-                var parentPath;
-
-                if(path == null){
-                    return;
-                }
-
-                if(viewItem && viewItem.getPath){
-                    parentPath = viewItem.getPath();
-                }
-
-                gedi.remove(path, parentPath, dirty);
-            },
+            remove: modelRemove,
 
             /**
                 ### .bind(path, callback, viewItem)
@@ -589,24 +649,7 @@ function Gaffa(){
                         //do something when '[someProp]' changes.
                     }, viewItem);
             */
-            bind: function(path, callback, viewItem) {
-                var parentPath;
-
-                if(viewItem && viewItem.getPath){
-                    parentPath = viewItem.getPath();
-                }
-
-                if(!viewItem.gediCallbacks){
-                    viewItem.gediCallbacks = [];
-                }
-
-                // Add the callback to the list of handlers associated with the viewItem
-                viewItem.gediCallbacks.push(function(){
-                    gedi.debind(callback);
-                });
-
-                gedi.bind(path, callback, parentPath);
-            },
+            bind: modelBind,
 
             /**
                 ### .debind(viewItem)
@@ -617,11 +660,7 @@ function Gaffa(){
                         //do something when '[someProp]' changes.
                     });
             */
-            debind: function(viewItem) {
-                while(viewItem.gediCallbacks && viewItem.gediCallbacks.length){
-                    viewItem.gediCallbacks.pop()();
-                }
-            },
+            debind: modelDebind,
 
             /**
                 ### .isDirty(path, viewItem)
@@ -631,19 +670,7 @@ function Gaffa(){
 
                     gaffa.model.isDirty('[someProp]', viewItem); // true/false?
             */
-            isDirty: function(path, viewItem) {
-                var parentPath;
-
-                if(path == null){
-                    return;
-                }
-
-                if(viewItem && viewItem.getPath){
-                    parentPath = viewItem.getPath();
-                }
-
-                return gedi.isDirty(path, parentPath);
-            },
+            isDirty: modelIsDirty,
 
             /**
                 ### .setDirtyState(path, value, viewItem)
@@ -653,19 +680,7 @@ function Gaffa(){
 
                     gaffa.model.setDirtyState('[someProp]', true, viewItem);
             */
-            setDirtyState: function(path, value, viewItem) {
-                var parentPath;
-
-                if(path == null){
-                    return;
-                }
-
-                if(viewItem && viewItem.getPath){
-                    parentPath = viewItem.getPath();
-                }
-
-                gedi.setDirtyState(path, value, parentPath);
-            }
+            setDirtyState: modelSetDirtyState
         },
 
         /**

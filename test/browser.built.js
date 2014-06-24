@@ -121,6 +121,20 @@
 }));
 
 },{}],2:[function(require,module,exports){
+var Gaffa = require('gaffa');
+
+function Container(){}
+Container = Gaffa.createSpec(Container, Gaffa.ContainerView);
+Container.prototype.type = 'container';
+
+Container.prototype.render = function(){
+    this.views.content.element =
+    this.renderedElement =
+    document.createElement(this.tagName || 'div');
+};
+
+module.exports = Container;
+},{"gaffa":18}],3:[function(require,module,exports){
 var Gaffa = require('gaffa'),
     crel = require('crel'),
     doc = require('doc-js');
@@ -209,7 +223,7 @@ FormElement.prototype.validity = new Gaffa.Property(function(view, value){
 });
 
 module.exports = FormElement;
-},{"crel":1,"doc-js":4,"gaffa":16}],3:[function(require,module,exports){
+},{"crel":1,"doc-js":5,"gaffa":18}],4:[function(require,module,exports){
 var doc = {
     document: typeof document !== 'undefined' ? document : null,
     setDocument: function(d){
@@ -741,7 +755,7 @@ doc.isVisible = isVisible;
 doc.ready = ready;
 
 module.exports = doc;
-},{"./getTarget":5,"./getTargets":6,"./isList":7}],4:[function(require,module,exports){
+},{"./getTarget":6,"./getTargets":7,"./isList":8}],5:[function(require,module,exports){
 var doc = require('./doc'),
     isList = require('./isList'),
     getTargets = require('./getTargets')(doc.document),
@@ -821,7 +835,7 @@ flocProto.removeClass = function(className){
 };
 
 module.exports = floc;
-},{"./doc":3,"./getTargets":6,"./isList":7}],5:[function(require,module,exports){
+},{"./doc":4,"./getTargets":7,"./isList":8}],6:[function(require,module,exports){
 var singleId = /^#\w+$/;
 
 module.exports = function(document){
@@ -836,7 +850,7 @@ module.exports = function(document){
         return target;
     };
 };
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 var singleClass = /^\.\w+$/,
     singleId = /^#\w+$/,
@@ -862,7 +876,7 @@ module.exports = function(document){
         return target;
     };
 };
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = function isList(object){
     return object !== window && (
         object instanceof Array ||
@@ -872,7 +886,7 @@ module.exports = function isList(object){
     );
 }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 var Gaffa = require('gaffa'),
@@ -902,7 +916,7 @@ Heading.prototype.text = new Gaffa.Property(function(view, value){
 });
 
 module.exports = Heading;
-},{"crel":1,"gaffa":16}],9:[function(require,module,exports){
+},{"crel":1,"gaffa":18}],10:[function(require,module,exports){
 var Gaffa = require('gaffa'),
     crel = require('crel'),
     TemplaterProperty = require('gaffa/templaterProperty');
@@ -929,7 +943,7 @@ List.prototype.list = new TemplaterProperty({
 });
 
 module.exports = List;
-},{"crel":1,"gaffa":16,"gaffa/templaterProperty":54}],10:[function(require,module,exports){
+},{"crel":1,"gaffa":18,"gaffa/templaterProperty":63}],11:[function(require,module,exports){
 var Gaffa = require('gaffa'),
     crel = require('crel'),
     viewType = "text";
@@ -956,7 +970,7 @@ Text.prototype.enabled = undefined;
 Text.prototype.classes = undefined;
 
 module.exports = Text;
-},{"crel":1,"gaffa":16}],11:[function(require,module,exports){
+},{"crel":1,"gaffa":18}],12:[function(require,module,exports){
 var Gaffa = require('gaffa'),
     FormElement = require('gaffa-formelement');
 
@@ -977,7 +991,7 @@ Textbox.prototype.maxLength = new Gaffa.Property(function(view, value){
 });
 
 module.exports = Textbox;
-},{"gaffa":16,"gaffa-formelement":2}],12:[function(require,module,exports){
+},{"gaffa":18,"gaffa-formelement":3}],13:[function(require,module,exports){
 var createSpec = require('spec-js'),
     ViewItem = require('./viewItem');
 
@@ -1009,7 +1023,7 @@ Action.prototype.trigger = function(parent, scope, event){
 };
 
 module.exports = Action;
-},{"./viewItem":57,"spec-js":45}],13:[function(require,module,exports){
+},{"./viewItem":66,"spec-js":54}],14:[function(require,module,exports){
 function addDefaultStyle(style){
     defaultViewStyles = defaultViewStyles || (function(){
         defaultViewStyles = crel('style', {type: 'text/css', 'class':'dropdownDefaultStyle'});
@@ -1036,7 +1050,7 @@ function addDefaultStyle(style){
 }
 
 module.exports = addDefaultStyle;
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var createSpec = require('spec-js'),
     ViewItem = require('./viewItem');
 
@@ -1047,7 +1061,65 @@ Behaviour.prototype.toJSON = function(){
 };
 
 module.exports = Behaviour;
-},{"./viewItem":57,"spec-js":45}],15:[function(require,module,exports){
+},{"./viewItem":66,"spec-js":54}],16:[function(require,module,exports){
+var createSpec = require('spec-js'),
+    EventEmitter = require('events').EventEmitter,
+    Consuela = require('consuela'),
+    jsonConverter = require('./jsonConverter');
+
+function getItemPath(item){
+    var gedi = item.gaffa.gedi,
+        paths = [],
+        referencePath,
+        referenceItem = item;
+
+    while(referenceItem){
+
+        // item.path should be a child ref after item.sourcePath
+        if(referenceItem.path != null){
+            paths.push(referenceItem.path);
+        }
+
+        // item.sourcePath is most root level path
+        if(referenceItem.sourcePath != null){
+            paths.push(gedi.paths.create(referenceItem.sourcePath));
+        }
+
+        referenceItem = referenceItem.parent;
+    }
+
+    return gedi.paths.resolve.apply(this, paths.reverse());
+}
+
+var iuid = 0;
+function Bindable(){
+    this.setMaxListeners(1000);
+    Consuela.init(this);
+
+    // instance unique ID
+    this.__iuid = iuid++;
+}
+Bindable = createSpec(Bindable, EventEmitter);
+Bindable.prototype.getPath = function(){
+    return getItemPath(this);
+};
+Bindable.prototype.getDataAtPath = function(){
+    if(!this.gaffa){
+        return;
+    }
+    return this.gaffa.model.get(getItemPath(this));
+};
+Bindable.prototype.toJSON = function(){
+    var tempObject = jsonConverter(this, this.__serialiseExclude__, this.__serialiseInclude__);
+
+    return tempObject;
+};
+Bindable.prototype.debind = function(){
+    this._cleanup();
+};
+
+module.exports = Bindable;
+},{"./jsonConverter":23,"consuela":24,"events":68,"spec-js":54}],17:[function(require,module,exports){
 /**
     ## ContainerView
 
@@ -1082,7 +1154,7 @@ ContainerView.prototype.debind = function(){
 };
 
 module.exports = ContainerView;
-},{"./view":55,"./viewContainer":56,"spec-js":45}],16:[function(require,module,exports){
+},{"./view":64,"./viewContainer":65,"spec-js":54}],18:[function(require,module,exports){
 //Copyright (C) 2012 Kory Nunn, Matt Ginty & Maurice Butler
 
 //Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -1299,11 +1371,8 @@ var initialiseAction = require('./initialiseAction');
 var initialiseBehaviour = require('./initialiseBehaviour');
 
 function Gaffa(){
-
-
     var gedi,
         gaffa = Object.create(EventEmitter.prototype);
-
 
     // internal varaibles
 
@@ -1328,7 +1397,6 @@ function Gaffa(){
 
     // Add gedi instance to gaffa.
     gaffa.gedi = gedi;
-
 
     function addBehaviour(behaviour) {
         //if the views isnt an array, make it one.
@@ -1474,6 +1542,105 @@ function Gaffa(){
         scope.windowLocation = window.location.toString();
     }
 
+    function resolvePath(viewItem){
+        var parentPath = '[]';
+
+        if(viewItem && viewItem.getPath){
+            parentPath = viewItem.getPath();
+        }
+
+        var prefixMatch = parentPath.match(/^\[(\_scope\_.*?)\/.*$/);
+
+        if(!prefixMatch){
+            parentPath = gedi.paths.resolve(gedi.paths.create('$'), parentPath)
+        }
+
+
+        return parentPath;
+    }
+
+    function modelGet(path, viewItem, scope, asTokens) {
+        if(!(viewItem instanceof ViewItem || viewItem instanceof Property)){
+            scope = viewItem;
+            viewItem = undefined;
+        }
+
+        scope = scope || {};
+
+        addDefaultsToScope(scope);
+        var parentPath = resolvePath(viewItem);
+
+        return gedi.get(path, parentPath, scope, asTokens);
+    }
+
+    function modelSet(path, value, viewItem, dirty, scope){
+        if(path == null){
+            return;
+        }
+
+        var parentPath = resolvePath(viewItem);
+
+        if(typeof path === 'object'){
+            value = path;
+            path = '[]';
+        }
+
+        gedi.set(path, value, parentPath, dirty, scope);
+    }
+
+    function modelRemove(path, viewItem, dirty) {
+        var parentPath;
+
+        if(path == null){
+            return;
+        }
+
+        var parentPath = resolvePath(viewItem);
+
+        gedi.remove(path, parentPath, dirty);
+    }
+
+    function modelBind(path, callback, viewItem, scope) {
+        var parentPath = resolvePath(viewItem);
+
+        if(!viewItem.gediCallbacks){
+            viewItem.gediCallbacks = [];
+        }
+
+        // Add the callback to the list of handlers associated with the viewItem
+        viewItem.gediCallbacks.push(function(){
+            gedi.debind(path, callback, parentPath, scope);
+        });
+
+        gedi.bind(path, callback, parentPath, scope);
+    }
+
+    function modelDebind(viewItem) {
+        while(viewItem.gediCallbacks && viewItem.gediCallbacks.length){
+            viewItem.gediCallbacks.pop()();
+        }
+    }
+
+    function modelIsDirty(path, viewItem) {
+        if(path == null){
+            return;
+        }
+
+        var parentPath = resolvePath(viewItem);
+
+        return gedi.isDirty(path, parentPath);
+    }
+
+    function modelSetDirtyState(path, value, viewItem) {
+        if(path == null){
+            return;
+        }
+
+        var parentPath = resolvePath(viewItem);
+
+        gedi.setDirtyState(path, value, parentPath);
+    }
+
 
 /**
     ## The gaffa instance
@@ -1607,22 +1774,7 @@ function Gaffa(){
 
                     gaffa.model.get('[someProp]', parentViewItem);
             */
-            get:function(path, viewItem, scope, asTokens) {
-                if(!(viewItem instanceof ViewItem || viewItem instanceof Property)){
-                    scope = viewItem;
-                    viewItem = undefined;
-                }
-
-                var parentPath;
-                if(viewItem && viewItem.getPath){
-                    parentPath = viewItem.getPath();
-                }
-
-                scope = scope || {};
-
-                addDefaultsToScope(scope);
-                return gedi.get(path, parentPath, scope, asTokens);
-            },
+            get: modelGet,
 
             /**
                 ### .set(path, value, viewItem, dirty)
@@ -1632,19 +1784,7 @@ function Gaffa(){
 
                     gaffa.model.set('[someProp]', 'hello', parentViewItem);
             */
-            set:function(path, value, viewItem, dirty) {
-                var parentPath;
-
-                if(path == null){
-                    return;
-                }
-
-                if(viewItem && viewItem.getPath){
-                    parentPath = viewItem.getPath();
-                }
-
-                gedi.set(path, value, parentPath, dirty);
-            },
+            set: modelSet,
 
             /**
                 ### .remove(path, viewItem, dirty)
@@ -1654,19 +1794,7 @@ function Gaffa(){
 
                     gaffa.model.remove('[someProp]', parentViewItem);
             */
-            remove: function(path, viewItem, dirty) {
-                var parentPath;
-
-                if(path == null){
-                    return;
-                }
-
-                if(viewItem && viewItem.getPath){
-                    parentPath = viewItem.getPath();
-                }
-
-                gedi.remove(path, parentPath, dirty);
-            },
+            remove: modelRemove,
 
             /**
                 ### .bind(path, callback, viewItem)
@@ -1678,24 +1806,7 @@ function Gaffa(){
                         //do something when '[someProp]' changes.
                     }, viewItem);
             */
-            bind: function(path, callback, viewItem) {
-                var parentPath;
-
-                if(viewItem && viewItem.getPath){
-                    parentPath = viewItem.getPath();
-                }
-
-                if(!viewItem.gediCallbacks){
-                    viewItem.gediCallbacks = [];
-                }
-
-                // Add the callback to the list of handlers associated with the viewItem
-                viewItem.gediCallbacks.push(function(){
-                    gedi.debind(callback);
-                });
-
-                gedi.bind(path, callback, parentPath);
-            },
+            bind: modelBind,
 
             /**
                 ### .debind(viewItem)
@@ -1706,11 +1817,7 @@ function Gaffa(){
                         //do something when '[someProp]' changes.
                     });
             */
-            debind: function(viewItem) {
-                while(viewItem.gediCallbacks && viewItem.gediCallbacks.length){
-                    viewItem.gediCallbacks.pop()();
-                }
-            },
+            debind: modelDebind,
 
             /**
                 ### .isDirty(path, viewItem)
@@ -1720,19 +1827,7 @@ function Gaffa(){
 
                     gaffa.model.isDirty('[someProp]', viewItem); // true/false?
             */
-            isDirty: function(path, viewItem) {
-                var parentPath;
-
-                if(path == null){
-                    return;
-                }
-
-                if(viewItem && viewItem.getPath){
-                    parentPath = viewItem.getPath();
-                }
-
-                return gedi.isDirty(path, parentPath);
-            },
+            isDirty: modelIsDirty,
 
             /**
                 ### .setDirtyState(path, value, viewItem)
@@ -1742,19 +1837,7 @@ function Gaffa(){
 
                     gaffa.model.setDirtyState('[someProp]', true, viewItem);
             */
-            setDirtyState: function(path, value, viewItem) {
-                var parentPath;
-
-                if(path == null){
-                    return;
-                }
-
-                if(viewItem && viewItem.getPath){
-                    parentPath = viewItem.getPath();
-                }
-
-                gedi.setDirtyState(path, value, parentPath);
-            }
+            setDirtyState: modelSetDirtyState
         },
 
         /**
@@ -1892,7 +1975,7 @@ function Gaffa(){
         },
 
         utils: {
-            //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
+            // Get a deep property on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
             getProp: function (object, propertiesString) {
                 var properties = propertiesString.split(Gaffa.pathSeparator).reverse();
                 while (properties.length) {
@@ -1905,7 +1988,7 @@ function Gaffa(){
                 }
                 return object;
             },
-            //See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
+            // See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
             propExists: function (object, propertiesString) {
                 var properties = propertiesString.split(".").reverse();
                 while (properties.length) {
@@ -1939,13 +2022,9 @@ function Gaffa(){
             myPageContainer would be a named ContainerView and content is the viewContainer on the view to target.
         */
         navigate: navigate,
-
         load: load,
-
         extend: merge, // DEPRICATED
-
         merge: merge,
-
         clone: clone,
         ajax: ajax,
         crel: crel,
@@ -1960,7 +2039,6 @@ function Gaffa(){
     merge(gaffa, gaffaPublicObject);
 
     return gaffa;
-
 }
 
 
@@ -1981,7 +2059,7 @@ module.exports = Gaffa;
 
 ///[license.md]
 
-},{"./action":12,"./addDefaultStyle":13,"./behaviour":14,"./containerView":15,"./initialiseAction":17,"./initialiseBehaviour":18,"./initialiseView":19,"./initialiseViewItem":20,"./jsonConverter":21,"./property":51,"./raf.js":52,"./removeViews":53,"./view":55,"./viewContainer":56,"./viewItem":57,"crel":23,"doc-js":26,"events":61,"fasteach":30,"gedi":32,"laidout":43,"merge":44,"spec-js":45,"statham":49}],17:[function(require,module,exports){
+},{"./action":13,"./addDefaultStyle":14,"./behaviour":15,"./containerView":17,"./initialiseAction":19,"./initialiseBehaviour":20,"./initialiseView":21,"./initialiseViewItem":22,"./jsonConverter":23,"./property":60,"./raf.js":61,"./removeViews":62,"./view":64,"./viewContainer":65,"./viewItem":66,"crel":25,"doc-js":28,"events":68,"fasteach":32,"gedi":34,"laidout":52,"merge":53,"spec-js":54,"statham":58}],19:[function(require,module,exports){
 var initialiseViewItem = require('./initialiseViewItem');
 
 function initialiseAction(viewItem, gaffa, references) {
@@ -1989,7 +2067,7 @@ function initialiseAction(viewItem, gaffa, references) {
 }
 
 module.exports = initialiseAction;
-},{"./initialiseViewItem":20}],18:[function(require,module,exports){
+},{"./initialiseViewItem":22}],20:[function(require,module,exports){
 var initialiseViewItem = require('./initialiseViewItem');
 
 function initialiseBehaviour(viewItem, gaffa, references) {
@@ -1997,7 +2075,7 @@ function initialiseBehaviour(viewItem, gaffa, references) {
 }
 
 module.exports = initialiseBehaviour;
-},{"./initialiseViewItem":20}],19:[function(require,module,exports){
+},{"./initialiseViewItem":22}],21:[function(require,module,exports){
 var initialiseViewItem = require('./initialiseViewItem');
 
 function initialiseView(viewItem, gaffa, references) {
@@ -2005,7 +2083,7 @@ function initialiseView(viewItem, gaffa, references) {
 }
 
 module.exports = initialiseView;
-},{"./initialiseViewItem":20}],20:[function(require,module,exports){
+},{"./initialiseViewItem":22}],22:[function(require,module,exports){
 var ViewItem = require('./viewItem');
 
 function initialiseViewItem(viewItem, gaffa, specCollection, references) {
@@ -2065,7 +2143,7 @@ function initialiseViewItem(viewItem, gaffa, specCollection, references) {
 }
 
 module.exports = initialiseViewItem;
-},{"./viewItem":57}],21:[function(require,module,exports){
+},{"./viewItem":66}],23:[function(require,module,exports){
 var deepEqual = require('deep-equal');
 
 function jsonConverter(object, exclude, include){
@@ -2103,7 +2181,7 @@ function jsonConverter(object, exclude, include){
 }
 
 module.exports = jsonConverter;
-},{"deep-equal":24}],22:[function(require,module,exports){
+},{"deep-equal":26}],24:[function(require,module,exports){
 function getListenerMethod(emitter, methodNames){
     if(typeof methodNames === 'string'){
         methodNames = methodNames.split(' ');
@@ -2183,9 +2261,9 @@ Consuela.prototype._watch = function(emitter, onName, offName){
 };
 
 module.exports = Consuela;
-},{}],23:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports=require(1)
-},{}],24:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
 var Object_keys = typeof Object.keys === 'function'
     ? Object.keys
@@ -2271,9 +2349,9 @@ function objEquiv(a, b) {
   return true;
 }
 
-},{}],25:[function(require,module,exports){
-module.exports=require(3)
-},{"./getTarget":27,"./getTargets":28,"./isList":29}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
+module.exports=require(4)
+},{"./getTarget":29,"./getTargets":30,"./isList":31}],28:[function(require,module,exports){
 var doc = require('./doc'),
     isList = require('./isList'),
     getTargets = require('./getTargets')(doc.document),
@@ -2337,20 +2415,20 @@ flocProto.off = function(events, target, callback){
 };
 
 module.exports = floc;
-},{"./doc":25,"./getTargets":28,"./isList":29}],27:[function(require,module,exports){
-module.exports=require(5)
-},{}],28:[function(require,module,exports){
+},{"./doc":27,"./getTargets":30,"./isList":31}],29:[function(require,module,exports){
 module.exports=require(6)
-},{}],29:[function(require,module,exports){
-module.exports=require(7)
 },{}],30:[function(require,module,exports){
+module.exports=require(7)
+},{}],31:[function(require,module,exports){
+module.exports=require(8)
+},{}],32:[function(require,module,exports){
 function fastEach(items, callback) {
     for (var i = 0; i < items.length && !callback(items[i], i, items);i++) {}
     return items;
 }
 
 module.exports = fastEach;
-},{}],31:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 var WM = typeof WM !== 'undefined' ? WeakMap : require('weak-map'),
     paths = require('gedi-paths'),
     pathConstants = paths.constants
@@ -2501,7 +2579,7 @@ module.exports = function(modelGet, gel, PathToken){
     }
 
     var memoisedExpressionPaths = {};
-    function getPathsInExpression(expression) {
+    function getPathsInExpression(expression, scope) {
         var paths = [];
 
         if(memoisedExpressionPaths[expression]){
@@ -2512,8 +2590,19 @@ module.exports = function(modelGet, gel, PathToken){
             var tokens = gel.tokenise(expression);
             for(var index = 0; index < tokens.length; index++){
             var token = tokens[index];
-                if(token.path != null){
+                if(
+                    token.path != null
+                ){
                     paths.push(token.path);
+                }
+
+                if(
+                    scope &&
+                    token.name === 'IdentifierToken' &&
+                    scope[token.original] &&
+                    scope[token.original].path
+                ){
+                    paths.push(scope[token.original].path);
                 }
             }
         } else {
@@ -2568,7 +2657,7 @@ module.exports = function(modelGet, gel, PathToken){
     }
 
     function bindExpression(binding, details){
-        var expressionPaths = getPathsInExpression(binding),
+        var expressionPaths = getPathsInExpression(binding, details.scope),
             boundExpressions = {};
 
         for(var i = 0; i < expressionPaths.length; i++) {
@@ -2580,28 +2669,29 @@ module.exports = function(modelGet, gel, PathToken){
         }
     }
 
-    function bind(path, callback, parentPath, binding){
+    function bind(expression, callback, parentPath, scope){
         parentPath = parentPath || paths.create();
 
         var details = {
-            binding: binding || path,
+            binding: expression,
             callback: callback,
-            parentPath: parentPath
+            parentPath: parentPath,
+            scope: scope
         };
 
         // If the binding is a simple path, skip the more complex
         // expression path binding.
-        if (paths.is(path)) {
-            return setBinding(path, details);
+        if (paths.is(expression)) {
+            return setBinding(expression, details);
         }
 
-        bindExpression(path, details);
+        bindExpression(expression, details);
     }
 
-    function matchWildcardPath(binding, target, parentPath){
+    function matchWildcardPath(binding, target, parentPath, scope){
         if(
             binding.indexOf(pathConstants.wildcard) >= 0 &&
-            getPathsInExpression(binding)[0] === binding
+            getPathsInExpression(binding, scope)[0] === binding
         ){
             //fully resolve the callback path
             var wildcardParts = paths.toParts(paths.resolve('[/]', parentPath, binding)),
@@ -2620,8 +2710,8 @@ module.exports = function(modelGet, gel, PathToken){
         }
     }
 
-    function debindExpression(binding, callback){
-        var expressionPaths = getPathsInExpression(binding);
+    function debindExpression(binding, callback, scope){
+        var expressionPaths = getPathsInExpression(binding, scope);
 
         for(var i = 0; i < expressionPaths.length; i++) {
             var path = expressionPaths[i];
@@ -2629,7 +2719,7 @@ module.exports = function(modelGet, gel, PathToken){
         }
     }
 
-    function debind(path, callback){
+    function debind(path, callback, parentPath, scope){
 
         // If you pass no path and no callback
         // You are trying to debind the entire gedi instance.
@@ -2644,22 +2734,22 @@ module.exports = function(modelGet, gel, PathToken){
         }
 
         //If the binding has opperators in it, break them apart and set them individually.
-        if (!paths.create(path)) {
-            return debindExpression(path, callback);
+        if (path && !paths.is(path)) {
+            return debindExpression(path, callback, scope);
         }
 
         if(path == null){
             var references = callback && callbackReferenceDetails.get(callback);
             if(references){
                 while(references.length){
-                    debindExpression(references.pop(), callback);
+                    debindExpression(references.pop(), callback, scope);
                 }
             }
             return;
         }
 
         // resolve path to root
-        path = paths.resolve(paths.createRoot(), path);
+        path = paths.resolve(parentPath || paths.createRoot(), path);
 
         var targetReference = get(path, modelBindings),
             referenceDetails = modelBindingDetails.get(targetReference);
@@ -2752,7 +2842,7 @@ module.exports = function(modelGet, gel, PathToken){
         removeModelReference: removeModelReference
     };
 };
-},{"./modelOperations":33,"gedi-paths":60,"weak-map":36}],32:[function(require,module,exports){
+},{"./modelOperations":35,"gedi-paths":37,"weak-map":45}],34:[function(require,module,exports){
 //Copyright (C) 2012 Kory Nunn
 
 //Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -2996,11 +3086,13 @@ function newGedi(model) {
     //
     //***********************************************
 
-    function getSourcePathInfo(expression, parentPath, subPathOpperation){
-        var scope = {
-                _gmc_: parentPath
-            },
-            path;
+    function forEachSourcePath(expression, parentPath, scope, subPathOpperation){
+        var path;
+        if(!scope){
+            scope = {};
+        }
+
+        scope._gmc_ = parentPath;
 
         var resultToken = gel.evaluate(expression, scope, true)[0],
             sourcePathInfo = resultToken.sourcePathInfo;
@@ -3023,7 +3115,7 @@ function newGedi(model) {
 
     function DeletedItem(){}
 
-    function modelSet(expression, value, parentPath, dirty) {
+    function modelSet(expression, value, parentPath, dirty, scope) {
         if(typeof expression === 'object' && !paths.create(expression)){
             dirty = value;
             value = expression;
@@ -3033,9 +3125,9 @@ function newGedi(model) {
             parentPath = undefined;
         }
 
-        if(expression && !arguments[4]){
-            getSourcePathInfo(expression, parentPath, function(subPath){
-                modelSet(subPath, value, parentPath, dirty, true);
+        if(expression && !arguments[5]){
+            forEachSourcePath(expression, parentPath, scope, function(subPath){
+                modelSet(subPath, value, parentPath, dirty, null, true);
             });
             return;
         }
@@ -3065,16 +3157,16 @@ function newGedi(model) {
     //
     //***********************************************
 
-    function modelRemove(expression, parentPath, dirty) {
+    function modelRemove(expression, parentPath, dirty, scope) {
         if(parentPath instanceof Boolean){
             dirty = parentPath;
             parentPath = undefined;
         }
 
-        if(expression && !arguments[3]){
+        if(expression && !arguments[4]){
             parentPaths = {};
-            getSourcePathInfo(expression, parentPath, function(subPath){
-                modelSet(subPath, new DeletedItem(), parentPath, dirty, true);
+            forEachSourcePath(expression, parentPath, scope, function(subPath){
+                modelSet(subPath, new DeletedItem(), parentPath, dirty, null, true);
                 parentPaths[paths.append(subPath, paths.create(pathConstants.upALevel))] = null;
             });
 
@@ -3134,13 +3226,13 @@ function newGedi(model) {
     //
     //***********************************************
 
-    function setDirtyState(expression, dirty, parentPath) {
+    function setDirtyState(expression, dirty, parentPath, scope) {
 
         var reference = dirtyModel;
 
-        if(expression && !arguments[3]){
-            getSourcePathInfo(expression, parentPath, function(subPath){
-                setDirtyState(subPath, dirty, parentPath, true);
+        if(expression && !arguments[4]){
+            forEachSourcePath(expression, parentPath, scope, function(subPath){
+                setDirtyState(subPath, dirty, parentPath, null, true);
             });
             return;
         }
@@ -3383,7 +3475,7 @@ function newGedi(model) {
 }
 
 module.exports = gediConstructor;
-},{"./events":31,"./modelOperations":33,"./pathToken":37,"gedi-paths":60,"gel-js":38,"spec-js":45}],33:[function(require,module,exports){
+},{"./events":33,"./modelOperations":35,"./pathToken":46,"gedi-paths":37,"gel-js":38,"spec-js":44}],35:[function(require,module,exports){
 var paths = require('gedi-paths'),
     memoiseCache = {};
 
@@ -3513,1103 +3605,297 @@ module.exports = {
     get: get,
     set: set
 };
-},{"gedi-paths":60}],34:[function(require,module,exports){
-(function (process){
-var Token = require('./token');
+},{"gedi-paths":37}],36:[function(require,module,exports){
+module.exports = function detectPath(substring){
+    if (substring.charAt(0) === '[') {
+        var index = 1;
 
-function fastEach(items, callback) {
-    for (var i = 0; i < items.length; i++) {
-        if (callback(items[i], i, items)) break;
-    }
-    return items;
-}
-
-var now;
-
-if(typeof process !== 'undefined' && process.hrtime){
-    now = function(){
-        var time = process.hrtime();
-        return time[0] + time[1] / 1000000;
-    };
-}else if(typeof performance !== 'undefined' && performance.now){
-    now = function(){
-        return performance.now();
-    };
-}else if(Date.now){
-    now = function(){
-        return Date.now();
-    };
-}else{
-    now = function(){
-        return new Date().getTime();
-    };
-}
-
-function callWith(fn, fnArguments, calledToken){
-    if(fn instanceof Token){
-        fn.evaluate(scope);
-        fn = fn.result;
-    }
-    var argIndex = 0,
-        scope = this,
-        args = {
-            callee: calledToken,
-            length: fnArguments.length,
-            raw: function(evaluated){
-                var rawArgs = fnArguments.slice();
-                if(evaluated){
-                    fastEach(rawArgs, function(arg){
-                        if(arg instanceof Token){
-                            arg.evaluate(scope);
-                        }
-                    });
-                }
-                return rawArgs;
-            },
-            getRaw: function(index, evaluated){
-                var arg = fnArguments[index];
-
-                if(evaluated){
-                    if(arg instanceof Token){
-                        arg.evaluate(scope);
-                    }
-                }
-                return arg;
-            },
-            get: function(index){
-                var arg = fnArguments[index];
-
-                if(arg instanceof Token){
-                    arg.evaluate(scope);
-                    return arg.result;
-                }
-                return arg;
-            },
-            hasNext: function(){
-                return argIndex < fnArguments.length;
-            },
-            next: function(){
-                if(!this.hasNext()){
-                    throw "Incorrect number of arguments";
-                }
-                if(fnArguments[argIndex] instanceof Token){
-                    fnArguments[argIndex].evaluate(scope);
-                    return fnArguments[argIndex++].result;
-                }
-                return fnArguments[argIndex++];
-            },
-            all: function(){
-                var allArgs = [];
-                while(this.hasNext()){
-                    allArgs.push(this.next());
-                }
-                return allArgs;
+        do {
+            if (
+                (substring.charAt(index) === '\\' && substring.charAt(index + 1) === '\\') || // escaped escapes
+                (substring.charAt(index) === '\\' && (substring.charAt(index + 1) === '[' || substring.charAt(index + 1) === ']')) //escaped braces
+            ) {
+                index++;
             }
-        };
-
-    return fn(scope, args);
-}
-
-function Scope(oldScope){
-    this.__scope__ = {};
-    if(oldScope){
-        this.__outerScope__ = oldScope instanceof Scope ? oldScope : {__scope__:oldScope};
+            else if(substring.charAt(index) === ']'){
+                return substring.slice(0, index+1);
+            }
+            index++;
+        } while (index < substring.length);
     }
-}
-Scope.prototype.get = function(key){
-    var scope = this;
-    while(scope && !scope.__scope__.hasOwnProperty(key)){
-        scope = scope.__outerScope__;
-    }
-    return scope && scope.__scope__[key];
 };
-Scope.prototype.set = function(key, value, bubble){
-    if(bubble){
-        var currentScope = this;
-        while(currentScope && !(key in currentScope.__scope__)){
-            currentScope = currentScope.__outerScope__;
-        }
+},{}],37:[function(require,module,exports){
+var detectPath = require('./detectPath');
 
-        if(currentScope){
-            currentScope.set(key, value);
+var pathSeparator = "/",
+    upALevel = "..",
+    bubbleCapture = "...",
+    currentKey = "#",
+    rootPath = "",
+    pathStart = "[",
+    pathEnd = "]",
+    pathWildcard = "*";
+
+function pathToRaw(path) {
+    return path && path.slice(1, -1);
+}
+
+//***********************************************
+//
+//      Raw To Path
+//
+//***********************************************
+
+function rawToPath(rawPath) {
+    return pathStart + (rawPath == null ? '' : rawPath) + pathEnd;
+}
+
+var memoisePathCache = {};
+function resolvePath() {
+    var memoiseKey,
+        pathParts = [];
+
+    for(var argumentIndex = arguments.length; argumentIndex--;){
+        pathParts.unshift.apply(pathParts, pathToParts(arguments[argumentIndex]));
+        if(isPathAbsolute(arguments[argumentIndex])){
+            break;
         }
     }
-    this.__scope__[key] = value;
-    return this;
-};
-Scope.prototype.add = function(obj){
-    for(var key in obj){
-        this.__scope__[key] = obj[key];
+
+    memoiseKey = pathParts.join(',');
+
+    if(memoisePathCache[memoiseKey]){
+        return memoisePathCache[memoiseKey];
     }
-    return this;
-};
-Scope.prototype.isDefined = function(key){
-    if(key in this.__scope__){
-        return true;
-    }
-    return this.__outerScope__ && this.__outerScope__.isDefined(key) || false;
-};
-Scope.prototype.callWith = callWith;
 
-// Takes a start and end regex, returns an appropriate parse function
-function createNestingParser(closeConstructor){
-    return function(tokens, index, parse){
-        var openConstructor = this.constructor,
-            position = index,
-            opens = 1;
+    var absoluteParts = [],
+        lastRemoved,
+        pathParts,
+        pathPart;
 
-        while(position++, position <= tokens.length && opens){
-            if(!tokens[position]){
-                throw "Invalid nesting. No closing token was found";
+    for(var pathPartIndex = 0; pathPartIndex < pathParts.length; pathPartIndex++){
+        pathPart = pathParts[pathPartIndex];
+
+        if (pathPart === currentKey) {
+            // Has a last removed? Add it back on.
+            if(lastRemoved != null){
+                absoluteParts.push(lastRemoved);
+                lastRemoved = null;
             }
-            if(tokens[position] instanceof openConstructor){
-                opens++;
+        } else if (pathPart === rootPath) {
+            // Root path? Reset parts to be absolute.
+            absoluteParts = [''];
+
+        } else if (pathPart.slice(-bubbleCapture.length) === bubbleCapture) {
+            // deep bindings
+            if(pathPart !== bubbleCapture){
+                absoluteParts.push(pathPart.slice(0, -bubbleCapture.length));
             }
-            if(tokens[position] instanceof closeConstructor){
-                opens--;
+        } else if (pathPart === upALevel) {
+            // Up a level? Remove the last item in absoluteParts
+            lastRemoved = absoluteParts.pop();
+        } else if (pathPart.slice(0,2) === upALevel) {
+            var argument = pathPart.slice(2);
+            //named
+            while(absoluteParts[absoluteParts.length - 1] !== argument){
+                if(absoluteParts.length === 0){
+                    throw "Named path part was not found: '" + pathPart + "', in path: '" + arguments[argumentIndex] + "'.";
+                }
+                lastRemoved = absoluteParts.pop();
             }
-        }
-
-        // remove all wrapped tokens from the token array, including nest end token.
-        var childTokens = tokens.splice(index + 1, position - 1 - index);
-
-        // Remove the nest end token.
-        childTokens.pop();
-
-        // parse them, then add them as child tokens.
-        this.childTokens = parse(childTokens);
-    };
-}
-
-function scanForToken(tokenisers, expression){
-    for (var i = 0; i < tokenisers.length; i++) {
-        var token = tokenisers[i].tokenise(expression);
-        if (token) {
-            return token;
+        } else {
+            // any following valid part? Add it to the absoluteParts.
+            absoluteParts.push(pathPart);
         }
     }
+
+    // Convert the absoluteParts to a Path and memoise the result.
+    return memoisePathCache[memoiseKey] = createPath(absoluteParts);
 }
 
-function sortByPrecedence(items, key){
-    return items.slice().sort(function(a,b){
-        var precedenceDifference = a[key] - b[key];
-        return precedenceDifference ? precedenceDifference : items.indexOf(a) - items.indexOf(b);
-    });
+var memoisedPathTokens = {};
+
+function createPath(path){
+
+    if(typeof path === 'number'){
+        path = path.toString();
+    }
+
+    if(path == null){
+        return rawToPath();
+    }
+
+    // passed in an Expression or an 'expression formatted' Path (eg: '[bla]')
+    if (typeof path === "string"){
+
+        if(memoisedPathTokens[path]){
+            return memoisedPathTokens[path];
+        }
+
+        if(path.charAt(0) === pathStart) {
+            var pathString = path.toString(),
+                detectedPath = detectPath(pathString);
+
+            if (detectedPath && detectedPath.length === pathString.length) {
+                return memoisedPathTokens[pathString] = detectedPath;
+            } else {
+                return false;
+            }
+        }else{
+            return createPath(rawToPath(path));
+        }
+    }
+
+    if(path instanceof Array) {
+
+        var parts = [];
+        for (var i = 0; i < path.length; i++) {
+            var pathPart = path[i];
+            pathPart = pathPart.replace(/([\[|\]|\\|\/])/g, '\\$1');
+            parts.push(pathPart);
+        }
+        if(parts.length === 1 && parts[0] === rootPath){
+            return createRootPath();
+        }
+        return rawToPath(parts.join(pathSeparator));
+    }
 }
 
-function tokenise(expression, tokenConverters, memoisedTokens) {
-    if(!expression){
+function createRootPath(){
+    return createPath([rootPath, rootPath]);
+}
+
+function pathToParts(path){
+    var pathType = typeof path;
+
+    if(pathType !== 'string' && pathType !== 'number'){
+        if(Array.isArray(path)){
+            return path;
+        }
+        return;
+    }
+
+    // if we haven't been passed a path, then turn the input into a path
+    if (!isPath(path)) {
+        path = createPath(path);
+        if(path === false){
+            return;
+        }
+    }
+
+    path = path.slice(1,-1);
+
+    if(path === ""){
         return [];
     }
 
-    if(memoisedTokens && memoisedTokens[expression]){
-        return memoisedTokens[expression].slice();
+    var lastPartIndex = 0,
+        parts,
+        nextChar,
+        currentChar;
+
+    if(path.indexOf('\\') < 0){
+        return path.split(pathSeparator);
     }
 
-    tokenConverters = sortByPrecedence(tokenConverters, 'tokenPrecedence');
+    parts = [];
 
-    var originalExpression = expression,
-        tokens = [],
-        totalCharsProcessed = 0,
-        previousLength,
-        reservedKeywordToken;
-
-    do {
-        previousLength = expression.length;
-
-        var token;
-
-        token = scanForToken(tokenConverters, expression);
-
-        if(token){
-            expression = expression.slice(token.length);
-            totalCharsProcessed += token.length;
-            tokens.push(token);
-            continue;
+    for(var i = 0; i < path.length; i++){
+        currentChar = path.charAt(i);
+        if(currentChar === pathSeparator){
+            parts.push(path.slice(lastPartIndex,i));
+            lastPartIndex = i+1;
+        }else if(currentChar === '\\'){
+            nextChar = path.charAt(i+1);
+            if(nextChar === '\\'){
+                path = path.slice(0, i) + path.slice(i + 1);
+            }else if(nextChar === ']' || nextChar === '['){
+                path = path.slice(0, i) + path.slice(i + 1);
+            }else if(nextChar === pathSeparator){
+                parts.push(path.slice(lastPartIndex), i);
+            }
         }
+    }
+    parts.push(path.slice(lastPartIndex));
 
-        if(expression.length === previousLength){
-            throw "Unable to determine next token in expression: " + expression;
-        }
-
-    } while (expression);
-
-    memoisedTokens && (memoisedTokens[originalExpression] = tokens.slice());
-
-    return tokens;
+    return parts;
 }
 
-function parse(tokens){
-    var parsedTokens = 0,
-        tokensByPrecedence = sortByPrecedence(tokens, 'parsePrecedence'),
-        currentToken = tokensByPrecedence[0],
-        tokenNumber = 0;
+function appendPath(){
+    var parts = pathToParts(arguments[0]);
 
-    while(currentToken && currentToken.parsed == true){
-        currentToken = tokensByPrecedence[tokenNumber++];
-    }
-
-    if(!currentToken){
-        return tokens;
-    }
-
-    if(currentToken.parse){
-        currentToken.parse(tokens, tokens.indexOf(currentToken), parse);
-    }
-
-    // Even if the token has no parse method, it is still concidered 'parsed' at this point.
-    currentToken.parsed = true;
-
-    return parse(tokens);
-}
-
-function evaluate(tokens, scope){
-    scope = scope || new Scope();
-    for(var i = 0; i < tokens.length; i++){
-        var token = tokens[i];
-        token.evaluate(scope);
-    }
-
-    return tokens;
-}
-
-function printTopExpressions(stats){
-    var allStats = [];
-    for(var key in stats){
-        allStats.push({
-            expression: key,
-            time: stats[key].time,
-            calls: stats[key].calls,
-            averageTime: stats[key].averageTime
-        });
-    }
-
-    allStats.sort(function(stat1, stat2){
-        return stat2.time - stat1.time;
-    }).slice(0, 10).forEach(function(stat){
-        console.log([
-            "Expression: ",
-            stat.expression,
-            '\n',
-            'Average evaluation time: ',
-            stat.averageTime,
-            '\n',
-            'Total time: ',
-            stat.time,
-            '\n',
-            'Call count: ',
-            stat.calls
-        ].join(''));
-    });
-}
-
-function Lang(){
-    var lang = {},
-        memoisedTokens = {},
-        memoisedExpressions = {};
-
-
-    var stats = {};
-
-    lang.printTopExpressions = function(){
-        printTopExpressions(stats);
-    }
-
-    function addStat(stat){
-        var expStats = stats[stat.expression] = stats[stat.expression] || {time:0, calls:0};
-
-        expStats.time += stat.time;
-        expStats.calls++;
-        expStats.averageTime = expStats.time / expStats.calls;
-    }
-
-    lang.parse = parse;
-    lang.tokenise = function(expression, tokenConverters){
-        return tokenise(expression, tokenConverters, memoisedTokens);
-    };
-    lang.evaluate = function(expression, scope, tokenConverters, returnAsTokens){
-        var langInstance = this,
-            memoiseKey = expression,
-            expressionTree,
-            evaluatedTokens,
-            lastToken;
-
-        if(!(scope instanceof Scope)){
-            scope = new Scope(scope);
-        }
-
-        if(Array.isArray(expression)){
-            return evaluate(expression , scope).slice(-1).pop();
-        }
-
-        if(memoisedExpressions[memoiseKey]){
-            expressionTree = memoisedExpressions[memoiseKey].slice();
-        } else{
-            expressionTree = langInstance.parse(langInstance.tokenise(expression, tokenConverters, memoisedTokens));
-
-            memoisedExpressions[memoiseKey] = expressionTree;
-        }
-
-
-        var startTime = now();
-        evaluatedTokens = evaluate(expressionTree , scope);
-        addStat({
-            expression: expression,
-            time: now() - startTime
-        });
-
-        if(returnAsTokens){
-            return evaluatedTokens.slice();
-        }
-
-        lastToken = evaluatedTokens.slice(-1).pop();
-
-        return lastToken && lastToken.result;
-    };
-
-    lang.callWith = callWith;
-    return lang;
-};
-
-Lang.createNestingParser = createNestingParser;
-Lang.Scope = Scope;
-Lang.Token = Token;
-
-module.exports = Lang;
-}).call(this,require("/usr/lib/node_modules/watchify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./token":35,"/usr/lib/node_modules/watchify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":62}],35:[function(require,module,exports){
-function Token(substring, length){
-    this.original = substring;
-    this.length = length;
-}
-Token.prototype.name = 'token';
-Token.prototype.precedence = 0;
-Token.prototype.valueOf = function(){
-    return this.result;
-}
-
-module.exports = Token;
-},{}],36:[function(require,module,exports){
-// Copyright (C) 2011 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-/**
- * @fileoverview Install a leaky WeakMap emulation on platforms that
- * don't provide a built-in one.
- *
- * <p>Assumes that an ES5 platform where, if {@code WeakMap} is
- * already present, then it conforms to the anticipated ES6
- * specification. To run this file on an ES5 or almost ES5
- * implementation where the {@code WeakMap} specification does not
- * quite conform, run <code>repairES5.js</code> first.
- *
- * <p>Even though WeakMapModule is not global, the linter thinks it
- * is, which is why it is in the overrides list below.
- *
- * <p>NOTE: Before using this WeakMap emulation in a non-SES
- * environment, see the note below about hiddenRecord.
- *
- * @author Mark S. Miller
- * @requires crypto, ArrayBuffer, Uint8Array, navigator, console
- * @overrides WeakMap, ses, Proxy
- * @overrides WeakMapModule
- */
-
-/**
- * This {@code WeakMap} emulation is observably equivalent to the
- * ES-Harmony WeakMap, but with leakier garbage collection properties.
- *
- * <p>As with true WeakMaps, in this emulation, a key does not
- * retain maps indexed by that key and (crucially) a map does not
- * retain the keys it indexes. A map by itself also does not retain
- * the values associated with that map.
- *
- * <p>However, the values associated with a key in some map are
- * retained so long as that key is retained and those associations are
- * not overridden. For example, when used to support membranes, all
- * values exported from a given membrane will live for the lifetime
- * they would have had in the absence of an interposed membrane. Even
- * when the membrane is revoked, all objects that would have been
- * reachable in the absence of revocation will still be reachable, as
- * far as the GC can tell, even though they will no longer be relevant
- * to ongoing computation.
- *
- * <p>The API implemented here is approximately the API as implemented
- * in FF6.0a1 and agreed to by MarkM, Andreas Gal, and Dave Herman,
- * rather than the offially approved proposal page. TODO(erights):
- * upgrade the ecmascript WeakMap proposal page to explain this API
- * change and present to EcmaScript committee for their approval.
- *
- * <p>The first difference between the emulation here and that in
- * FF6.0a1 is the presence of non enumerable {@code get___, has___,
- * set___, and delete___} methods on WeakMap instances to represent
- * what would be the hidden internal properties of a primitive
- * implementation. Whereas the FF6.0a1 WeakMap.prototype methods
- * require their {@code this} to be a genuine WeakMap instance (i.e.,
- * an object of {@code [[Class]]} "WeakMap}), since there is nothing
- * unforgeable about the pseudo-internal method names used here,
- * nothing prevents these emulated prototype methods from being
- * applied to non-WeakMaps with pseudo-internal methods of the same
- * names.
- *
- * <p>Another difference is that our emulated {@code
- * WeakMap.prototype} is not itself a WeakMap. A problem with the
- * current FF6.0a1 API is that WeakMap.prototype is itself a WeakMap
- * providing ambient mutability and an ambient communications
- * channel. Thus, if a WeakMap is already present and has this
- * problem, repairES5.js wraps it in a safe wrappper in order to
- * prevent access to this channel. (See
- * PATCH_MUTABLE_FROZEN_WEAKMAP_PROTO in repairES5.js).
- */
-
-/**
- * If this is a full <a href=
- * "http://code.google.com/p/es-lab/wiki/SecureableES5"
- * >secureable ES5</a> platform and the ES-Harmony {@code WeakMap} is
- * absent, install an approximate emulation.
- *
- * <p>If WeakMap is present but cannot store some objects, use our approximate
- * emulation as a wrapper.
- *
- * <p>If this is almost a secureable ES5 platform, then WeakMap.js
- * should be run after repairES5.js.
- *
- * <p>See {@code WeakMap} for documentation of the garbage collection
- * properties of this WeakMap emulation.
- */
-(function WeakMapModule() {
-  "use strict";
-
-  if (typeof ses !== 'undefined' && ses.ok && !ses.ok()) {
-    // already too broken, so give up
-    return;
-  }
-
-  /**
-   * In some cases (current Firefox), we must make a choice betweeen a
-   * WeakMap which is capable of using all varieties of host objects as
-   * keys and one which is capable of safely using proxies as keys. See
-   * comments below about HostWeakMap and DoubleWeakMap for details.
-   *
-   * This function (which is a global, not exposed to guests) marks a
-   * WeakMap as permitted to do what is necessary to index all host
-   * objects, at the cost of making it unsafe for proxies.
-   *
-   * Do not apply this function to anything which is not a genuine
-   * fresh WeakMap.
-   */
-  function weakMapPermitHostObjects(map) {
-    // identity of function used as a secret -- good enough and cheap
-    if (map.permitHostObjects___) {
-      map.permitHostObjects___(weakMapPermitHostObjects);
-    }
-  }
-  if (typeof ses !== 'undefined') {
-    ses.weakMapPermitHostObjects = weakMapPermitHostObjects;
-  }
-
-  // IE 11 has no Proxy but has a broken WeakMap such that we need to patch
-  // it using DoubleWeakMap; this flag tells DoubleWeakMap so.
-  var doubleWeakMapCheckSilentFailure = false;
-
-  // Check if there is already a good-enough WeakMap implementation, and if so
-  // exit without replacing it.
-  if (typeof WeakMap === 'function') {
-    var HostWeakMap = WeakMap;
-    // There is a WeakMap -- is it good enough?
-    if (typeof navigator !== 'undefined' &&
-        /Firefox/.test(navigator.userAgent)) {
-      // We're now *assuming not*, because as of this writing (2013-05-06)
-      // Firefox's WeakMaps have a miscellany of objects they won't accept, and
-      // we don't want to make an exhaustive list, and testing for just one
-      // will be a problem if that one is fixed alone (as they did for Event).
-
-      // If there is a platform that we *can* reliably test on, here's how to
-      // do it:
-      //  var problematic = ... ;
-      //  var testHostMap = new HostWeakMap();
-      //  try {
-      //    testHostMap.set(problematic, 1);  // Firefox 20 will throw here
-      //    if (testHostMap.get(problematic) === 1) {
-      //      return;
-      //    }
-      //  } catch (e) {}
-
-    } else {
-      // IE 11 bug: WeakMaps silently fail to store frozen objects.
-      var testMap = new HostWeakMap();
-      var testObject = Object.freeze({});
-      testMap.set(testObject, 1);
-      if (testMap.get(testObject) !== 1) {
-        doubleWeakMapCheckSilentFailure = true;
-        // Fall through to installing our WeakMap.
-      } else {
-        module.exports = WeakMap;
+    if(!parts){
         return;
-      }
-    }
-  }
-
-  var hop = Object.prototype.hasOwnProperty;
-  var gopn = Object.getOwnPropertyNames;
-  var defProp = Object.defineProperty;
-  var isExtensible = Object.isExtensible;
-
-  /**
-   * Security depends on HIDDEN_NAME being both <i>unguessable</i> and
-   * <i>undiscoverable</i> by untrusted code.
-   *
-   * <p>Given the known weaknesses of Math.random() on existing
-   * browsers, it does not generate unguessability we can be confident
-   * of.
-   *
-   * <p>It is the monkey patching logic in this file that is intended
-   * to ensure undiscoverability. The basic idea is that there are
-   * three fundamental means of discovering properties of an object:
-   * The for/in loop, Object.keys(), and Object.getOwnPropertyNames(),
-   * as well as some proposed ES6 extensions that appear on our
-   * whitelist. The first two only discover enumerable properties, and
-   * we only use HIDDEN_NAME to name a non-enumerable property, so the
-   * only remaining threat should be getOwnPropertyNames and some
-   * proposed ES6 extensions that appear on our whitelist. We monkey
-   * patch them to remove HIDDEN_NAME from the list of properties they
-   * returns.
-   *
-   * <p>TODO(erights): On a platform with built-in Proxies, proxies
-   * could be used to trap and thereby discover the HIDDEN_NAME, so we
-   * need to monkey patch Proxy.create, Proxy.createFunction, etc, in
-   * order to wrap the provided handler with the real handler which
-   * filters out all traps using HIDDEN_NAME.
-   *
-   * <p>TODO(erights): Revisit Mike Stay's suggestion that we use an
-   * encapsulated function at a not-necessarily-secret name, which
-   * uses the Stiegler shared-state rights amplification pattern to
-   * reveal the associated value only to the WeakMap in which this key
-   * is associated with that value. Since only the key retains the
-   * function, the function can also remember the key without causing
-   * leakage of the key, so this doesn't violate our general gc
-   * goals. In addition, because the name need not be a guarded
-   * secret, we could efficiently handle cross-frame frozen keys.
-   */
-  var HIDDEN_NAME_PREFIX = 'weakmap:';
-  var HIDDEN_NAME = HIDDEN_NAME_PREFIX + 'ident:' + Math.random() + '___';
-
-  if (typeof crypto !== 'undefined' &&
-      typeof crypto.getRandomValues === 'function' &&
-      typeof ArrayBuffer === 'function' &&
-      typeof Uint8Array === 'function') {
-    var ab = new ArrayBuffer(25);
-    var u8s = new Uint8Array(ab);
-    crypto.getRandomValues(u8s);
-    HIDDEN_NAME = HIDDEN_NAME_PREFIX + 'rand:' +
-      Array.prototype.map.call(u8s, function(u8) {
-        return (u8 % 36).toString(36);
-      }).join('') + '___';
-  }
-
-  function isNotHiddenName(name) {
-    return !(
-        name.substr(0, HIDDEN_NAME_PREFIX.length) == HIDDEN_NAME_PREFIX &&
-        name.substr(name.length - 3) === '___');
-  }
-
-  /**
-   * Monkey patch getOwnPropertyNames to avoid revealing the
-   * HIDDEN_NAME.
-   *
-   * <p>The ES5.1 spec requires each name to appear only once, but as
-   * of this writing, this requirement is controversial for ES6, so we
-   * made this code robust against this case. If the resulting extra
-   * search turns out to be expensive, we can probably relax this once
-   * ES6 is adequately supported on all major browsers, iff no browser
-   * versions we support at that time have relaxed this constraint
-   * without providing built-in ES6 WeakMaps.
-   */
-  defProp(Object, 'getOwnPropertyNames', {
-    value: function fakeGetOwnPropertyNames(obj) {
-      return gopn(obj).filter(isNotHiddenName);
-    }
-  });
-
-  /**
-   * getPropertyNames is not in ES5 but it is proposed for ES6 and
-   * does appear in our whitelist, so we need to clean it too.
-   */
-  if ('getPropertyNames' in Object) {
-    var originalGetPropertyNames = Object.getPropertyNames;
-    defProp(Object, 'getPropertyNames', {
-      value: function fakeGetPropertyNames(obj) {
-        return originalGetPropertyNames(obj).filter(isNotHiddenName);
-      }
-    });
-  }
-
-  /**
-   * <p>To treat objects as identity-keys with reasonable efficiency
-   * on ES5 by itself (i.e., without any object-keyed collections), we
-   * need to add a hidden property to such key objects when we
-   * can. This raises several issues:
-   * <ul>
-   * <li>Arranging to add this property to objects before we lose the
-   *     chance, and
-   * <li>Hiding the existence of this new property from most
-   *     JavaScript code.
-   * <li>Preventing <i>certification theft</i>, where one object is
-   *     created falsely claiming to be the key of an association
-   *     actually keyed by another object.
-   * <li>Preventing <i>value theft</i>, where untrusted code with
-   *     access to a key object but not a weak map nevertheless
-   *     obtains access to the value associated with that key in that
-   *     weak map.
-   * </ul>
-   * We do so by
-   * <ul>
-   * <li>Making the name of the hidden property unguessable, so "[]"
-   *     indexing, which we cannot intercept, cannot be used to access
-   *     a property without knowing the name.
-   * <li>Making the hidden property non-enumerable, so we need not
-   *     worry about for-in loops or {@code Object.keys},
-   * <li>monkey patching those reflective methods that would
-   *     prevent extensions, to add this hidden property first,
-   * <li>monkey patching those methods that would reveal this
-   *     hidden property.
-   * </ul>
-   * Unfortunately, because of same-origin iframes, we cannot reliably
-   * add this hidden property before an object becomes
-   * non-extensible. Instead, if we encounter a non-extensible object
-   * without a hidden record that we can detect (whether or not it has
-   * a hidden record stored under a name secret to us), then we just
-   * use the key object itself to represent its identity in a brute
-   * force leaky map stored in the weak map, losing all the advantages
-   * of weakness for these.
-   */
-  function getHiddenRecord(key) {
-    if (key !== Object(key)) {
-      throw new TypeError('Not an object: ' + key);
-    }
-    var hiddenRecord = key[HIDDEN_NAME];
-    if (hiddenRecord && hiddenRecord.key === key) { return hiddenRecord; }
-    if (!isExtensible(key)) {
-      // Weak map must brute force, as explained in doc-comment above.
-      return void 0;
     }
 
-    // The hiddenRecord and the key point directly at each other, via
-    // the "key" and HIDDEN_NAME properties respectively. The key
-    // field is for quickly verifying that this hidden record is an
-    // own property, not a hidden record from up the prototype chain.
-    //
-    // NOTE: Because this WeakMap emulation is meant only for systems like
-    // SES where Object.prototype is frozen without any numeric
-    // properties, it is ok to use an object literal for the hiddenRecord.
-    // This has two advantages:
-    // * It is much faster in a performance critical place
-    // * It avoids relying on Object.create(null), which had been
-    //   problematic on Chrome 28.0.1480.0. See
-    //   https://code.google.com/p/google-caja/issues/detail?id=1687
-    hiddenRecord = { key: key };
-
-    // When using this WeakMap emulation on platforms where
-    // Object.prototype might not be frozen and Object.create(null) is
-    // reliable, use the following two commented out lines instead.
-    // hiddenRecord = Object.create(null);
-    // hiddenRecord.key = key;
-
-    // Please contact us if you need this to work on platforms where
-    // Object.prototype might not be frozen and
-    // Object.create(null) might not be reliable.
-
-    try {
-      defProp(key, HIDDEN_NAME, {
-        value: hiddenRecord,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      });
-      return hiddenRecord;
-    } catch (error) {
-      // Under some circumstances, isExtensible seems to misreport whether
-      // the HIDDEN_NAME can be defined.
-      // The circumstances have not been isolated, but at least affect
-      // Node.js v0.10.26 on TravisCI / Linux, but not the same version of
-      // Node.js on OS X.
-      return void 0;
-    }
-  }
-
-  /**
-   * Monkey patch operations that would make their argument
-   * non-extensible.
-   *
-   * <p>The monkey patched versions throw a TypeError if their
-   * argument is not an object, so it should only be done to functions
-   * that should throw a TypeError anyway if their argument is not an
-   * object.
-   */
-  (function(){
-    var oldFreeze = Object.freeze;
-    defProp(Object, 'freeze', {
-      value: function identifyingFreeze(obj) {
-        getHiddenRecord(obj);
-        return oldFreeze(obj);
-      }
-    });
-    var oldSeal = Object.seal;
-    defProp(Object, 'seal', {
-      value: function identifyingSeal(obj) {
-        getHiddenRecord(obj);
-        return oldSeal(obj);
-      }
-    });
-    var oldPreventExtensions = Object.preventExtensions;
-    defProp(Object, 'preventExtensions', {
-      value: function identifyingPreventExtensions(obj) {
-        getHiddenRecord(obj);
-        return oldPreventExtensions(obj);
-      }
-    });
-  })();
-
-  function constFunc(func) {
-    func.prototype = null;
-    return Object.freeze(func);
-  }
-
-  var calledAsFunctionWarningDone = false;
-  function calledAsFunctionWarning() {
-    // Future ES6 WeakMap is currently (2013-09-10) expected to reject WeakMap()
-    // but we used to permit it and do it ourselves, so warn only.
-    if (!calledAsFunctionWarningDone && typeof console !== 'undefined') {
-      calledAsFunctionWarningDone = true;
-      console.warn('WeakMap should be invoked as new WeakMap(), not ' +
-          'WeakMap(). This will be an error in the future.');
-    }
-  }
-
-  var nextId = 0;
-
-  var OurWeakMap = function() {
-    if (!(this instanceof OurWeakMap)) {  // approximate test for new ...()
-      calledAsFunctionWarning();
+    if(isPathRoot(arguments[0])){
+        parts.pop();
     }
 
-    // We are currently (12/25/2012) never encountering any prematurely
-    // non-extensible keys.
-    var keys = []; // brute force for prematurely non-extensible keys.
-    var values = []; // brute force for corresponding values.
-    var id = nextId++;
+    for (var argumentIndex = 1; argumentIndex < arguments.length; argumentIndex++) {
+        var pathParts = pathToParts(arguments[argumentIndex]);
 
-    function get___(key, opt_default) {
-      var index;
-      var hiddenRecord = getHiddenRecord(key);
-      if (hiddenRecord) {
-        return id in hiddenRecord ? hiddenRecord[id] : opt_default;
-      } else {
-        index = keys.indexOf(key);
-        return index >= 0 ? values[index] : opt_default;
-      }
+        pathParts && parts.push.apply(parts, pathParts);
     }
 
-    function has___(key) {
-      var hiddenRecord = getHiddenRecord(key);
-      if (hiddenRecord) {
-        return id in hiddenRecord;
-      } else {
-        return keys.indexOf(key) >= 0;
-      }
-    }
-
-    function set___(key, value) {
-      var index;
-      var hiddenRecord = getHiddenRecord(key);
-      if (hiddenRecord) {
-        hiddenRecord[id] = value;
-      } else {
-        index = keys.indexOf(key);
-        if (index >= 0) {
-          values[index] = value;
-        } else {
-          // Since some browsers preemptively terminate slow turns but
-          // then continue computing with presumably corrupted heap
-          // state, we here defensively get keys.length first and then
-          // use it to update both the values and keys arrays, keeping
-          // them in sync.
-          index = keys.length;
-          values[index] = value;
-          // If we crash here, values will be one longer than keys.
-          keys[index] = key;
-        }
-      }
-      return this;
-    }
-
-    function delete___(key) {
-      var hiddenRecord = getHiddenRecord(key);
-      var index, lastIndex;
-      if (hiddenRecord) {
-        return id in hiddenRecord && delete hiddenRecord[id];
-      } else {
-        index = keys.indexOf(key);
-        if (index < 0) {
-          return false;
-        }
-        // Since some browsers preemptively terminate slow turns but
-        // then continue computing with potentially corrupted heap
-        // state, we here defensively get keys.length first and then use
-        // it to update both the keys and the values array, keeping
-        // them in sync. We update the two with an order of assignments,
-        // such that any prefix of these assignments will preserve the
-        // key/value correspondence, either before or after the delete.
-        // Note that this needs to work correctly when index === lastIndex.
-        lastIndex = keys.length - 1;
-        keys[index] = void 0;
-        // If we crash here, there's a void 0 in the keys array, but
-        // no operation will cause a "keys.indexOf(void 0)", since
-        // getHiddenRecord(void 0) will always throw an error first.
-        values[index] = values[lastIndex];
-        // If we crash here, values[index] cannot be found here,
-        // because keys[index] is void 0.
-        keys[index] = keys[lastIndex];
-        // If index === lastIndex and we crash here, then keys[index]
-        // is still void 0, since the aliasing killed the previous key.
-        keys.length = lastIndex;
-        // If we crash here, keys will be one shorter than values.
-        values.length = lastIndex;
-        return true;
-      }
-    }
-
-    return Object.create(OurWeakMap.prototype, {
-      get___:    { value: constFunc(get___) },
-      has___:    { value: constFunc(has___) },
-      set___:    { value: constFunc(set___) },
-      delete___: { value: constFunc(delete___) }
-    });
-  };
-
-  OurWeakMap.prototype = Object.create(Object.prototype, {
-    get: {
-      /**
-       * Return the value most recently associated with key, or
-       * opt_default if none.
-       */
-      value: function get(key, opt_default) {
-        return this.get___(key, opt_default);
-      },
-      writable: true,
-      configurable: true
-    },
-
-    has: {
-      /**
-       * Is there a value associated with key in this WeakMap?
-       */
-      value: function has(key) {
-        return this.has___(key);
-      },
-      writable: true,
-      configurable: true
-    },
-
-    set: {
-      /**
-       * Associate value with key in this WeakMap, overwriting any
-       * previous association if present.
-       */
-      value: function set(key, value) {
-        return this.set___(key, value);
-      },
-      writable: true,
-      configurable: true
-    },
-
-    'delete': {
-      /**
-       * Remove any association for key in this WeakMap, returning
-       * whether there was one.
-       *
-       * <p>Note that the boolean return here does not work like the
-       * {@code delete} operator. The {@code delete} operator returns
-       * whether the deletion succeeds at bringing about a state in
-       * which the deleted property is absent. The {@code delete}
-       * operator therefore returns true if the property was already
-       * absent, whereas this {@code delete} method returns false if
-       * the association was already absent.
-       */
-      value: function remove(key) {
-        return this.delete___(key);
-      },
-      writable: true,
-      configurable: true
-    }
-  });
-
-  if (typeof HostWeakMap === 'function') {
-    (function() {
-      // If we got here, then the platform has a WeakMap but we are concerned
-      // that it may refuse to store some key types. Therefore, make a map
-      // implementation which makes use of both as possible.
-
-      // In this mode we are always using double maps, so we are not proxy-safe.
-      // This combination does not occur in any known browser, but we had best
-      // be safe.
-      if (doubleWeakMapCheckSilentFailure && typeof Proxy !== 'undefined') {
-        Proxy = undefined;
-      }
-
-      function DoubleWeakMap() {
-        if (!(this instanceof OurWeakMap)) {  // approximate test for new ...()
-          calledAsFunctionWarning();
-        }
-
-        // Preferable, truly weak map.
-        var hmap = new HostWeakMap();
-
-        // Our hidden-property-based pseudo-weak-map. Lazily initialized in the
-        // 'set' implementation; thus we can avoid performing extra lookups if
-        // we know all entries actually stored are entered in 'hmap'.
-        var omap = undefined;
-
-        // Hidden-property maps are not compatible with proxies because proxies
-        // can observe the hidden name and either accidentally expose it or fail
-        // to allow the hidden property to be set. Therefore, we do not allow
-        // arbitrary WeakMaps to switch to using hidden properties, but only
-        // those which need the ability, and unprivileged code is not allowed
-        // to set the flag.
-        //
-        // (Except in doubleWeakMapCheckSilentFailure mode in which case we
-        // disable proxies.)
-        var enableSwitching = false;
-
-        function dget(key, opt_default) {
-          if (omap) {
-            return hmap.has(key) ? hmap.get(key)
-                : omap.get___(key, opt_default);
-          } else {
-            return hmap.get(key, opt_default);
-          }
-        }
-
-        function dhas(key) {
-          return hmap.has(key) || (omap ? omap.has___(key) : false);
-        }
-
-        var dset;
-        if (doubleWeakMapCheckSilentFailure) {
-          dset = function(key, value) {
-            hmap.set(key, value);
-            if (!hmap.has(key)) {
-              if (!omap) { omap = new OurWeakMap(); }
-              omap.set(key, value);
-            }
-            return this;
-          };
-        } else {
-          dset = function(key, value) {
-            if (enableSwitching) {
-              try {
-                hmap.set(key, value);
-              } catch (e) {
-                if (!omap) { omap = new OurWeakMap(); }
-                omap.set___(key, value);
-              }
-            } else {
-              hmap.set(key, value);
-            }
-            return this;
-          };
-        }
-
-        function ddelete(key) {
-          var result = !!hmap['delete'](key);
-          if (omap) { return omap.delete___(key) || result; }
-          return result;
-        }
-
-        return Object.create(OurWeakMap.prototype, {
-          get___:    { value: constFunc(dget) },
-          has___:    { value: constFunc(dhas) },
-          set___:    { value: constFunc(dset) },
-          delete___: { value: constFunc(ddelete) },
-          permitHostObjects___: { value: constFunc(function(token) {
-            if (token === weakMapPermitHostObjects) {
-              enableSwitching = true;
-            } else {
-              throw new Error('bogus call to permitHostObjects___');
-            }
-          })}
-        });
-      }
-      DoubleWeakMap.prototype = OurWeakMap.prototype;
-      module.exports = DoubleWeakMap;
-
-      // define .constructor to hide OurWeakMap ctor
-      Object.defineProperty(WeakMap.prototype, 'constructor', {
-        value: WeakMap,
-        enumerable: false,  // as default .constructor is
-        configurable: true,
-        writable: true
-      });
-    })();
-  } else {
-    // There is no host WeakMap, so we must use the emulation.
-
-    // Emulated WeakMaps are incompatible with native proxies (because proxies
-    // can observe the hidden name), so we must disable Proxy usage (in
-    // ArrayLike and Domado, currently).
-    if (typeof Proxy !== 'undefined') {
-      Proxy = undefined;
-    }
-
-    module.exports = OurWeakMap;
-  }
-})();
-
-},{}],37:[function(require,module,exports){
-var Lang = require('lang-js'),
-    Token = Lang.Token,
-    paths = require('gedi-paths'),
-    createSpec = require('spec-js'),
-    detectPath = require('gedi-paths/detectPath');
-
-module.exports = function(get, model){
-
-    function PathToken(path){
-        this.path = path;
-    }
-    PathToken = createSpec(PathToken, Token);
-    PathToken.prototype.name = 'PathToken';
-    PathToken.tokenPrecedence = 1;
-    PathToken.prototype.parsePrecedence = 2;
-    PathToken.tokenise = function(substring){
-        var path = detectPath(substring);
-
-        if(path){
-            return new PathToken(path, path.length);
-        }
-    };
-    PathToken.prototype.evaluate = function(scope){
-        this.path = this.original;
-        this.result = get(paths.resolve(scope.get('_gmc_'), this.original), model);
-        this.sourcePathInfo = {
-            path: this.original
-        };
-    };
-
-    return PathToken;
+    return createPath(parts);
 }
-},{"gedi-paths":60,"gedi-paths/detectPath":59,"lang-js":34,"spec-js":45}],38:[function(require,module,exports){
+
+function isPath(path) {
+    if(!(typeof path === 'string' || (path instanceof String))){
+        return;
+    }
+    var match = path.match(/\[.*?(?:\\\])*(?:\\\[)*\]/g);
+    if(match && match.length === 1 && match[0] === path){
+        return true;
+    }
+}
+
+function isPathAbsolute(path){
+    var parts = pathToParts(path);
+
+    if(parts == null){
+        return false;
+    }
+
+    return parts[0] === rootPath;
+}
+
+function isPathRoot(path){
+    var parts = pathToParts(path);
+    if(parts == null){
+        return false;
+    }
+    return (isPathAbsolute(parts) && parts[0] === parts[1]) || parts.length === 0;
+}
+
+function isBubbleCapturePath(path){
+    var parts = pathToParts(path),
+        lastPart = parts[parts.length-1];
+    return lastPart && lastPart.slice(-bubbleCapture.length) === bubbleCapture;
+}
+
+module.exports = {
+    resolve: resolvePath,
+    create: createPath,
+    is: isPath,
+    isAbsolute: isPathAbsolute,
+    isRoot: isPathRoot,
+    isBubbleCapture: isBubbleCapturePath,
+    append: appendPath,
+    toParts: pathToParts,
+    createRoot: createRootPath,
+    constants:{
+        separator: pathSeparator,
+        upALevel: upALevel,
+        currentKey: currentKey,
+        root: rootPath,
+        start: pathStart,
+        end: pathEnd,
+        wildcard: pathWildcard
+    }
+};
+},{"./detectPath":36}],38:[function(require,module,exports){
 var Lang = require('lang-js'),
     paths = require('gedi-paths'),
     merge = require('merge'),
@@ -5980,13 +5266,389 @@ Gel = function(){
     return gel;
 };
 
+for (var i = 0; i < tokenConverters.length; i++) {
+    Gel[tokenConverters[i].prototype.name] = tokenConverters[i];
+};
+
 Gel.Token = Token;
 Gel.Scope = Scope;
 module.exports = Gel;
-},{"gedi-paths":60,"lang-js":39,"merge":41,"spec-js":42}],39:[function(require,module,exports){
-module.exports=require(34)
-},{"./token":40,"/usr/lib/node_modules/watchify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":62}],40:[function(require,module,exports){
-module.exports=require(35)
+},{"gedi-paths":37,"lang-js":39,"merge":41,"spec-js":44}],39:[function(require,module,exports){
+(function (process){
+var Token = require('./token');
+
+function fastEach(items, callback) {
+    for (var i = 0; i < items.length; i++) {
+        if (callback(items[i], i, items)) break;
+    }
+    return items;
+}
+
+var now;
+
+if(typeof process !== 'undefined' && process.hrtime){
+    now = function(){
+        var time = process.hrtime();
+        return time[0] + time[1] / 1000000;
+    };
+}else if(typeof performance !== 'undefined' && performance.now){
+    now = function(){
+        return performance.now();
+    };
+}else if(Date.now){
+    now = function(){
+        return Date.now();
+    };
+}else{
+    now = function(){
+        return new Date().getTime();
+    };
+}
+
+function callWith(fn, fnArguments, calledToken){
+    if(fn instanceof Token){
+        fn.evaluate(scope);
+        fn = fn.result;
+    }
+    var argIndex = 0,
+        scope = this,
+        args = {
+            callee: calledToken,
+            length: fnArguments.length,
+            raw: function(evaluated){
+                var rawArgs = fnArguments.slice();
+                if(evaluated){
+                    fastEach(rawArgs, function(arg){
+                        if(arg instanceof Token){
+                            arg.evaluate(scope);
+                        }
+                    });
+                }
+                return rawArgs;
+            },
+            getRaw: function(index, evaluated){
+                var arg = fnArguments[index];
+
+                if(evaluated){
+                    if(arg instanceof Token){
+                        arg.evaluate(scope);
+                    }
+                }
+                return arg;
+            },
+            get: function(index){
+                var arg = fnArguments[index];
+
+                if(arg instanceof Token){
+                    arg.evaluate(scope);
+                    return arg.result;
+                }
+                return arg;
+            },
+            hasNext: function(){
+                return argIndex < fnArguments.length;
+            },
+            next: function(){
+                if(!this.hasNext()){
+                    throw "Incorrect number of arguments";
+                }
+                if(fnArguments[argIndex] instanceof Token){
+                    fnArguments[argIndex].evaluate(scope);
+                    return fnArguments[argIndex++].result;
+                }
+                return fnArguments[argIndex++];
+            },
+            all: function(){
+                var allArgs = [];
+                while(this.hasNext()){
+                    allArgs.push(this.next());
+                }
+                return allArgs;
+            }
+        };
+
+    return fn(scope, args);
+}
+
+function Scope(oldScope){
+    this.__scope__ = {};
+    if(oldScope){
+        this.__outerScope__ = oldScope instanceof Scope ? oldScope : {__scope__:oldScope};
+    }
+}
+Scope.prototype.get = function(key){
+    var scope = this;
+    while(scope && !scope.__scope__.hasOwnProperty(key)){
+        scope = scope.__outerScope__;
+    }
+    return scope && scope.__scope__[key];
+};
+Scope.prototype.set = function(key, value, bubble){
+    if(bubble){
+        var currentScope = this;
+        while(currentScope && !(key in currentScope.__scope__)){
+            currentScope = currentScope.__outerScope__;
+        }
+
+        if(currentScope){
+            currentScope.set(key, value);
+        }
+    }
+    this.__scope__[key] = value;
+    return this;
+};
+Scope.prototype.add = function(obj){
+    for(var key in obj){
+        this.__scope__[key] = obj[key];
+    }
+    return this;
+};
+Scope.prototype.isDefined = function(key){
+    if(key in this.__scope__){
+        return true;
+    }
+    return this.__outerScope__ && this.__outerScope__.isDefined(key) || false;
+};
+Scope.prototype.callWith = callWith;
+
+// Takes a start and end regex, returns an appropriate parse function
+function createNestingParser(closeConstructor){
+    return function(tokens, index, parse){
+        var openConstructor = this.constructor,
+            position = index,
+            opens = 1;
+
+        while(position++, position <= tokens.length && opens){
+            if(!tokens[position]){
+                throw "Invalid nesting. No closing token was found";
+            }
+            if(tokens[position] instanceof openConstructor){
+                opens++;
+            }
+            if(tokens[position] instanceof closeConstructor){
+                opens--;
+            }
+        }
+
+        // remove all wrapped tokens from the token array, including nest end token.
+        var childTokens = tokens.splice(index + 1, position - 1 - index);
+
+        // Remove the nest end token.
+        childTokens.pop();
+
+        // parse them, then add them as child tokens.
+        this.childTokens = parse(childTokens);
+    };
+}
+
+function scanForToken(tokenisers, expression){
+    for (var i = 0; i < tokenisers.length; i++) {
+        var token = tokenisers[i].tokenise(expression);
+        if (token) {
+            return token;
+        }
+    }
+}
+
+function sortByPrecedence(items, key){
+    return items.slice().sort(function(a,b){
+        var precedenceDifference = a[key] - b[key];
+        return precedenceDifference ? precedenceDifference : items.indexOf(a) - items.indexOf(b);
+    });
+}
+
+function tokenise(expression, tokenConverters, memoisedTokens) {
+    if(!expression){
+        return [];
+    }
+
+    if(memoisedTokens && memoisedTokens[expression]){
+        return memoisedTokens[expression].slice();
+    }
+
+    tokenConverters = sortByPrecedence(tokenConverters, 'tokenPrecedence');
+
+    var originalExpression = expression,
+        tokens = [],
+        totalCharsProcessed = 0,
+        previousLength,
+        reservedKeywordToken;
+
+    do {
+        previousLength = expression.length;
+
+        var token;
+
+        token = scanForToken(tokenConverters, expression);
+
+        if(token){
+            expression = expression.slice(token.length);
+            totalCharsProcessed += token.length;
+            tokens.push(token);
+            continue;
+        }
+
+        if(expression.length === previousLength){
+            throw "Unable to determine next token in expression: " + expression;
+        }
+
+    } while (expression);
+
+    memoisedTokens && (memoisedTokens[originalExpression] = tokens.slice());
+
+    return tokens;
+}
+
+function parse(tokens){
+    var parsedTokens = 0,
+        tokensByPrecedence = sortByPrecedence(tokens, 'parsePrecedence'),
+        currentToken = tokensByPrecedence[0],
+        tokenNumber = 0;
+
+    while(currentToken && currentToken.parsed == true){
+        currentToken = tokensByPrecedence[tokenNumber++];
+    }
+
+    if(!currentToken){
+        return tokens;
+    }
+
+    if(currentToken.parse){
+        currentToken.parse(tokens, tokens.indexOf(currentToken), parse);
+    }
+
+    // Even if the token has no parse method, it is still concidered 'parsed' at this point.
+    currentToken.parsed = true;
+
+    return parse(tokens);
+}
+
+function evaluate(tokens, scope){
+    scope = scope || new Scope();
+    for(var i = 0; i < tokens.length; i++){
+        var token = tokens[i];
+        token.evaluate(scope);
+    }
+
+    return tokens;
+}
+
+function printTopExpressions(stats){
+    var allStats = [];
+    for(var key in stats){
+        allStats.push({
+            expression: key,
+            time: stats[key].time,
+            calls: stats[key].calls,
+            averageTime: stats[key].averageTime
+        });
+    }
+
+    allStats.sort(function(stat1, stat2){
+        return stat2.time - stat1.time;
+    }).slice(0, 10).forEach(function(stat){
+        console.log([
+            "Expression: ",
+            stat.expression,
+            '\n',
+            'Average evaluation time: ',
+            stat.averageTime,
+            '\n',
+            'Total time: ',
+            stat.time,
+            '\n',
+            'Call count: ',
+            stat.calls
+        ].join(''));
+    });
+}
+
+function Lang(){
+    var lang = {},
+        memoisedTokens = {},
+        memoisedExpressions = {};
+
+
+    var stats = {};
+
+    lang.printTopExpressions = function(){
+        printTopExpressions(stats);
+    }
+
+    function addStat(stat){
+        var expStats = stats[stat.expression] = stats[stat.expression] || {time:0, calls:0};
+
+        expStats.time += stat.time;
+        expStats.calls++;
+        expStats.averageTime = expStats.time / expStats.calls;
+    }
+
+    lang.parse = parse;
+    lang.tokenise = function(expression, tokenConverters){
+        return tokenise(expression, tokenConverters, memoisedTokens);
+    };
+    lang.evaluate = function(expression, scope, tokenConverters, returnAsTokens){
+        var langInstance = this,
+            memoiseKey = expression,
+            expressionTree,
+            evaluatedTokens,
+            lastToken;
+
+        if(!(scope instanceof Scope)){
+            scope = new Scope(scope);
+        }
+
+        if(Array.isArray(expression)){
+            return evaluate(expression , scope).slice(-1).pop();
+        }
+
+        if(memoisedExpressions[memoiseKey]){
+            expressionTree = memoisedExpressions[memoiseKey].slice();
+        } else{
+            expressionTree = langInstance.parse(langInstance.tokenise(expression, tokenConverters, memoisedTokens));
+
+            memoisedExpressions[memoiseKey] = expressionTree;
+        }
+
+
+        var startTime = now();
+        evaluatedTokens = evaluate(expressionTree , scope);
+        addStat({
+            expression: expression,
+            time: now() - startTime
+        });
+
+        if(returnAsTokens){
+            return evaluatedTokens.slice();
+        }
+
+        lastToken = evaluatedTokens.slice(-1).pop();
+
+        return lastToken && lastToken.result;
+    };
+
+    lang.callWith = callWith;
+    return lang;
+};
+
+Lang.createNestingParser = createNestingParser;
+Lang.Scope = Scope;
+Lang.Token = Token;
+
+module.exports = Lang;
+}).call(this,require("/usr/lib/node_modules/watchify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
+},{"./token":40,"/usr/lib/node_modules/watchify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":69}],40:[function(require,module,exports){
+function Token(substring, length){
+    this.original = substring;
+    this.length = length;
+}
+Token.prototype.name = 'token';
+Token.prototype.precedence = 0;
+Token.prototype.valueOf = function(){
+    return this.result;
+}
+
+module.exports = Token;
 },{}],41:[function(require,module,exports){
 /*!
  * @name JavaScript/NodeJS Merge v1.1.3
@@ -6070,6 +5732,10 @@ module.exports=require(35)
 
 })(typeof module === 'object' && module && typeof module.exports === 'object' && module.exports);
 },{}],42:[function(require,module,exports){
+module.exports=require(39)
+},{"./token":43,"/usr/lib/node_modules/watchify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":69}],43:[function(require,module,exports){
+module.exports=require(40)
+},{}],44:[function(require,module,exports){
 Object.create = Object.create || function (o) {
     if (arguments.length > 1) {
         throw new Error('Object.create implementation only accepts the first parameter.');
@@ -6107,7 +5773,737 @@ function createSpec(child, parent){
 }
 
 module.exports = createSpec;
-},{}],43:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
+// Copyright (C) 2011 Google Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Install a leaky WeakMap emulation on platforms that
+ * don't provide a built-in one.
+ *
+ * <p>Assumes that an ES5 platform where, if {@code WeakMap} is
+ * already present, then it conforms to the anticipated ES6
+ * specification. To run this file on an ES5 or almost ES5
+ * implementation where the {@code WeakMap} specification does not
+ * quite conform, run <code>repairES5.js</code> first.
+ *
+ * <p>Even though WeakMapModule is not global, the linter thinks it
+ * is, which is why it is in the overrides list below.
+ *
+ * <p>NOTE: Before using this WeakMap emulation in a non-SES
+ * environment, see the note below about hiddenRecord.
+ *
+ * @author Mark S. Miller
+ * @requires crypto, ArrayBuffer, Uint8Array, navigator, console
+ * @overrides WeakMap, ses, Proxy
+ * @overrides WeakMapModule
+ */
+
+/**
+ * This {@code WeakMap} emulation is observably equivalent to the
+ * ES-Harmony WeakMap, but with leakier garbage collection properties.
+ *
+ * <p>As with true WeakMaps, in this emulation, a key does not
+ * retain maps indexed by that key and (crucially) a map does not
+ * retain the keys it indexes. A map by itself also does not retain
+ * the values associated with that map.
+ *
+ * <p>However, the values associated with a key in some map are
+ * retained so long as that key is retained and those associations are
+ * not overridden. For example, when used to support membranes, all
+ * values exported from a given membrane will live for the lifetime
+ * they would have had in the absence of an interposed membrane. Even
+ * when the membrane is revoked, all objects that would have been
+ * reachable in the absence of revocation will still be reachable, as
+ * far as the GC can tell, even though they will no longer be relevant
+ * to ongoing computation.
+ *
+ * <p>The API implemented here is approximately the API as implemented
+ * in FF6.0a1 and agreed to by MarkM, Andreas Gal, and Dave Herman,
+ * rather than the offially approved proposal page. TODO(erights):
+ * upgrade the ecmascript WeakMap proposal page to explain this API
+ * change and present to EcmaScript committee for their approval.
+ *
+ * <p>The first difference between the emulation here and that in
+ * FF6.0a1 is the presence of non enumerable {@code get___, has___,
+ * set___, and delete___} methods on WeakMap instances to represent
+ * what would be the hidden internal properties of a primitive
+ * implementation. Whereas the FF6.0a1 WeakMap.prototype methods
+ * require their {@code this} to be a genuine WeakMap instance (i.e.,
+ * an object of {@code [[Class]]} "WeakMap}), since there is nothing
+ * unforgeable about the pseudo-internal method names used here,
+ * nothing prevents these emulated prototype methods from being
+ * applied to non-WeakMaps with pseudo-internal methods of the same
+ * names.
+ *
+ * <p>Another difference is that our emulated {@code
+ * WeakMap.prototype} is not itself a WeakMap. A problem with the
+ * current FF6.0a1 API is that WeakMap.prototype is itself a WeakMap
+ * providing ambient mutability and an ambient communications
+ * channel. Thus, if a WeakMap is already present and has this
+ * problem, repairES5.js wraps it in a safe wrappper in order to
+ * prevent access to this channel. (See
+ * PATCH_MUTABLE_FROZEN_WEAKMAP_PROTO in repairES5.js).
+ */
+
+/**
+ * If this is a full <a href=
+ * "http://code.google.com/p/es-lab/wiki/SecureableES5"
+ * >secureable ES5</a> platform and the ES-Harmony {@code WeakMap} is
+ * absent, install an approximate emulation.
+ *
+ * <p>If WeakMap is present but cannot store some objects, use our approximate
+ * emulation as a wrapper.
+ *
+ * <p>If this is almost a secureable ES5 platform, then WeakMap.js
+ * should be run after repairES5.js.
+ *
+ * <p>See {@code WeakMap} for documentation of the garbage collection
+ * properties of this WeakMap emulation.
+ */
+(function WeakMapModule() {
+  "use strict";
+
+  if (typeof ses !== 'undefined' && ses.ok && !ses.ok()) {
+    // already too broken, so give up
+    return;
+  }
+
+  /**
+   * In some cases (current Firefox), we must make a choice betweeen a
+   * WeakMap which is capable of using all varieties of host objects as
+   * keys and one which is capable of safely using proxies as keys. See
+   * comments below about HostWeakMap and DoubleWeakMap for details.
+   *
+   * This function (which is a global, not exposed to guests) marks a
+   * WeakMap as permitted to do what is necessary to index all host
+   * objects, at the cost of making it unsafe for proxies.
+   *
+   * Do not apply this function to anything which is not a genuine
+   * fresh WeakMap.
+   */
+  function weakMapPermitHostObjects(map) {
+    // identity of function used as a secret -- good enough and cheap
+    if (map.permitHostObjects___) {
+      map.permitHostObjects___(weakMapPermitHostObjects);
+    }
+  }
+  if (typeof ses !== 'undefined') {
+    ses.weakMapPermitHostObjects = weakMapPermitHostObjects;
+  }
+
+  // IE 11 has no Proxy but has a broken WeakMap such that we need to patch
+  // it using DoubleWeakMap; this flag tells DoubleWeakMap so.
+  var doubleWeakMapCheckSilentFailure = false;
+
+  // Check if there is already a good-enough WeakMap implementation, and if so
+  // exit without replacing it.
+  if (typeof WeakMap === 'function') {
+    var HostWeakMap = WeakMap;
+    // There is a WeakMap -- is it good enough?
+    if (typeof navigator !== 'undefined' &&
+        /Firefox/.test(navigator.userAgent)) {
+      // We're now *assuming not*, because as of this writing (2013-05-06)
+      // Firefox's WeakMaps have a miscellany of objects they won't accept, and
+      // we don't want to make an exhaustive list, and testing for just one
+      // will be a problem if that one is fixed alone (as they did for Event).
+
+      // If there is a platform that we *can* reliably test on, here's how to
+      // do it:
+      //  var problematic = ... ;
+      //  var testHostMap = new HostWeakMap();
+      //  try {
+      //    testHostMap.set(problematic, 1);  // Firefox 20 will throw here
+      //    if (testHostMap.get(problematic) === 1) {
+      //      return;
+      //    }
+      //  } catch (e) {}
+
+    } else {
+      // IE 11 bug: WeakMaps silently fail to store frozen objects.
+      var testMap = new HostWeakMap();
+      var testObject = Object.freeze({});
+      testMap.set(testObject, 1);
+      if (testMap.get(testObject) !== 1) {
+        doubleWeakMapCheckSilentFailure = true;
+        // Fall through to installing our WeakMap.
+      } else {
+        module.exports = WeakMap;
+        return;
+      }
+    }
+  }
+
+  var hop = Object.prototype.hasOwnProperty;
+  var gopn = Object.getOwnPropertyNames;
+  var defProp = Object.defineProperty;
+  var isExtensible = Object.isExtensible;
+
+  /**
+   * Security depends on HIDDEN_NAME being both <i>unguessable</i> and
+   * <i>undiscoverable</i> by untrusted code.
+   *
+   * <p>Given the known weaknesses of Math.random() on existing
+   * browsers, it does not generate unguessability we can be confident
+   * of.
+   *
+   * <p>It is the monkey patching logic in this file that is intended
+   * to ensure undiscoverability. The basic idea is that there are
+   * three fundamental means of discovering properties of an object:
+   * The for/in loop, Object.keys(), and Object.getOwnPropertyNames(),
+   * as well as some proposed ES6 extensions that appear on our
+   * whitelist. The first two only discover enumerable properties, and
+   * we only use HIDDEN_NAME to name a non-enumerable property, so the
+   * only remaining threat should be getOwnPropertyNames and some
+   * proposed ES6 extensions that appear on our whitelist. We monkey
+   * patch them to remove HIDDEN_NAME from the list of properties they
+   * returns.
+   *
+   * <p>TODO(erights): On a platform with built-in Proxies, proxies
+   * could be used to trap and thereby discover the HIDDEN_NAME, so we
+   * need to monkey patch Proxy.create, Proxy.createFunction, etc, in
+   * order to wrap the provided handler with the real handler which
+   * filters out all traps using HIDDEN_NAME.
+   *
+   * <p>TODO(erights): Revisit Mike Stay's suggestion that we use an
+   * encapsulated function at a not-necessarily-secret name, which
+   * uses the Stiegler shared-state rights amplification pattern to
+   * reveal the associated value only to the WeakMap in which this key
+   * is associated with that value. Since only the key retains the
+   * function, the function can also remember the key without causing
+   * leakage of the key, so this doesn't violate our general gc
+   * goals. In addition, because the name need not be a guarded
+   * secret, we could efficiently handle cross-frame frozen keys.
+   */
+  var HIDDEN_NAME_PREFIX = 'weakmap:';
+  var HIDDEN_NAME = HIDDEN_NAME_PREFIX + 'ident:' + Math.random() + '___';
+
+  if (typeof crypto !== 'undefined' &&
+      typeof crypto.getRandomValues === 'function' &&
+      typeof ArrayBuffer === 'function' &&
+      typeof Uint8Array === 'function') {
+    var ab = new ArrayBuffer(25);
+    var u8s = new Uint8Array(ab);
+    crypto.getRandomValues(u8s);
+    HIDDEN_NAME = HIDDEN_NAME_PREFIX + 'rand:' +
+      Array.prototype.map.call(u8s, function(u8) {
+        return (u8 % 36).toString(36);
+      }).join('') + '___';
+  }
+
+  function isNotHiddenName(name) {
+    return !(
+        name.substr(0, HIDDEN_NAME_PREFIX.length) == HIDDEN_NAME_PREFIX &&
+        name.substr(name.length - 3) === '___');
+  }
+
+  /**
+   * Monkey patch getOwnPropertyNames to avoid revealing the
+   * HIDDEN_NAME.
+   *
+   * <p>The ES5.1 spec requires each name to appear only once, but as
+   * of this writing, this requirement is controversial for ES6, so we
+   * made this code robust against this case. If the resulting extra
+   * search turns out to be expensive, we can probably relax this once
+   * ES6 is adequately supported on all major browsers, iff no browser
+   * versions we support at that time have relaxed this constraint
+   * without providing built-in ES6 WeakMaps.
+   */
+  defProp(Object, 'getOwnPropertyNames', {
+    value: function fakeGetOwnPropertyNames(obj) {
+      return gopn(obj).filter(isNotHiddenName);
+    }
+  });
+
+  /**
+   * getPropertyNames is not in ES5 but it is proposed for ES6 and
+   * does appear in our whitelist, so we need to clean it too.
+   */
+  if ('getPropertyNames' in Object) {
+    var originalGetPropertyNames = Object.getPropertyNames;
+    defProp(Object, 'getPropertyNames', {
+      value: function fakeGetPropertyNames(obj) {
+        return originalGetPropertyNames(obj).filter(isNotHiddenName);
+      }
+    });
+  }
+
+  /**
+   * <p>To treat objects as identity-keys with reasonable efficiency
+   * on ES5 by itself (i.e., without any object-keyed collections), we
+   * need to add a hidden property to such key objects when we
+   * can. This raises several issues:
+   * <ul>
+   * <li>Arranging to add this property to objects before we lose the
+   *     chance, and
+   * <li>Hiding the existence of this new property from most
+   *     JavaScript code.
+   * <li>Preventing <i>certification theft</i>, where one object is
+   *     created falsely claiming to be the key of an association
+   *     actually keyed by another object.
+   * <li>Preventing <i>value theft</i>, where untrusted code with
+   *     access to a key object but not a weak map nevertheless
+   *     obtains access to the value associated with that key in that
+   *     weak map.
+   * </ul>
+   * We do so by
+   * <ul>
+   * <li>Making the name of the hidden property unguessable, so "[]"
+   *     indexing, which we cannot intercept, cannot be used to access
+   *     a property without knowing the name.
+   * <li>Making the hidden property non-enumerable, so we need not
+   *     worry about for-in loops or {@code Object.keys},
+   * <li>monkey patching those reflective methods that would
+   *     prevent extensions, to add this hidden property first,
+   * <li>monkey patching those methods that would reveal this
+   *     hidden property.
+   * </ul>
+   * Unfortunately, because of same-origin iframes, we cannot reliably
+   * add this hidden property before an object becomes
+   * non-extensible. Instead, if we encounter a non-extensible object
+   * without a hidden record that we can detect (whether or not it has
+   * a hidden record stored under a name secret to us), then we just
+   * use the key object itself to represent its identity in a brute
+   * force leaky map stored in the weak map, losing all the advantages
+   * of weakness for these.
+   */
+  function getHiddenRecord(key) {
+    if (key !== Object(key)) {
+      throw new TypeError('Not an object: ' + key);
+    }
+    var hiddenRecord = key[HIDDEN_NAME];
+    if (hiddenRecord && hiddenRecord.key === key) { return hiddenRecord; }
+    if (!isExtensible(key)) {
+      // Weak map must brute force, as explained in doc-comment above.
+      return void 0;
+    }
+
+    // The hiddenRecord and the key point directly at each other, via
+    // the "key" and HIDDEN_NAME properties respectively. The key
+    // field is for quickly verifying that this hidden record is an
+    // own property, not a hidden record from up the prototype chain.
+    //
+    // NOTE: Because this WeakMap emulation is meant only for systems like
+    // SES where Object.prototype is frozen without any numeric
+    // properties, it is ok to use an object literal for the hiddenRecord.
+    // This has two advantages:
+    // * It is much faster in a performance critical place
+    // * It avoids relying on Object.create(null), which had been
+    //   problematic on Chrome 28.0.1480.0. See
+    //   https://code.google.com/p/google-caja/issues/detail?id=1687
+    hiddenRecord = { key: key };
+
+    // When using this WeakMap emulation on platforms where
+    // Object.prototype might not be frozen and Object.create(null) is
+    // reliable, use the following two commented out lines instead.
+    // hiddenRecord = Object.create(null);
+    // hiddenRecord.key = key;
+
+    // Please contact us if you need this to work on platforms where
+    // Object.prototype might not be frozen and
+    // Object.create(null) might not be reliable.
+
+    try {
+      defProp(key, HIDDEN_NAME, {
+        value: hiddenRecord,
+        writable: false,
+        enumerable: false,
+        configurable: false
+      });
+      return hiddenRecord;
+    } catch (error) {
+      // Under some circumstances, isExtensible seems to misreport whether
+      // the HIDDEN_NAME can be defined.
+      // The circumstances have not been isolated, but at least affect
+      // Node.js v0.10.26 on TravisCI / Linux, but not the same version of
+      // Node.js on OS X.
+      return void 0;
+    }
+  }
+
+  /**
+   * Monkey patch operations that would make their argument
+   * non-extensible.
+   *
+   * <p>The monkey patched versions throw a TypeError if their
+   * argument is not an object, so it should only be done to functions
+   * that should throw a TypeError anyway if their argument is not an
+   * object.
+   */
+  (function(){
+    var oldFreeze = Object.freeze;
+    defProp(Object, 'freeze', {
+      value: function identifyingFreeze(obj) {
+        getHiddenRecord(obj);
+        return oldFreeze(obj);
+      }
+    });
+    var oldSeal = Object.seal;
+    defProp(Object, 'seal', {
+      value: function identifyingSeal(obj) {
+        getHiddenRecord(obj);
+        return oldSeal(obj);
+      }
+    });
+    var oldPreventExtensions = Object.preventExtensions;
+    defProp(Object, 'preventExtensions', {
+      value: function identifyingPreventExtensions(obj) {
+        getHiddenRecord(obj);
+        return oldPreventExtensions(obj);
+      }
+    });
+  })();
+
+  function constFunc(func) {
+    func.prototype = null;
+    return Object.freeze(func);
+  }
+
+  var calledAsFunctionWarningDone = false;
+  function calledAsFunctionWarning() {
+    // Future ES6 WeakMap is currently (2013-09-10) expected to reject WeakMap()
+    // but we used to permit it and do it ourselves, so warn only.
+    if (!calledAsFunctionWarningDone && typeof console !== 'undefined') {
+      calledAsFunctionWarningDone = true;
+      console.warn('WeakMap should be invoked as new WeakMap(), not ' +
+          'WeakMap(). This will be an error in the future.');
+    }
+  }
+
+  var nextId = 0;
+
+  var OurWeakMap = function() {
+    if (!(this instanceof OurWeakMap)) {  // approximate test for new ...()
+      calledAsFunctionWarning();
+    }
+
+    // We are currently (12/25/2012) never encountering any prematurely
+    // non-extensible keys.
+    var keys = []; // brute force for prematurely non-extensible keys.
+    var values = []; // brute force for corresponding values.
+    var id = nextId++;
+
+    function get___(key, opt_default) {
+      var index;
+      var hiddenRecord = getHiddenRecord(key);
+      if (hiddenRecord) {
+        return id in hiddenRecord ? hiddenRecord[id] : opt_default;
+      } else {
+        index = keys.indexOf(key);
+        return index >= 0 ? values[index] : opt_default;
+      }
+    }
+
+    function has___(key) {
+      var hiddenRecord = getHiddenRecord(key);
+      if (hiddenRecord) {
+        return id in hiddenRecord;
+      } else {
+        return keys.indexOf(key) >= 0;
+      }
+    }
+
+    function set___(key, value) {
+      var index;
+      var hiddenRecord = getHiddenRecord(key);
+      if (hiddenRecord) {
+        hiddenRecord[id] = value;
+      } else {
+        index = keys.indexOf(key);
+        if (index >= 0) {
+          values[index] = value;
+        } else {
+          // Since some browsers preemptively terminate slow turns but
+          // then continue computing with presumably corrupted heap
+          // state, we here defensively get keys.length first and then
+          // use it to update both the values and keys arrays, keeping
+          // them in sync.
+          index = keys.length;
+          values[index] = value;
+          // If we crash here, values will be one longer than keys.
+          keys[index] = key;
+        }
+      }
+      return this;
+    }
+
+    function delete___(key) {
+      var hiddenRecord = getHiddenRecord(key);
+      var index, lastIndex;
+      if (hiddenRecord) {
+        return id in hiddenRecord && delete hiddenRecord[id];
+      } else {
+        index = keys.indexOf(key);
+        if (index < 0) {
+          return false;
+        }
+        // Since some browsers preemptively terminate slow turns but
+        // then continue computing with potentially corrupted heap
+        // state, we here defensively get keys.length first and then use
+        // it to update both the keys and the values array, keeping
+        // them in sync. We update the two with an order of assignments,
+        // such that any prefix of these assignments will preserve the
+        // key/value correspondence, either before or after the delete.
+        // Note that this needs to work correctly when index === lastIndex.
+        lastIndex = keys.length - 1;
+        keys[index] = void 0;
+        // If we crash here, there's a void 0 in the keys array, but
+        // no operation will cause a "keys.indexOf(void 0)", since
+        // getHiddenRecord(void 0) will always throw an error first.
+        values[index] = values[lastIndex];
+        // If we crash here, values[index] cannot be found here,
+        // because keys[index] is void 0.
+        keys[index] = keys[lastIndex];
+        // If index === lastIndex and we crash here, then keys[index]
+        // is still void 0, since the aliasing killed the previous key.
+        keys.length = lastIndex;
+        // If we crash here, keys will be one shorter than values.
+        values.length = lastIndex;
+        return true;
+      }
+    }
+
+    return Object.create(OurWeakMap.prototype, {
+      get___:    { value: constFunc(get___) },
+      has___:    { value: constFunc(has___) },
+      set___:    { value: constFunc(set___) },
+      delete___: { value: constFunc(delete___) }
+    });
+  };
+
+  OurWeakMap.prototype = Object.create(Object.prototype, {
+    get: {
+      /**
+       * Return the value most recently associated with key, or
+       * opt_default if none.
+       */
+      value: function get(key, opt_default) {
+        return this.get___(key, opt_default);
+      },
+      writable: true,
+      configurable: true
+    },
+
+    has: {
+      /**
+       * Is there a value associated with key in this WeakMap?
+       */
+      value: function has(key) {
+        return this.has___(key);
+      },
+      writable: true,
+      configurable: true
+    },
+
+    set: {
+      /**
+       * Associate value with key in this WeakMap, overwriting any
+       * previous association if present.
+       */
+      value: function set(key, value) {
+        return this.set___(key, value);
+      },
+      writable: true,
+      configurable: true
+    },
+
+    'delete': {
+      /**
+       * Remove any association for key in this WeakMap, returning
+       * whether there was one.
+       *
+       * <p>Note that the boolean return here does not work like the
+       * {@code delete} operator. The {@code delete} operator returns
+       * whether the deletion succeeds at bringing about a state in
+       * which the deleted property is absent. The {@code delete}
+       * operator therefore returns true if the property was already
+       * absent, whereas this {@code delete} method returns false if
+       * the association was already absent.
+       */
+      value: function remove(key) {
+        return this.delete___(key);
+      },
+      writable: true,
+      configurable: true
+    }
+  });
+
+  if (typeof HostWeakMap === 'function') {
+    (function() {
+      // If we got here, then the platform has a WeakMap but we are concerned
+      // that it may refuse to store some key types. Therefore, make a map
+      // implementation which makes use of both as possible.
+
+      // In this mode we are always using double maps, so we are not proxy-safe.
+      // This combination does not occur in any known browser, but we had best
+      // be safe.
+      if (doubleWeakMapCheckSilentFailure && typeof Proxy !== 'undefined') {
+        Proxy = undefined;
+      }
+
+      function DoubleWeakMap() {
+        if (!(this instanceof OurWeakMap)) {  // approximate test for new ...()
+          calledAsFunctionWarning();
+        }
+
+        // Preferable, truly weak map.
+        var hmap = new HostWeakMap();
+
+        // Our hidden-property-based pseudo-weak-map. Lazily initialized in the
+        // 'set' implementation; thus we can avoid performing extra lookups if
+        // we know all entries actually stored are entered in 'hmap'.
+        var omap = undefined;
+
+        // Hidden-property maps are not compatible with proxies because proxies
+        // can observe the hidden name and either accidentally expose it or fail
+        // to allow the hidden property to be set. Therefore, we do not allow
+        // arbitrary WeakMaps to switch to using hidden properties, but only
+        // those which need the ability, and unprivileged code is not allowed
+        // to set the flag.
+        //
+        // (Except in doubleWeakMapCheckSilentFailure mode in which case we
+        // disable proxies.)
+        var enableSwitching = false;
+
+        function dget(key, opt_default) {
+          if (omap) {
+            return hmap.has(key) ? hmap.get(key)
+                : omap.get___(key, opt_default);
+          } else {
+            return hmap.get(key, opt_default);
+          }
+        }
+
+        function dhas(key) {
+          return hmap.has(key) || (omap ? omap.has___(key) : false);
+        }
+
+        var dset;
+        if (doubleWeakMapCheckSilentFailure) {
+          dset = function(key, value) {
+            hmap.set(key, value);
+            if (!hmap.has(key)) {
+              if (!omap) { omap = new OurWeakMap(); }
+              omap.set(key, value);
+            }
+            return this;
+          };
+        } else {
+          dset = function(key, value) {
+            if (enableSwitching) {
+              try {
+                hmap.set(key, value);
+              } catch (e) {
+                if (!omap) { omap = new OurWeakMap(); }
+                omap.set___(key, value);
+              }
+            } else {
+              hmap.set(key, value);
+            }
+            return this;
+          };
+        }
+
+        function ddelete(key) {
+          var result = !!hmap['delete'](key);
+          if (omap) { return omap.delete___(key) || result; }
+          return result;
+        }
+
+        return Object.create(OurWeakMap.prototype, {
+          get___:    { value: constFunc(dget) },
+          has___:    { value: constFunc(dhas) },
+          set___:    { value: constFunc(dset) },
+          delete___: { value: constFunc(ddelete) },
+          permitHostObjects___: { value: constFunc(function(token) {
+            if (token === weakMapPermitHostObjects) {
+              enableSwitching = true;
+            } else {
+              throw new Error('bogus call to permitHostObjects___');
+            }
+          })}
+        });
+      }
+      DoubleWeakMap.prototype = OurWeakMap.prototype;
+      module.exports = DoubleWeakMap;
+
+      // define .constructor to hide OurWeakMap ctor
+      Object.defineProperty(WeakMap.prototype, 'constructor', {
+        value: WeakMap,
+        enumerable: false,  // as default .constructor is
+        configurable: true,
+        writable: true
+      });
+    })();
+  } else {
+    // There is no host WeakMap, so we must use the emulation.
+
+    // Emulated WeakMaps are incompatible with native proxies (because proxies
+    // can observe the hidden name), so we must disable Proxy usage (in
+    // ArrayLike and Domado, currently).
+    if (typeof Proxy !== 'undefined') {
+      Proxy = undefined;
+    }
+
+    module.exports = OurWeakMap;
+  }
+})();
+
+},{}],46:[function(require,module,exports){
+var Lang = require('lang-js'),
+    Token = Lang.Token,
+    paths = require('gedi-paths'),
+    createSpec = require('spec-js'),
+    detectPath = require('gedi-paths/detectPath');
+
+module.exports = function(get, model){
+
+    function PathToken(path){
+        this.path = path;
+    }
+    PathToken = createSpec(PathToken, Token);
+    PathToken.prototype.name = 'PathToken';
+    PathToken.tokenPrecedence = 1;
+    PathToken.prototype.parsePrecedence = 2;
+    PathToken.tokenise = function(substring){
+        var path = detectPath(substring);
+
+        if(path){
+            return new PathToken(path, path.length);
+        }
+    };
+    PathToken.prototype.evaluate = function(scope){
+        this.path = this.original;
+        this.result = get(paths.resolve(scope.get('_gmc_'), this.original), model);
+        this.sourcePathInfo = {
+            path: this.original
+        };
+    };
+
+    return PathToken;
+}
+},{"gedi-paths":37,"gedi-paths/detectPath":36,"lang-js":42,"spec-js":44}],47:[function(require,module,exports){
+arguments[4][38][0].apply(exports,arguments)
+},{"gedi-paths":49,"lang-js":50,"merge":53,"spec-js":54}],48:[function(require,module,exports){
+module.exports=require(36)
+},{}],49:[function(require,module,exports){
+module.exports=require(37)
+},{"./detectPath":48}],50:[function(require,module,exports){
+module.exports=require(39)
+},{"./token":51,"/usr/lib/node_modules/watchify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":69}],51:[function(require,module,exports){
+module.exports=require(40)
+},{}],52:[function(require,module,exports){
 function checkElement(element){
     if(!element){
         return false;
@@ -6136,11 +6532,11 @@ module.exports = function laidout(element, callback){
 
     document.addEventListener('DOMNodeInserted', recheckElement);
 };
-},{}],44:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 module.exports=require(41)
-},{}],45:[function(require,module,exports){
-module.exports=require(42)
-},{}],46:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
+module.exports=require(44)
+},{}],55:[function(require,module,exports){
 function escapeHex(hex){
     return String.fromCharCode(hex);
 }
@@ -6153,7 +6549,7 @@ function createKey(number){
 }
 
 module.exports = createKey;
-},{}],47:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 var revive = require('./revive');
 
 function parse(json, reviver){
@@ -6161,7 +6557,7 @@ function parse(json, reviver){
 }
 
 module.exports = parse;
-},{"./revive":48}],48:[function(require,module,exports){
+},{"./revive":57}],57:[function(require,module,exports){
 var createKey = require('./createKey'),
     keyKey = createKey(-1);
 
@@ -6220,13 +6616,13 @@ function revive(input){
 }
 
 module.exports = revive;
-},{"./createKey":46}],49:[function(require,module,exports){
+},{"./createKey":55}],58:[function(require,module,exports){
 module.exports = {
     stringify: require('./stringify'),
     parse: require('./parse'),
     revive: require('./revive')
 };
-},{"./parse":47,"./revive":48,"./stringify":50}],50:[function(require,module,exports){
+},{"./parse":56,"./revive":57,"./stringify":59}],59:[function(require,module,exports){
 var createKey = require('./createKey'),
     keyKey = createKey(-1);
 
@@ -6282,9 +6678,10 @@ function stringify(input, replacer, spacer){
 }
 
 module.exports = stringify;
-},{"./createKey":46}],51:[function(require,module,exports){
+},{"./createKey":55}],60:[function(require,module,exports){
 var createSpec = require('spec-js'),
-    EventEmitter = require('events').EventEmitter,
+    Bindable = require('./bindable'),
+    IdentifierToken = require('gel-js').IdentifierToken,
     jsonConverter = require('./jsonConverter'),
     Consuela = require('consuela');
 
@@ -6335,20 +6732,47 @@ function updateProperty(property, firstUpdate){
     }
 }
 
+function createViewItemScope(parent, scope){
+    if(!scope){
+        scope = {};
+    }
+
+    if(!parent){
+        return scope;
+    }
+
+    if(parent.itemScope){
+        var itemScopeToken = new IdentifierToken(),
+            path = '[/_scope_' + parent.iuid + '_' + parent.itemScope + ']';
+
+        itemScopeToken.path = path;
+        itemScopeToken.sourcePathInfo = {
+            path: path
+        };
+        itemScopeToken.result = parent.gaffa.model.get(path);
+        scope[parent.itemScope] = itemScopeToken;
+    }
+
+    return createViewItemScope(parent.parent, scope);
+}
+
 function createModelScope(parent, gediEvent){
     var possibleGroup = parent,
-        groupKey;
+        groupKey,
+        scope = {};
 
     while(possibleGroup && !groupKey){
         groupKey = possibleGroup.group;
         possibleGroup = possibleGroup.parent;
     }
 
-    return {
-        viewItem: parent,
-        groupKey: groupKey,
-        modelTarget: gediEvent && gediEvent.target
-    };
+    scope.viewItem = parent;
+    scope.groupKey = groupKey;
+    scope.modelTarget = gediEvent && gediEvent.target;
+
+    createViewItemScope(parent, scope);
+
+    return scope;
 }
 
 function createPropertyCallback(property){
@@ -6414,7 +6838,9 @@ function bindProperty(parent) {
 
     var propertyCallback = createPropertyCallback(this);
 
-    this.gaffa.model.bind(this.binding, propertyCallback, this);
+    var scope = createViewItemScope(this);
+
+    this.gaffa.model.bind(this.binding, propertyCallback, this, scope);
     propertyCallback(true);
 }
 
@@ -6456,7 +6882,7 @@ function Property(propertyDescription){
 
     this.gediCallbacks = [];
 }
-Property = createSpec(Property);
+Property = createSpec(Property, Bindable);
 Property.prototype.set = function(value, isDirty){
     var gaffa = this.gaffa;
 
@@ -6466,7 +6892,8 @@ Property.prototype.set = function(value, isDirty){
             this.binding,
             setValue,
             this,
-            isDirty
+            isDirty,
+            createViewItemScope(this)
         );
     }else{
         this.value = value;
@@ -6505,18 +6932,12 @@ Property.prototype.bind = bindProperty;
 Property.prototype.debind = function(){
     cancelAnimationFrame(this.nextUpdate);
     this.gaffa && this.gaffa.model.debind(this);
+    Bindable.prototype.debind.call(this);
 };
-Property.prototype.getPath = function(){
-    return getItemPath(this);
-};
-Property.prototype.toJSON = function(){
-    var tempObject = jsonConverter(this, ['_previousHash']);
-
-    return tempObject;
-};
+Property.prototype.__serialiseExclude__ = ['_previousHash'];
 
 module.exports = Property;
-},{"./jsonConverter":21,"consuela":22,"events":61,"spec-js":45}],52:[function(require,module,exports){
+},{"./bindable":16,"./jsonConverter":23,"consuela":24,"gel-js":47,"spec-js":54}],61:[function(require,module,exports){
 /*
  * raf.js
  * https://github.com/ngryman/raf.js
@@ -6569,7 +6990,7 @@ module.exports = {
     requestAnimationFrame: requestAnimationFrame,
     cancelAnimationFrame: cancelAnimationFrame
 };
-},{}],53:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 function removeViews(views){
     if(!views){
         return;
@@ -6585,7 +7006,7 @@ function removeViews(views){
 }
 
 module.exports = removeViews;
-},{}],54:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 var Property = require('./property'),
     statham = require('statham'),
     createSpec = require('spec-js');
@@ -6721,7 +7142,7 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
 };
 
 module.exports = TemplaterProperty;
-},{"./property":51,"spec-js":45,"statham":49}],55:[function(require,module,exports){
+},{"./property":60,"spec-js":54,"statham":58}],64:[function(require,module,exports){
 /**
     ## View
 
@@ -6898,12 +7319,13 @@ View.prototype.title = new Title();
 View.prototype.insertFunction = insertFunction;
 
 module.exports = View;
-},{"./property":51,"./viewItem":57,"crel":23,"doc-js":26,"spec-js":45}],56:[function(require,module,exports){
+},{"./property":60,"./viewItem":66,"crel":25,"doc-js":28,"spec-js":54}],65:[function(require,module,exports){
 var createSpec = require('spec-js'),
-    EventEmitter = require('events').EventEmitter,
+    Bindable = require('./bindable'),
     View = require('./view'),
     initialiseViewItem = require('./initialiseViewItem'),
-    Consuela = require('consuela');
+    Consuela = require('consuela'),
+    arrayProto = Array.prototype;
 
 function ViewContainer(viewContainerDescription){
     var viewContainer = this;
@@ -6914,7 +7336,10 @@ function ViewContainer(viewContainerDescription){
         viewContainer.add(viewContainerDescription);
     }
 }
-ViewContainer = createSpec(ViewContainer, Array);
+ViewContainer = createSpec(ViewContainer, Bindable);
+ViewContainer.prototype.slice = arrayProto.slice;
+ViewContainer.prototype.splice = arrayProto.splice;
+ViewContainer.prototype.indexOf = arrayProto.indexOf;
 ViewContainer.prototype.bind = function(parent){
     this.parent = parent;
     this.gaffa = parent.gaffa;
@@ -6944,6 +7369,7 @@ ViewContainer.prototype.debind = function(){
         this[i].detach();
         this[i].debind();
     }
+    Bindable.prototype.debind.call(this);
 };
 ViewContainer.prototype.getPath = function(){
     return getItemPath(this);
@@ -7041,16 +7467,13 @@ ViewContainer.prototype.remove = function(viewModel){
 ViewContainer.prototype.empty = function(){
     removeViews(this);
 };
-ViewContainer.prototype.toJSON = function(){
-    return jsonConverter(this, ['element']);
-};
+ViewContainer.prototype.__serialiseExclude__ = ['element'];
 
 module.exports = ViewContainer;
-},{"./initialiseViewItem":20,"./view":55,"consuela":22,"events":61,"spec-js":45}],57:[function(require,module,exports){
+},{"./bindable":16,"./initialiseViewItem":22,"./view":64,"consuela":24,"spec-js":54}],66:[function(require,module,exports){
 var createSpec = require('spec-js'),
-    EventEmitter = require('events').EventEmitter,
+    Bindable = require('./bindable'),
     jsonConverter = require('./jsonConverter'),
-    Consuela = require('consuela'),
     Property = require('./property');
 
 function copyProperties(source, target){
@@ -7071,7 +7494,6 @@ function copyProperties(source, target){
 function debindViewItem(viewItem){
     viewItem.emit('debind');
     viewItem._bound = false;
-    viewItem._cleanup();
 }
 
 
@@ -7148,8 +7570,7 @@ function inflateViewItem(viewItem, description){
 function ViewItem(viewItemDescription){
     inflateViewItem(this, viewItemDescription);
 }
-ViewItem = createSpec(ViewItem, EventEmitter);
-ViewItem = Consuela.init(ViewItem);
+ViewItem = createSpec(ViewItem, Bindable);
 
     /**
         ## .path
@@ -7196,24 +7617,15 @@ ViewItem.prototype.bind = function(parent){
             property.bind(this);
         }
     }
+
+    // Create item scope
 };
 ViewItem.prototype.debind = function(){
     debindViewItem(this);
+    Bindable.prototype.debind.call(this);
 };
 ViewItem.prototype.remove = function(){
     removeViewItem(this);
-};
-ViewItem.prototype.getPath = function(){
-    return getItemPath(this);
-};
-ViewItem.prototype.getDataAtPath = function(){
-    if(!this.gaffa){
-        return;
-    }
-    return this.gaffa.model.get(getItemPath(this));
-};
-ViewItem.prototype.toJSON = function(){
-    return jsonConverter(this);
 };
 ViewItem.prototype.triggerActions = function(actionName, scope, event){
     if(!this.gaffa){
@@ -7223,12 +7635,13 @@ ViewItem.prototype.triggerActions = function(actionName, scope, event){
 };
 
 module.exports = ViewItem;
-},{"./jsonConverter":21,"./property":51,"./viewContainer":56,"consuela":22,"events":61,"spec-js":45}],58:[function(require,module,exports){
+},{"./bindable":16,"./jsonConverter":23,"./property":60,"./viewContainer":65,"spec-js":54}],67:[function(require,module,exports){
 var Gaffa = require('gaffa'),
     Heading = require('gaffa-heading'),
     Text = require('gaffa-text'),
     Textbox = require('gaffa-textbox'),
     List = require('gaffa-list'),
+    Container = require('gaffa-container'),
     gaffa = new Gaffa();
 
 // Register used viewItems with gaffa
@@ -7259,6 +7672,20 @@ var list = new List();
 list.list.binding = '(slice (length [value]) [items])';
 list.list.template = listTemplate;
 
+
+var containerBox = new Textbox();
+containerBox.value.binding = 'majigger.whatsits';
+
+var containerText = new Text();
+containerText.text.binding = 'majigger.whatsits';
+
+var container = new Container();
+container.itemScope = 'majigger';
+container.views.content.add([
+    containerBox,
+    containerText
+]);
+
 // An example model
 gaffa.model.set({
     value:'things'
@@ -7277,303 +7704,14 @@ window.onload = function(){
         heading,
         textbox,
         characters,
-        list
+        list,
+        container
     ]);
 };
 
 // Globalise gaffa for easy debugging.
 window.gaffa = gaffa;
-},{"gaffa":16,"gaffa-heading":8,"gaffa-list":9,"gaffa-text":10,"gaffa-textbox":11}],59:[function(require,module,exports){
-module.exports = function detectPath(substring){
-    if (substring.charAt(0) === '[') {
-        var index = 1;
-
-        do {
-            if (
-                (substring.charAt(index) === '\\' && substring.charAt(index + 1) === '\\') || // escaped escapes
-                (substring.charAt(index) === '\\' && (substring.charAt(index + 1) === '[' || substring.charAt(index + 1) === ']')) //escaped braces
-            ) {
-                index++;
-            }
-            else if(substring.charAt(index) === ']'){
-                return substring.slice(0, index+1);
-            }
-            index++;
-        } while (index < substring.length);
-    }
-};
-},{}],60:[function(require,module,exports){
-var detectPath = require('./detectPath');
-
-var pathSeparator = "/",
-    upALevel = "..",
-    bubbleCapture = "...",
-    currentKey = "#",
-    rootPath = "",
-    pathStart = "[",
-    pathEnd = "]",
-    pathWildcard = "*";
-
-function pathToRaw(path) {
-    return path && path.slice(1, -1);
-}
-
-//***********************************************
-//
-//      Raw To Path
-//
-//***********************************************
-
-function rawToPath(rawPath) {
-    return pathStart + (rawPath == null ? '' : rawPath) + pathEnd;
-}
-
-var memoisePathCache = {};
-function resolvePath() {
-    var memoiseKey,
-        pathParts = [];
-
-    for(var argumentIndex = arguments.length; argumentIndex--;){
-        pathParts.unshift.apply(pathParts, pathToParts(arguments[argumentIndex]));
-        if(isPathAbsolute(arguments[argumentIndex])){
-            break;
-        }
-    }
-
-    memoiseKey = pathParts.join(',');
-
-    if(memoisePathCache[memoiseKey]){
-        return memoisePathCache[memoiseKey];
-    }
-
-    var absoluteParts = [],
-        lastRemoved,
-        pathParts,
-        pathPart;
-
-    for(var pathPartIndex = 0; pathPartIndex < pathParts.length; pathPartIndex++){
-        pathPart = pathParts[pathPartIndex];
-
-        if (pathPart === currentKey) {
-            // Has a last removed? Add it back on.
-            if(lastRemoved != null){
-                absoluteParts.push(lastRemoved);
-                lastRemoved = null;
-            }
-        } else if (pathPart === rootPath) {
-            // Root path? Reset parts to be absolute.
-            absoluteParts = [''];
-
-        } else if (pathPart.slice(-bubbleCapture.length) === bubbleCapture) {
-            // deep bindings
-            if(pathPart !== bubbleCapture){
-                absoluteParts.push(pathPart.slice(0, -bubbleCapture.length));
-            }
-        } else if (pathPart === upALevel) {
-            // Up a level? Remove the last item in absoluteParts
-            lastRemoved = absoluteParts.pop();
-        } else if (pathPart.slice(0,2) === upALevel) {
-            var argument = pathPart.slice(2);
-            //named
-            while(absoluteParts[absoluteParts.length - 1] !== argument){
-                if(absoluteParts.length === 0){
-                    throw "Named path part was not found: '" + pathPart + "', in path: '" + arguments[argumentIndex] + "'.";
-                }
-                lastRemoved = absoluteParts.pop();
-            }
-        } else {
-            // any following valid part? Add it to the absoluteParts.
-            absoluteParts.push(pathPart);
-        }
-    }
-
-    // Convert the absoluteParts to a Path and memoise the result.
-    return memoisePathCache[memoiseKey] = createPath(absoluteParts);
-}
-
-var memoisedPathTokens = {};
-
-function createPath(path){
-
-    if(typeof path === 'number'){
-        path = path.toString();
-    }
-
-    if(path == null){
-        return rawToPath();
-    }
-
-    // passed in an Expression or an 'expression formatted' Path (eg: '[bla]')
-    if (typeof path === "string"){
-
-        if(memoisedPathTokens[path]){
-            return memoisedPathTokens[path];
-        }
-
-        if(path.charAt(0) === pathStart) {
-            var pathString = path.toString(),
-                detectedPath = detectPath(pathString);
-
-            if (detectedPath && detectedPath.length === pathString.length) {
-                return memoisedPathTokens[pathString] = detectedPath;
-            } else {
-                return false;
-            }
-        }else{
-            return createPath(rawToPath(path));
-        }
-    }
-
-    if(path instanceof Array) {
-
-        var parts = [];
-        for (var i = 0; i < path.length; i++) {
-            var pathPart = path[i];
-            pathPart = pathPart.replace(/([\[|\]|\\|\/])/g, '\\$1');
-            parts.push(pathPart);
-        }
-        if(parts.length === 1 && parts[0] === rootPath){
-            return createRootPath();
-        }
-        return rawToPath(parts.join(pathSeparator));
-    }
-}
-
-function createRootPath(){
-    return createPath([rootPath, rootPath]);
-}
-
-function pathToParts(path){
-    var pathType = typeof path;
-
-    if(pathType !== 'string' && pathType !== 'number'){
-        if(Array.isArray(path)){
-            return path;
-        }
-        return;
-    }
-
-    // if we haven't been passed a path, then turn the input into a path
-    if (!isPath(path)) {
-        path = createPath(path);
-        if(path === false){
-            return;
-        }
-    }
-
-    path = path.slice(1,-1);
-
-    if(path === ""){
-        return [];
-    }
-
-    var lastPartIndex = 0,
-        parts,
-        nextChar,
-        currentChar;
-
-    if(path.indexOf('\\') < 0){
-        return path.split(pathSeparator);
-    }
-
-    parts = [];
-
-    for(var i = 0; i < path.length; i++){
-        currentChar = path.charAt(i);
-        if(currentChar === pathSeparator){
-            parts.push(path.slice(lastPartIndex,i));
-            lastPartIndex = i+1;
-        }else if(currentChar === '\\'){
-            nextChar = path.charAt(i+1);
-            if(nextChar === '\\'){
-                path = path.slice(0, i) + path.slice(i + 1);
-            }else if(nextChar === ']' || nextChar === '['){
-                path = path.slice(0, i) + path.slice(i + 1);
-            }else if(nextChar === pathSeparator){
-                parts.push(path.slice(lastPartIndex), i);
-            }
-        }
-    }
-    parts.push(path.slice(lastPartIndex));
-
-    return parts;
-}
-
-function appendPath(){
-    var parts = pathToParts(arguments[0]);
-
-    if(!parts){
-        return;
-    }
-
-    if(isPathRoot(arguments[0])){
-        parts.pop();
-    }
-
-    for (var argumentIndex = 1; argumentIndex < arguments.length; argumentIndex++) {
-        var pathParts = pathToParts(arguments[argumentIndex]);
-
-        pathParts && parts.push.apply(parts, pathParts);
-    }
-
-    return createPath(parts);
-}
-
-function isPath(path) {
-    if(!(typeof path === 'string' || (path instanceof String))){
-        return;
-    }
-    var match = path.match(/\[.*?(?:\\\])*(?:\\\[)*\]/g);
-    if(match && match.length === 1 && match[0] === path){
-        return true;
-    }
-}
-
-function isPathAbsolute(path){
-    var parts = pathToParts(path);
-
-    if(parts == null){
-        return false;
-    }
-
-    return parts[0] === rootPath;
-}
-
-function isPathRoot(path){
-    var parts = pathToParts(path);
-    if(parts == null){
-        return false;
-    }
-    return (isPathAbsolute(parts) && parts[0] === parts[1]) || parts.length === 0;
-}
-
-function isBubbleCapturePath(path){
-    var parts = pathToParts(path),
-        lastPart = parts[parts.length-1];
-    return lastPart && lastPart.slice(-bubbleCapture.length) === bubbleCapture;
-}
-
-module.exports = {
-    resolve: resolvePath,
-    create: createPath,
-    is: isPath,
-    isAbsolute: isPathAbsolute,
-    isRoot: isPathRoot,
-    isBubbleCapture: isBubbleCapturePath,
-    append: appendPath,
-    toParts: pathToParts,
-    createRoot: createRootPath,
-    constants:{
-        separator: pathSeparator,
-        upALevel: upALevel,
-        currentKey: currentKey,
-        root: rootPath,
-        start: pathStart,
-        end: pathEnd,
-        wildcard: pathWildcard
-    }
-};
-},{"./detectPath":59}],61:[function(require,module,exports){
+},{"gaffa":18,"gaffa-container":2,"gaffa-heading":9,"gaffa-list":10,"gaffa-text":11,"gaffa-textbox":12}],68:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7875,7 +8013,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],62:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -7930,4 +8068,4 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}]},{},[58])
+},{}]},{},[67])

@@ -3,6 +3,7 @@ var Gaffa = require('gaffa'),
     Text = require('gaffa-text'),
     Textbox = require('gaffa-textbox'),
     List = require('gaffa-list'),
+    Container = require('gaffa-container'),
     gaffa = new Gaffa();
 
 // Register used viewItems with gaffa
@@ -33,6 +34,20 @@ var list = new List();
 list.list.binding = '(slice (length [value]) [items])';
 list.list.template = listTemplate;
 
+
+var containerBox = new Textbox();
+containerBox.value.binding = 'majigger.whatsits';
+
+var containerText = new Text();
+containerText.text.binding = 'majigger.whatsits';
+
+var container = new Container();
+container.itemScope = 'majigger';
+container.views.content.add([
+    containerBox,
+    containerText
+]);
+
 // An example model
 gaffa.model.set({
     value:'things'
@@ -51,7 +66,8 @@ window.onload = function(){
         heading,
         textbox,
         characters,
-        list
+        list,
+        container
     ]);
 };
 
