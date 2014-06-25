@@ -133,7 +133,7 @@ ViewItem.prototype.bind = function(parent){
 
     this.parent = parent;
 
-    this._bound = true;
+    Bindable.prototype.bind.call(this);
 
     // Only set up properties that were on the prototype.
     // Faster and 'safer'

@@ -50,7 +50,11 @@ Bindable.prototype.toJSON = function(){
 
     return tempObject;
 };
+Bindable.prototype.bind = function(){
+    this._bound = true;
+};
 Bindable.prototype.debind = function(){
+    this._bound = false;
     this._cleanup();
 };
 

@@ -46,7 +46,9 @@ function updateProperty(property, firstUpdate){
             return;
         }
         property.nextUpdate = requestAnimationFrame(function(){
-            property.update(property.parent, property.value);
+            if(property._bound){
+                property.update(property.parent, property.value);
+            }
             property.nextUpdate = null;
         });
     }
@@ -117,6 +119,7 @@ function bindProperty(parent) {
 
     this.gaffa.model.bind(this.binding, propertyCallback, this);
     propertyCallback(true);
+    Bindable.prototype.bind.call(this);
 }
 
 function createValueHash(value){
