@@ -46,7 +46,7 @@ function updateProperty(property, firstUpdate){
             return;
         }
         property.nextUpdate = requestAnimationFrame(function(){
-            if(property._bound){
+            if(property.parent._bound){
                 property.update(property.parent, property.value);
             }
             property.nextUpdate = null;
