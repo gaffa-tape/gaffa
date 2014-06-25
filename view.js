@@ -14,6 +14,8 @@ var createSpec = require('spec-js'),
     laidout = require('laidout'),
     ViewItem = require('./viewItem'),
     Property = require('./property'),
+    createModelScope = require('./createModelScope'),
+    getClosestItem = require('./getClosestItem'),
     Behaviour = require('./behaviour');
 
 function insertFunction(selector, renderedElement, insertIndex){
@@ -27,6 +29,14 @@ function insertFunction(selector, renderedElement, insertIndex){
         target.insertBefore(renderedElement, referenceSibling);
     }  else {
         target.appendChild(renderedElement);
+    }
+}
+
+function langify(fn, context){
+    return function(scope, args){
+        var args = args.all();
+
+        return fn.apply(context, args);
     }
 }
 

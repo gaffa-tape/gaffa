@@ -26,6 +26,7 @@ var Gedi = require('gedi'),
 var defaultViewStyles;
 
 var removeViews = require('./removeViews'),
+    getClosestItem = require('./getClosestItem'),
     jsonConverter = require('./jsonConverter');
 
 var Property = require('./property'),
@@ -176,20 +177,6 @@ function ajax(settings){
     request.send(settings.data && settings.data);
 
     return request;
-}
-
-function getClosestItem(target){
-    var viewModel = target.viewModel;
-
-    while(!viewModel && target){
-        target = target.parentNode;
-
-        if(target){
-            viewModel = target.viewModel;
-        }
-    }
-
-    return viewModel;
 }
 
 function triggerAction(action, parent, scope, event) {
@@ -385,20 +372,9 @@ function Gaffa(){
     }
 
     function resolvePath(viewItem){
-        var parentPath = '[]';
-
         if(viewItem && viewItem.getPath){
-            parentPath = viewItem.getPath();
+            return viewItem.getPath();
         }
-
-        var prefixMatch = parentPath.match(/^\[(\_scope\_.*?)\/.*$/);
-
-        if(!prefixMatch){
-            parentPath = gedi.paths.resolve(gedi.paths.create('$'), parentPath)
-        }
-
-
-        return parentPath;
     }
 
     function modelGet(path, viewItem, scope, asTokens) {
@@ -442,7 +418,7 @@ function Gaffa(){
         gedi.remove(path, parentPath, dirty);
     }
 
-    function modelBind(path, callback, viewItem, scope) {
+    function modelBind(path, callback, viewItem) {
         var parentPath = resolvePath(viewItem);
 
         if(!viewItem.gediCallbacks){
@@ -450,16 +426,14 @@ function Gaffa(){
         }
 
         // Add the callback to the list of handlers associated with the viewItem
-        viewItem.gediCallbacks.push(function(){
-            gedi.debind(path, callback, parentPath, scope);
-        });
+        viewItem.gediCallbacks.push([path, callback, parentPath]);
 
-        gedi.bind(path, callback, parentPath, scope);
+        gedi.bind(path, callback, parentPath);
     }
 
     function modelDebind(viewItem) {
         while(viewItem.gediCallbacks && viewItem.gediCallbacks.length){
-            viewItem.gediCallbacks.pop()();
+            gedi.debind.apply(gedi, viewItem.gediCallbacks.pop());
         }
     }
 

@@ -3,9 +3,11 @@ var createSpec = require('spec-js'),
     View = require('./view'),
     initialiseViewItem = require('./initialiseViewItem'),
     Consuela = require('consuela'),
+    removeViews = require('./removeViews'),
     arrayProto = Array.prototype;
 
 function ViewContainer(viewContainerDescription){
+    Bindable.call(this);
     var viewContainer = this;
 
     this._deferredViews = [];
@@ -14,10 +16,10 @@ function ViewContainer(viewContainerDescription){
         viewContainer.add(viewContainerDescription);
     }
 }
-ViewContainer = createSpec(ViewContainer, Bindable);
-ViewContainer.prototype.slice = arrayProto.slice;
-ViewContainer.prototype.splice = arrayProto.splice;
-ViewContainer.prototype.indexOf = arrayProto.indexOf;
+ViewContainer = createSpec(ViewContainer, Array);
+for(var key in Bindable.prototype){
+    ViewContainer.prototype[key] = Bindable.prototype[key];
+}
 ViewContainer.prototype.bind = function(parent){
     this.parent = parent;
     this.gaffa = parent.gaffa;

@@ -3,9 +3,7 @@ function removeViews(views){
         return;
     }
 
-    views = views instanceof Array ? views : [views];
-
-    views = views.slice();
+    views = views.slice ? views.slice() : [views];
 
     for(var i = 0; i < views.length; i++) {
         views[i].remove();

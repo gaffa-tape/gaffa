@@ -2,6 +2,7 @@ var createSpec = require('spec-js'),
     Bindable = require('./bindable'),
     IdentifierToken = require('gel-js').IdentifierToken,
     jsonConverter = require('./jsonConverter'),
+    createModelScope = require('./createModelScope'),
     Consuela = require('consuela');
 
 function getItemPath(item){
@@ -49,49 +50,6 @@ function updateProperty(property, firstUpdate){
             property.nextUpdate = null;
         });
     }
-}
-
-function createViewItemScope(parent, scope){
-    if(!scope){
-        scope = {};
-    }
-
-    if(!parent){
-        return scope;
-    }
-
-    if(parent.itemScope){
-        var itemScopeToken = new IdentifierToken(),
-            path = '[/_scope_' + parent.iuid + '_' + parent.itemScope + ']';
-
-        itemScopeToken.path = path;
-        itemScopeToken.sourcePathInfo = {
-            path: path
-        };
-        itemScopeToken.result = parent.gaffa.model.get(path);
-        scope[parent.itemScope] = itemScopeToken;
-    }
-
-    return createViewItemScope(parent.parent, scope);
-}
-
-function createModelScope(parent, gediEvent){
-    var possibleGroup = parent,
-        groupKey,
-        scope = {};
-
-    while(possibleGroup && !groupKey){
-        groupKey = possibleGroup.group;
-        possibleGroup = possibleGroup.parent;
-    }
-
-    scope.viewItem = parent;
-    scope.groupKey = groupKey;
-    scope.modelTarget = gediEvent && gediEvent.target;
-
-    createViewItemScope(parent, scope);
-
-    return scope;
 }
 
 function createPropertyCallback(property){
@@ -157,9 +115,7 @@ function bindProperty(parent) {
 
     var propertyCallback = createPropertyCallback(this);
 
-    var scope = createViewItemScope(this);
-
-    this.gaffa.model.bind(this.binding, propertyCallback, this, scope);
+    this.gaffa.model.bind(this.binding, propertyCallback, this);
     propertyCallback(true);
 }
 
@@ -198,8 +154,6 @@ function Property(propertyDescription){
             this[key] = propertyDescription[key];
         }
     }
-
-    this.gediCallbacks = [];
 }
 Property = createSpec(Property, Bindable);
 Property.prototype.set = function(value, isDirty){
@@ -211,8 +165,7 @@ Property.prototype.set = function(value, isDirty){
             this.binding,
             setValue,
             this,
-            isDirty,
-            createViewItemScope(this)
+            isDirty
         );
     }else{
         this.value = value;

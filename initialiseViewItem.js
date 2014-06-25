@@ -1,7 +1,10 @@
-var ViewItem = require('./viewItem'),
-    ViewContainer = require('./viewContainer');
-
 function initialiseViewItem(viewItem, gaffa, specCollection, references) {
+    var ViewItem = require('./viewItem'),
+        ViewContainer = require('./viewContainer'),
+        initialiseView = require('./initialiseView'),
+        initialiseAction = require('./initialiseAction'),
+        initialiseBehaviour = require('./initialiseBehaviour');
+
     references = references || {
         objects: [],
         viewItems: []
