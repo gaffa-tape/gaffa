@@ -5,7 +5,7 @@
   "tags": [
     "DOM"
   ],
-  "version": "1.8.6",
+  "version": "1.8.7",
   "main": "gaffa.js",
   "dependencies": {
     "consuela": "^1.0.0",
