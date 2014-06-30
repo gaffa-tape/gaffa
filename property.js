@@ -173,7 +173,7 @@ Property.prototype.set = function(value, isDirty){
     }else{
         this.value = value;
         this._previousHash = createValueHash(value);
-        if(this.update){
+        if(this.update && this.parent._bound){
             this.update(this.parent, value);
         }
     }

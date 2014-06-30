@@ -65,7 +65,6 @@ function bindViewEvent(view, eventName){
 function View(viewDescription){
     var view = this;
 
-    //view._removeHandlers = [];
     view.behaviours = view.behaviours || [];
 }
 View = createSpec(View, ViewItem);
