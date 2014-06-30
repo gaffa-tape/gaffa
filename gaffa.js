@@ -192,8 +192,6 @@ function triggerActions(actions, parent, scope, event) {
     }
 }
 
-var addDefaultStyle = require('./addDefaultStyle');
-
 var initialiseViewItem = require('./initialiseViewItem');
 var initialiseView = require('./initialiseView');
 var initialiseAction = require('./initialiseAction');
@@ -467,24 +465,6 @@ function Gaffa(){
 */
 
     var gaffaPublicObject = {
-
-        /**
-            ### .addDefaultStyle
-
-            used to add default syling for a view to the application, eg:
-
-                MyView.prototype.render = function(){
-                    //render code...
-
-                    gaffa.addDefaultStyle(css);
-
-                };
-
-            Gaffa encourages style-free Views, however sometimes views require minimal css to add functionality.
-
-            addDefaultStyle allows encaptulation of css within the View's .js file, and allows the style to be easily overriden.
-        */
-        addDefaultStyle: addDefaultStyle,
 
         /**
             ### .createSpec
@@ -869,7 +849,6 @@ Gaffa.ContainerView = ContainerView;
 Gaffa.Action = Action;
 Gaffa.createSpec = createSpec;
 Gaffa.Behaviour = Behaviour;
-Gaffa.addDefaultStyle = addDefaultStyle;
 
 module.exports = Gaffa;
 
