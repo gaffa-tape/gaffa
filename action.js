@@ -5,11 +5,11 @@ var createSpec = require('spec-js'),
 function Action(actionDescription){
 }
 Action = createSpec(Action, ViewItem);
-Action.prototype.bind = function(){
-    ViewItem.prototype.bind.call(this);
+Action.prototype.bind = function(parent){
+    ViewItem.prototype.bind.call(this, parent);
 };
 Action.prototype.trigger = function(parent, scope, event){
-    this.parent = parent;
+    this.bind(parent);
 
     scope = scope || {};
 

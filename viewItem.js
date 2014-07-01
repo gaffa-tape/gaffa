@@ -132,6 +132,7 @@ ViewItem.prototype.bind = function(parent){
         property;
 
     this.parent = parent;
+    this.gaffa = parent && parent.gaffa || this.gaffa;
 
     Bindable.prototype.bind.call(this);
 
