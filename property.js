@@ -3,7 +3,8 @@ var createSpec = require('spec-js'),
     IdentifierToken = require('gel-js').IdentifierToken,
     jsonConverter = require('./jsonConverter'),
     createModelScope = require('./createModelScope'),
-    Consuela = require('consuela');
+    Consuela = require('consuela'),
+    WhatChanged = require('what-changed');
 
 function getItemPath(item){
     var gedi = item.gaffa.gedi,
@@ -37,10 +38,11 @@ function updateProperty(property, firstUpdate){
         property.update(property.parent, property.value);
     }
 
-    // Still run the sameAsPrevious function,
-    // because it sets up the last value hash,
+    // Still run the _lastValue.update(),
+    // because it sets up the state of the last value,
     // and it will be false anyway.
-    if(!property.sameAsPrevious() && !property.nextUpdate){
+
+    if(property.hasChanged() && !property.nextUpdate){
         if(property.gaffa.debug){
             property.update(property.parent, property.value);
             return;
@@ -74,7 +76,7 @@ function createPropertyCallback(property){
 
             }else if(property.binding){ // Model change update.
 
-                if(property.ignoreTargets && event.target.toString().match(property.ignoreTargets)){
+                if(property.ignoreTargets && event.target.match(property.ignoreTargets)){
                     return;
                 }
 
@@ -122,32 +124,6 @@ function bindProperty(parent) {
     Bindable.prototype.bind.call(this);
 }
 
-function createValueHash(value){
-    if(value && typeof value === 'object'){
-        return Object.keys(value);
-    }
-
-    return value;
-}
-
-
-function compareToHash(value, hash){
-    if(value && hash && typeof value === 'object' && typeof hash === 'object'){
-        var keys = Object.keys(value);
-        if(keys.length !== hash.length){
-            return;
-        }
-        for (var i = 0; i < hash.length; i++) {
-            if(hash[i] !== keys[i]){
-                return;
-            }
-        };
-        return true;
-    }
-
-    return value === hash;
-}
-
 
 function Property(propertyDescription){
     if(typeof propertyDescription === 'function'){
@@ -157,8 +133,21 @@ function Property(propertyDescription){
             this[key] = propertyDescription[key];
         }
     }
+
+    this._lastValue = new WhatChanged();
 }
 Property = createSpec(Property, Bindable);
+Property.prototype.watchChanges = 'value keys structure reference type';
+Property.prototype.hasChanged = function(){
+    var changes = this._lastValue.update(this.value),
+        watched = this.watchChanges.split(' ');
+
+    for(var i = 0; i < watched.length; i++){
+        if(changes[watched[i]]){
+            return true;
+        }
+    }
+};
 Property.prototype.set = function(value, isDirty){
     var gaffa = this.gaffa;
 
@@ -172,7 +161,6 @@ Property.prototype.set = function(value, isDirty){
         );
     }else{
         this.value = value;
-        this._previousHash = createValueHash(value);
         if(this.update && this.parent._bound){
             this.update(this.parent, value);
         }
@@ -191,24 +179,12 @@ Property.prototype.get = function(scope, asTokens){
         return this.value;
     }
 };
-Property.prototype.sameAsPrevious = function () {
-    if(compareToHash(this.value, this._previousHash)){
-        return true;
-    }
-    this._previousHash = createValueHash(this.value);
-};
-Property.prototype.setPreviousHash = function(hash){
-    this._previousHash = hash;
-};
-Property.prototype.getPreviousHash = function(hash){
-    return this._previousHash;
-};
 Property.prototype.bind = bindProperty;
 Property.prototype.debind = function(){
     cancelAnimationFrame(this.nextUpdate);
     this.gaffa && this.gaffa.model.debind(this);
     Bindable.prototype.debind.call(this);
 };
-Property.prototype.__serialiseExclude__ = ['_previousHash'];
+Property.prototype.__serialiseExclude__ = ['_lastValue'];
 
 module.exports = Property;
