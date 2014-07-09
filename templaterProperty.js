@@ -18,27 +18,7 @@ function findValueIn(value, source){
     }
 }
 
-TemplaterProperty.prototype.sameAsPrevious = function(){
-    var oldKeys = this.getPreviousHash(),
-        value = this.value,
-        newKeys = value && (this._sourcePathInfo && this._sourcePathInfo.subPaths || typeof value === 'object' && Object.keys(value));
-
-    this.setPreviousHash(newKeys || value);
-
-    if(newKeys && oldKeys && oldKeys.length){
-        if(oldKeys.length !== newKeys.length){
-            return;
-        }
-        for (var i = 0; i < newKeys.length; i++) {
-            if(newKeys[i] !== oldKeys[i]){
-                return;
-            }
-        };
-        return true;
-    }
-
-    return value === oldKeys;
-};
+TemplaterProperty.prototype.watchChanges = 'keys';
 
 TemplaterProperty.prototype.update =function (viewModel, value) {
     if(!this.template){
