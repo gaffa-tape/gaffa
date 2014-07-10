@@ -25,6 +25,7 @@ ViewContainer.prototype.bind = function(parent){
     this.gaffa = parent.gaffa;
 
     parent.on('debind', this.debind.bind(this));
+    parent.on('remove', this.empty.bind(this));
 
     if(this._bound){
         return;
@@ -141,8 +142,8 @@ ViewContainer.prototype.deferredAdd = function(view, insertIndex){
 ViewContainer.prototype.abortDeferredAdd = function(){
     this._deferredViews = [];
 };
-ViewContainer.prototype.remove = function(viewModel){
-    viewModel.remove();
+ViewContainer.prototype.remove = function(view){
+    view.remove();
 };
 ViewContainer.prototype.empty = function(){
     removeViews(this);

@@ -25,18 +25,22 @@ function debindViewItem(viewItem){
 
 
 function removeViewItem(viewItem){
-    if(!viewItem.parentContainer){
-        return;
-    }
+    delete viewItem.gaffa;
+    delete viewItem.parent;
 
     if(viewItem.parentContainer){
-        viewItem.parentContainer.splice(viewItem.parentContainer.indexOf(viewItem), 1);
-        viewItem.parentContainer = null;
+        var index = viewItem.parentContainer.indexOf(viewItem);
+        if(index >= 0){
+            viewItem.parentContainer.splice(index, 1);
+        }
+        delete viewItem.parentContainer;
     }
+
+    viewItem.emit('remove');
 
     viewItem.debind();
 
-    viewItem.emit('remove');
+    viewItem.destroy();
 }
 
 function inflateViewItem(viewItem, description){
@@ -141,7 +145,6 @@ ViewItem.prototype.bind = function(parent){
     for(var propertyKey in this.constructor.prototype){
         property = this[propertyKey];
         if(property instanceof Property){
-            property.gaffa = viewItem.gaffa;
             property.bind(this);
         }
     }
@@ -154,6 +157,9 @@ ViewItem.prototype.debind = function(){
 };
 ViewItem.prototype.remove = function(){
     removeViewItem(this);
+};
+ViewItem.prototype.destroy = function(){
+    this.emit('destroy');
 };
 ViewItem.prototype.triggerActions = function(actionName, scope, event){
     if(!this.gaffa){

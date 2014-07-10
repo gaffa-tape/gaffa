@@ -38,6 +38,10 @@ function updateProperty(property, firstUpdate){
         property.update(property.parent, property.value);
     }
 
+    if(!property._bound){
+        return;
+    }
+
     // Still run the _lastValue.update(),
     // because it sets up the state of the last value,
     // and it will be false anyway.
@@ -58,6 +62,7 @@ function updateProperty(property, firstUpdate){
 
 function createPropertyCallback(property){
     return function (event) {
+
         var value,
             scope,
             valueTokens;
@@ -104,8 +109,11 @@ function createPropertyCallback(property){
 
 
 function bindProperty(parent) {
+    this._lastValue = new WhatChanged();
     this.parent = parent;
+    this.gaffa = parent.gaffa;
 
+    parent.on('destroy', this.destroy.bind(this));
     parent.on('debind', this.debind.bind(this));
 
     // Shortcut for properties that have no binding.
@@ -133,8 +141,6 @@ function Property(propertyDescription){
             this[key] = propertyDescription[key];
         }
     }
-
-    this._lastValue = new WhatChanged();
 }
 Property = createSpec(Property, Bindable);
 Property.prototype.watchChanges = 'value keys structure reference type';
@@ -182,8 +188,13 @@ Property.prototype.get = function(scope, asTokens){
 Property.prototype.bind = bindProperty;
 Property.prototype.debind = function(){
     cancelAnimationFrame(this.nextUpdate);
-    this.gaffa && this.gaffa.model.debind(this);
+    this.gaffa.model.debind(this);
     Bindable.prototype.debind.call(this);
+    delete this._lastValue;
+};
+Property.prototype.destroy = function(){
+    delete this.gaffa;
+    delete this.parent;
 };
 Property.prototype.__serialiseExclude__ = ['_lastValue'];
 

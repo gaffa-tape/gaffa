@@ -30,7 +30,10 @@ function getItemPath(item){
 var iuid = 0;
 function Bindable(){
     this.setMaxListeners(1000);
-    Consuela.init(this);
+    var consuela = new Consuela();
+    this._watch = consuela._watch.bind(consuela);
+    this._cleanup = consuela._cleanup.bind(consuela);
+    this._on = consuela._on.bind(consuela);
 
     // instance unique ID
     this.__iuid = iuid++;

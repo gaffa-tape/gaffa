@@ -72,7 +72,11 @@ View = createSpec(View, ViewItem);
 View.prototype.bind = function(parent){
     ViewItem.prototype.bind.apply(this, arguments);
 
-    this._watch(this.renderedElement);
+    for(var key in this){
+        if(crel.isNode(this[key])){
+            this._watch(this[key]);
+        }
+    }
 
     for(var key in this.actions){
         var actions = this.actions[key],
@@ -101,7 +105,7 @@ View.prototype.detach = function(){
 
 View.prototype.remove = function(){
     this.detach();
-    View.__super__.prototype.remove.call(this);
+    ViewItem.prototype.remove.call(this);
 }
 
 View.prototype.debind = function () {
