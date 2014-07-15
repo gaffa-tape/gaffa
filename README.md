@@ -8,7 +8,7 @@ A list of changes, and how to upgrade is available in the [wiki](https://github.
 
 ## Example
 
-[gaffa-template](http://korynunn.github.io/gaffa-template/public/)
+[gaffa-template](http://korynunn.github.io/gaffa-template/)
 
 ## Quick n easy setup
 
