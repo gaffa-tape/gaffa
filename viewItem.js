@@ -21,11 +21,11 @@ function copyProperties(source, target){
 function debindViewItem(viewItem){
     viewItem.emit('debind');
     viewItem._bound = false;
+    delete viewItem.gaffa;
 }
 
 
 function removeViewItem(viewItem){
-    delete viewItem.gaffa;
     delete viewItem.parent;
 
     if(viewItem.parentContainer){
