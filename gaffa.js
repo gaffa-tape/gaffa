@@ -390,34 +390,34 @@ function Gaffa(){
         return gedi.get(path, parentPath, scope, asTokens);
     }
 
-    function modelSet(path, value, viewItem, dirty, scope){
-        if(path == null){
+    function modelSet(expression, value, viewItem, dirty, scope){
+        if(expression == null){
             return;
         }
 
         var parentPath = resolvePath(viewItem);
 
-        if(typeof path === 'object'){
-            value = path;
-            path = '[]';
+        if(typeof expression === 'object'){
+            value = expression;
+            expression = '[]';
         }
 
-        gedi.set(path, value, parentPath, dirty, scope);
+        gedi.set(expression, value, parentPath, dirty, scope);
     }
 
-    function modelRemove(path, viewItem, dirty) {
+    function modelRemove(expression, viewItem, dirty, scope) {
         var parentPath;
 
-        if(path == null){
+        if(expression == null){
             return;
         }
 
         var parentPath = resolvePath(viewItem);
 
-        gedi.remove(path, parentPath, dirty);
+        gedi.remove(expression, parentPath, dirty, scope);
     }
 
-    function modelBind(path, callback, viewItem) {
+    function modelBind(expression, callback, viewItem) {
         var parentPath = resolvePath(viewItem);
 
         if(!viewItem.gediCallbacks){
@@ -425,9 +425,9 @@ function Gaffa(){
         }
 
         // Add the callback to the list of handlers associated with the viewItem
-        viewItem.gediCallbacks.push([path, callback, parentPath]);
+        viewItem.gediCallbacks.push([expression, callback, parentPath]);
 
-        gedi.bind(path, callback, parentPath);
+        gedi.bind(expression, callback, parentPath);
     }
 
     function modelDebind(viewItem) {
@@ -446,14 +446,14 @@ function Gaffa(){
         return gedi.isDirty(path, parentPath);
     }
 
-    function modelSetDirtyState(path, value, viewItem) {
-        if(path == null){
+    function modelSetDirtyState(expression, value, viewItem, scope) {
+        if(expression == null){
             return;
         }
 
         var parentPath = resolvePath(viewItem);
 
-        gedi.setDirtyState(path, value, parentPath);
+        gedi.setDirtyState(expression, value, parentPath, scope);
     }
 
 
