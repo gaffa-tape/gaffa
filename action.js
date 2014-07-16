@@ -5,28 +5,15 @@ var createSpec = require('spec-js'),
 function Action(actionDescription){
 }
 Action = createSpec(Action, ViewItem);
-Action.prototype.bind = function(parent){
-    ViewItem.prototype.bind.call(this, parent);
+Action.prototype.bind = function(parent, scope){
+    ViewItem.prototype.bind.call(this, parent, scope);
 };
-Action.prototype.trigger = function(parent, scope, event){
-    this.bind(parent);
-
-    scope = scope || {};
-
-    var gaffa = this.gaffa = parent.gaffa;
-
-
-    for(var propertyKey in this.constructor.prototype){
-        var property = this[propertyKey];
-
-        if(property instanceof Property && property.binding){
-            property.gaffa = gaffa;
-            property.parent = this;
-            property.value = property.get(scope);
-        }
-    }
-
-    this.debind();
+Action.prototype.debind = function(){
+    this.emit('debind');
+    this._bound = false;
+};
+Action.prototype.trigger = function(){
+    throw 'Nothing is implemented for this action (' + this.constructor.name + ')';
 };
 
 module.exports = Action;

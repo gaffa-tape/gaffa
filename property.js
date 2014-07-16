@@ -4,7 +4,8 @@ var createSpec = require('spec-js'),
     jsonConverter = require('./jsonConverter'),
     createModelScope = require('./createModelScope'),
     Consuela = require('consuela'),
-    WhatChanged = require('what-changed');
+    WhatChanged = require('what-changed'),
+    merge = require('merge');
 
 function getItemPath(item){
     var gedi = item.gaffa.gedi,
@@ -108,9 +109,10 @@ function createPropertyCallback(property){
 }
 
 
-function bindProperty(parent) {
+function bindProperty(parent, scope) {
     this._lastValue = new WhatChanged();
     this.parent = parent;
+    this.scope = merge(scope, this.scope);
     this.gaffa = parent.gaffa;
 
     parent.on('destroy', this.destroy.bind(this));
@@ -128,7 +130,7 @@ function bindProperty(parent) {
     var propertyCallback = createPropertyCallback(this);
 
     this.gaffa.model.bind(this.binding, propertyCallback, this);
-    propertyCallback(true);
+    propertyCallback(true, scope);
     Bindable.prototype.bind.call(this);
 }
 
@@ -174,6 +176,8 @@ Property.prototype.set = function(value, isDirty){
 
 };
 Property.prototype.get = function(scope, asTokens){
+    scope = merge(this.scope, scope);
+
     if(this.binding){
         var value = this.gaffa.model.get(this.binding, this, scope, asTokens);
         if(this.getTransform){

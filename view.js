@@ -69,7 +69,7 @@ function View(viewDescription){
 }
 View = createSpec(View, ViewItem);
 
-View.prototype.bind = function(parent){
+View.prototype.bind = function(parent, scope){
     ViewItem.prototype.bind.apply(this, arguments);
 
     for(var key in this){
@@ -94,8 +94,8 @@ View.prototype.bind = function(parent){
     this.triggerActions('load');
 
     for(var i = 0; i < this.behaviours.length; i++){
-        Behaviour.prototype.bind.call(this.behaviours[i], this);
-        this.behaviours[i].bind(this);
+        Behaviour.prototype.bind.call(this.behaviours[i], this, scope);
+        this.behaviours[i].bind(this, scope);
     }
 };
 

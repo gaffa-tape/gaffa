@@ -1,7 +1,8 @@
 var createSpec = require('spec-js'),
     Bindable = require('./bindable'),
     jsonConverter = require('./jsonConverter'),
-    Property = require('./property');
+    Property = require('./property'),
+    merge = require('merge');
 
 function copyProperties(source, target){
     if(
@@ -131,11 +132,12 @@ ViewItem = createSpec(ViewItem, Bindable);
             '[/things/stuff/majigger]'
     */
 ViewItem.prototype.path = '[]';
-ViewItem.prototype.bind = function(parent){
+ViewItem.prototype.bind = function(parent, scope){
     var viewItem = this,
         property;
 
     this.parent = parent;
+    this.scope = merge(scope, this.scope);
     this.gaffa = parent && parent.gaffa || this.gaffa;
 
     Bindable.prototype.bind.call(this);
@@ -145,7 +147,7 @@ ViewItem.prototype.bind = function(parent){
     for(var propertyKey in this.constructor.prototype){
         property = this[propertyKey];
         if(property instanceof Property){
-            property.bind(this);
+            property.bind(this, scope);
         }
     }
 
@@ -165,6 +167,7 @@ ViewItem.prototype.triggerActions = function(actionName, scope, event){
     if(!this.gaffa){
         return;
     }
+    scope = merge(this.scope, scope);
     this.gaffa.actions.trigger(this.actions[actionName], this, scope, event);
 };
 

@@ -179,8 +179,10 @@ function ajax(settings){
 }
 
 function triggerAction(action, parent, scope, event) {
-    Action.prototype.trigger.call(action, parent, scope, event);
+    action.bind(parent, scope);
+    scope || (scope = {});
     action.trigger(parent, scope, event);
+    action.debind();
 }
 
 function triggerActions(actions, parent, scope, event) {
