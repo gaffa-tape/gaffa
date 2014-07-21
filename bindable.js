@@ -31,9 +31,7 @@ var iuid = 0;
 function Bindable(){
     this.setMaxListeners(1000);
     var consuela = new Consuela();
-    this._watch = consuela._watch.bind(consuela);
-    this._cleanup = consuela._cleanup.bind(consuela);
-    this._on = consuela._on.bind(consuela);
+    this.consuela = consuela;
 
     // instance unique ID
     this.__iuid = iuid++;
@@ -54,11 +52,19 @@ Bindable.prototype.toJSON = function(){
     return tempObject;
 };
 Bindable.prototype.bind = function(){
+    if(this._bound){
+        this.debind();
+    }
     this._bound = true;
+    this.emit('bind');
 };
 Bindable.prototype.debind = function(){
+    if(!this._bound){
+        return;
+    }
     this._bound = false;
-    this._cleanup();
+    this.emit('debind');
+    this.consuela.cleanup();
 };
 
 module.exports = Bindable;

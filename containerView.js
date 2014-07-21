@@ -27,8 +27,5 @@ ContainerView.prototype.bind = function(parent){
         }
     }
 };
-ContainerView.prototype.debind = function(){
-    View.prototype.debind.apply(this, arguments);
-};
 
 module.exports = ContainerView;

@@ -21,17 +21,13 @@ for(var key in Bindable.prototype){
     ViewContainer.prototype[key] = Bindable.prototype[key];
 }
 ViewContainer.prototype.bind = function(parent){
+    Bindable.prototype.bind.call(this);
+
     this.parent = parent;
     this.gaffa = parent.gaffa;
 
-    parent.on('debind', this.debind.bind(this));
-    parent.on('remove', this.empty.bind(this));
-
-    if(this._bound){
-        return;
-    }
-
-    this._bound = true;
+    parent.once('debind', this.debind.bind(this));
+    parent.once('remove', this.empty.bind(this));
 
     for(var i = 0; i < this.length; i++){
         this.add(this[i], i);
@@ -40,15 +36,8 @@ ViewContainer.prototype.bind = function(parent){
     return this;
 };
 ViewContainer.prototype.debind = function(){
-    if(!this._bound){
-        return;
-    }
-
-    this._bound = false;
-
     for (var i = 0; i < this.length; i++) {
         this[i].detach();
-        this[i].debind();
     }
     Bindable.prototype.debind.call(this);
 };

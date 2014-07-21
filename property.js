@@ -110,13 +110,15 @@ function createPropertyCallback(property){
 
 
 function bindProperty(parent, scope) {
+    Bindable.prototype.bind.call(this);
+
     this._lastValue = new WhatChanged();
     this.parent = parent;
     this.scope = merge(scope, this.scope);
     this.gaffa = parent.gaffa;
 
-    parent.on('destroy', this.destroy.bind(this));
-    parent.on('debind', this.debind.bind(this));
+    parent.once('destroy', this.destroy.bind(this));
+    parent.once('debind', this.debind.bind(this));
 
     // Shortcut for properties that have no binding.
     // This has a significant impact on performance.
@@ -131,7 +133,6 @@ function bindProperty(parent, scope) {
 
     this.gaffa.model.bind(this.binding, propertyCallback, this);
     propertyCallback(true, scope);
-    Bindable.prototype.bind.call(this);
 }
 
 

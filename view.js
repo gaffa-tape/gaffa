@@ -74,7 +74,7 @@ View.prototype.bind = function(parent, scope){
 
     for(var key in this){
         if(crel.isNode(this[key])){
-            this._watch(this[key]);
+            this.consuela.watch(this[key]);
         }
     }
 
@@ -95,7 +95,9 @@ View.prototype.bind = function(parent, scope){
 
     for(var i = 0; i < this.behaviours.length; i++){
         Behaviour.prototype.bind.call(this.behaviours[i], this, scope);
-        this.behaviours[i].bind(this, scope);
+        if(this.behaviours[i].bind !== Behaviour.prototype.bind){
+            this.behaviours[i].bind(this, scope);
+        }
     }
 };
 
@@ -109,10 +111,9 @@ View.prototype.remove = function(){
 }
 
 View.prototype.debind = function () {
-    for(var i = 0; i < this.behaviours.length; i++){
-        this.behaviours[i].debind();
+    if(!this._bound){
+        return;
     }
-
     this.triggerActions('unload');
 
     for(var key in this.actions){
@@ -124,7 +125,7 @@ View.prototype.debind = function () {
             delete this[key];
         }
     }
-    View.__super__.prototype.debind.call(this);
+    ViewItem.prototype.debind.call(this);
 };
 
 View.prototype.render = function(){};

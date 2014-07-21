@@ -19,31 +19,6 @@ function copyProperties(source, target){
     }
 }
 
-function debindViewItem(viewItem){
-    viewItem.emit('debind');
-    viewItem._bound = false;
-    delete viewItem.gaffa;
-}
-
-
-function removeViewItem(viewItem){
-    delete viewItem.parent;
-
-    if(viewItem.parentContainer){
-        var index = viewItem.parentContainer.indexOf(viewItem);
-        if(index >= 0){
-            viewItem.parentContainer.splice(index, 1);
-        }
-        delete viewItem.parentContainer;
-    }
-
-    viewItem.emit('remove');
-
-    viewItem.debind();
-
-    viewItem.destroy();
-}
-
 function inflateViewItem(viewItem, description){
     var ViewContainer = require('./viewContainer');
 
@@ -133,14 +108,20 @@ ViewItem = createSpec(ViewItem, Bindable);
     */
 ViewItem.prototype.path = '[]';
 ViewItem.prototype.bind = function(parent, scope){
+    Bindable.prototype.bind.call(this);
+
     var viewItem = this,
         property;
+
+    if(parent){
+        parent.once('debind', this.debind.bind(this));
+    }
+
 
     this.parent = parent;
     this.scope = merge(scope, this.scope);
     this.gaffa = parent && parent.gaffa || this.gaffa;
 
-    Bindable.prototype.bind.call(this);
 
     // Only set up properties that were on the prototype.
     // Faster and 'safer'
@@ -153,15 +134,25 @@ ViewItem.prototype.bind = function(parent, scope){
 
     // Create item scope
 };
-ViewItem.prototype.debind = function(){
-    debindViewItem(this);
-    Bindable.prototype.debind.call(this);
-};
 ViewItem.prototype.remove = function(){
-    removeViewItem(this);
+    if(this.parentContainer){
+        var index = this.parentContainer.indexOf(this);
+        if(index >= 0){
+            this.parentContainer.splice(index, 1);
+        }
+        delete this.parentContainer;
+    }
+
+    this.emit('remove');
+
+    this.debind();
+
+    this.destroy();
 };
 ViewItem.prototype.destroy = function(){
     this.emit('destroy');
+    this.removeAllListeners();
+    delete this.gaffa;
 };
 ViewItem.prototype.triggerActions = function(actionName, scope, event){
     if(!this.gaffa){
