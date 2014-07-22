@@ -66,11 +66,12 @@ Bindable.prototype.debind = function(){
     this._bound = false;
 
     this.emit('debind');
-
+    this.consuela.cleanup();
     this.removeAllListeners('debind');
 };
 Bindable.prototype.destroy = function(){
     this.emit('destroy');
+    this.consuela.cleanup();
     this.removeAllListeners('destroy');
 };
 
