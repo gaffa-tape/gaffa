@@ -115,6 +115,7 @@ ViewItem.prototype.bind = function(parent, scope){
 
     if(parent){
         parent.once('debind', this.debind.bind(this));
+        parent.once('destroy', this.destroy.bind(this));
     }
 
 
@@ -140,7 +141,7 @@ ViewItem.prototype.remove = function(){
         if(index >= 0){
             this.parentContainer.splice(index, 1);
         }
-        delete this.parentContainer;
+        this.parentContainer = null;
     }
 
     this.emit('remove');
@@ -152,7 +153,7 @@ ViewItem.prototype.remove = function(){
 ViewItem.prototype.destroy = function(){
     this.emit('destroy');
     this.removeAllListeners();
-    delete this.gaffa;
+    this.gaffa = null;
 };
 ViewItem.prototype.triggerActions = function(actionName, scope, event){
     if(!this.gaffa){

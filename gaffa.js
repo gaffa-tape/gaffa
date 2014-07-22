@@ -19,7 +19,8 @@ var Gedi = require('gedi'),
     merge = require('merge'),
     statham = require('statham'),
     requestAnimationFrame = animationFrame.requestAnimationFrame,
-    cancelAnimationFrame = animationFrame.cancelAnimationFrame;
+    cancelAnimationFrame = animationFrame.cancelAnimationFrame,
+    resolvePath = require('./resolvePath');
 
 // Storage for applications default styles.
 var defaultViewStyles;
@@ -370,12 +371,6 @@ function Gaffa(){
         scope.windowLocation = window.location.toString();
     }
 
-    function resolvePath(viewItem){
-        if(viewItem && viewItem.getPath){
-            return viewItem.getPath();
-        }
-    }
-
     function modelGet(path, viewItem, scope, asTokens) {
         if(!(viewItem instanceof ViewItem || viewItem instanceof Property)){
             scope = viewItem;
@@ -415,25 +410,6 @@ function Gaffa(){
         var parentPath = resolvePath(viewItem);
 
         gedi.remove(expression, parentPath, dirty, scope);
-    }
-
-    function modelBind(expression, callback, viewItem) {
-        var parentPath = resolvePath(viewItem);
-
-        if(!viewItem.gediCallbacks){
-            viewItem.gediCallbacks = [];
-        }
-
-        // Add the callback to the list of handlers associated with the viewItem
-        viewItem.gediCallbacks.push([expression, callback, parentPath]);
-
-        gedi.bind(expression, callback, parentPath);
-    }
-
-    function modelDebind(viewItem) {
-        while(viewItem.gediCallbacks && viewItem.gediCallbacks.length){
-            gedi.debind.apply(gedi, viewItem.gediCallbacks.pop());
-        }
     }
 
     function modelIsDirty(path, viewItem) {
@@ -592,29 +568,6 @@ function Gaffa(){
                     gaffa.model.remove('[someProp]', parentViewItem);
             */
             remove: modelRemove,
-
-            /**
-                ### .bind(path, callback, viewItem)
-
-                used to bind callbacks to changes in the model.
-                path is relative to the viewItems path.
-
-                    gaffa.model.bind('[someProp]', function(){
-                        //do something when '[someProp]' changes.
-                    }, viewItem);
-            */
-            bind: modelBind,
-
-            /**
-                ### .debind(viewItem)
-
-                remove all callbacks assigned to a viewItem.
-
-                    gaffa.model.debind('[someProp]', function(){
-                        //do something when '[someProp]' changes.
-                    });
-            */
-            debind: modelDebind,
 
             /**
                 ### .isDirty(path, viewItem)

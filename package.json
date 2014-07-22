@@ -8,7 +8,7 @@
   "version": "1.12.0",
   "main": "gaffa.js",
   "dependencies": {
-    "consuela": "^2.0.0",
+    "consuela": "^4.1.0",
     "crel": "^1.0.0",
     "deep-equal": "0.0.x",
     "doc-js": "1.0.0",

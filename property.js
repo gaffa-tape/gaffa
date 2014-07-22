@@ -5,7 +5,34 @@ var createSpec = require('spec-js'),
     createModelScope = require('./createModelScope'),
     Consuela = require('consuela'),
     WhatChanged = require('what-changed'),
-    merge = require('merge');
+    merge = require('merge'),
+    resolvePath = require('./resolvePath');
+
+var nextFrame;
+function updateFrame() {
+    while(nextFrame.length){
+        var property = nextFrame.pop();
+        if(property._bound){
+            property.update(property.parent, property.value);
+        }
+        property._queuedForUpdate = false;
+    }
+    nextFrame = null;
+}
+
+function requestUpdate(property){
+    if(!nextFrame){
+        nextFrame = [];
+
+        requestAnimationFrame(updateFrame);
+    }
+
+
+    if(!property._queuedForUpdate){
+        nextFrame.push(property);
+        property._queuedForUpdate = true;
+    }
+}
 
 function getItemPath(item){
     var gedi = item.gaffa.gedi,
@@ -47,17 +74,13 @@ function updateProperty(property, firstUpdate){
     // because it sets up the state of the last value,
     // and it will be false anyway.
 
-    if(property.hasChanged() && !property.nextUpdate){
+    if(property.hasChanged()){
         if(property.gaffa.debug){
             property.update(property.parent, property.value);
             return;
         }
-        property.nextUpdate = requestAnimationFrame(function(){
-            if(property.parent._bound){
-                property.update(property.parent, property.value);
-            }
-            property.nextUpdate = null;
-        });
+
+        requestUpdate(property);
     }
 }
 
@@ -106,33 +129,6 @@ function createPropertyCallback(property){
 
         updateProperty(property, event === true);
     }
-}
-
-
-function bindProperty(parent, scope) {
-    Bindable.prototype.bind.call(this);
-
-    this._lastValue = new WhatChanged();
-    this.parent = parent;
-    this.scope = merge(scope, this.scope);
-    this.gaffa = parent.gaffa;
-
-    parent.once('destroy', this.destroy.bind(this));
-    parent.once('debind', this.debind.bind(this));
-
-    // Shortcut for properties that have no binding.
-    // This has a significant impact on performance.
-    if(this.binding == null){
-        if(this.update){
-            this.update(parent, this.value);
-        }
-        return;
-    }
-
-    var propertyCallback = createPropertyCallback(this);
-
-    this.gaffa.model.bind(this.binding, propertyCallback, this);
-    propertyCallback(true, scope);
 }
 
 
@@ -190,16 +186,53 @@ Property.prototype.get = function(scope, asTokens){
         return this.value;
     }
 };
-Property.prototype.bind = bindProperty;
+Property.prototype.bind = function(parent, scope) {
+    if(this._bound){
+        return;
+    }
+
+    Bindable.prototype.bind.call(this);
+
+    this._lastValue = new WhatChanged();
+    this.parent = parent;
+    this.scope = merge(scope, this.scope);
+    this.gaffa = parent.gaffa;
+
+    parent.once('destroy', this.destroy.bind(this));
+    parent.once('debind', this.debind.bind(this));
+
+    // Shortcut for properties that have no binding.
+    // This has a significant impact on performance.
+    if(this.binding == null){
+        if(this.update){
+            this.update(parent, this.value);
+        }
+        return;
+    }
+
+    var propertyCallback = createPropertyCallback(this),
+        parentPath = resolvePath(parent);
+
+    this._currentBinding = [this.binding, propertyCallback, parentPath];
+    this.gaffa.gedi.bind(this.binding, propertyCallback, parentPath);
+    propertyCallback(true, scope);
+};
 Property.prototype.debind = function(){
-    cancelAnimationFrame(this.nextUpdate);
-    this.gaffa.model.debind(this);
+    if(this._currentBinding){
+        this.gaffa.gedi.debind.apply(null, this._currentBinding);
+        this._currentBinding = null;
+    }
+
     Bindable.prototype.debind.call(this);
-    delete this._lastValue;
+    this._lastValue = null;
 };
 Property.prototype.destroy = function(){
-    delete this.gaffa;
-    delete this.parent;
+    if(this._bound){
+        this.debind();
+    }
+    this.gaffa = null;
+    this.parent = null;
+    Bindable.prototype.destroy.call(this);
 };
 Property.prototype.__serialiseExclude__ = ['_lastValue'];
 

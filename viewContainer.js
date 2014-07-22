@@ -20,6 +20,7 @@ ViewContainer = createSpec(ViewContainer, Array);
 for(var key in Bindable.prototype){
     ViewContainer.prototype[key] = Bindable.prototype[key];
 }
+ViewContainer.prototype.constructor = ViewContainer;
 ViewContainer.prototype.bind = function(parent){
     Bindable.prototype.bind.call(this);
 
@@ -27,7 +28,7 @@ ViewContainer.prototype.bind = function(parent){
     this.gaffa = parent.gaffa;
 
     parent.once('debind', this.debind.bind(this));
-    parent.once('remove', this.empty.bind(this));
+    parent.once('destroy', this.destroy.bind(this));
 
     for(var i = 0; i < this.length; i++){
         this.add(this[i], i);
@@ -72,6 +73,9 @@ ViewContainer.prototype.add = function(view, insertIndex){
     view.parentContainer = this;
 
     if(this._bound){
+        if(view._bound){
+            view.debind();
+        }
         if(!(view instanceof View)){
             view = this[this.indexOf(view)] = initialiseViewItem(view, this.gaffa, this.gaffa.views._constructors);
         }
@@ -83,7 +87,7 @@ ViewContainer.prototype.add = function(view, insertIndex){
             view.render();
             view.renderedElement.viewModel = view;
         }
-        view.bind(this.parent);
+        view.bind(this.parent, this.parent.scope);
         view.insert(this, insertIndex);
     }
 

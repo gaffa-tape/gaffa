@@ -119,10 +119,10 @@ View.prototype.debind = function () {
     for(var key in this.actions){
         this.actions[key].__bound = false;
     }
-    delete this.renderedElement.viewModel;
+    this.renderedElement.viewModel = null;
     for(var key in this){
         if(crel.isNode(this[key])){
-            delete this[key];
+            this[key] = null;
         }
     }
     ViewItem.prototype.debind.call(this);

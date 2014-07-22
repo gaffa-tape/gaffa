@@ -57,14 +57,21 @@ Bindable.prototype.bind = function(){
     }
     this._bound = true;
     this.emit('bind');
+    this.removeAllListeners('bind');
 };
 Bindable.prototype.debind = function(){
     if(!this._bound){
         return;
     }
     this._bound = false;
+
     this.emit('debind');
-    this.consuela.cleanup();
+
+    this.removeAllListeners('debind');
+};
+Bindable.prototype.destroy = function(){
+    this.emit('destroy');
+    this.removeAllListeners('destroy');
 };
 
 module.exports = Bindable;
