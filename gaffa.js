@@ -180,10 +180,18 @@ function ajax(settings){
 }
 
 function triggerAction(action, parent, scope, event) {
+
     action.bind(parent, scope);
+
     scope || (scope = {});
-    action.trigger(parent, scope, event);
-    action.debind();
+
+    if(action.condition.value){
+        action.trigger(parent, scope, event);
+    }
+
+    if(!action._async){
+        action.complete();
+    }
 }
 
 function triggerActions(actions, parent, scope, event) {

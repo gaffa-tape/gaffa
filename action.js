@@ -11,5 +11,11 @@ Action.prototype.bind = function(parent, scope){
 Action.prototype.trigger = function(){
     throw 'Nothing is implemented for this action (' + this.constructor.name + ')';
 };
+Action.prototype.condition = new Property({
+    value: true
+});
+Action.prototype.complete = function(){
+    this.debind();
+};
 
 module.exports = Action;
