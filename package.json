@@ -16,6 +16,7 @@
     "laidout": "^1.0.0",
     "lang-js": "^2.1.0",
     "merge": "^1.1.3",
+    "next-tick": "^0.2.2",
     "spec-js": "^0.0.x",
     "statham": "^1.0.0",
     "what-changed": "^1.0.0"

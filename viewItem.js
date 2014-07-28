@@ -2,7 +2,8 @@ var createSpec = require('spec-js'),
     Bindable = require('./bindable'),
     jsonConverter = require('./jsonConverter'),
     Property = require('./property'),
-    merge = require('merge');
+    merge = require('merge'),
+    nextTick = require('next-tick');
 
 function copyProperties(source, target){
     if(
@@ -151,9 +152,14 @@ ViewItem.prototype.remove = function(){
     this.destroy();
 };
 ViewItem.prototype.destroy = function(){
-    this.emit('destroy');
-    this.removeAllListeners();
-    this.gaffa = null;
+    Bindable.prototype.destroy.call(this);
+
+    var viewItem = this;
+
+    // Let any children bound to 'destroy' do their thing before actually destroying this.
+    nextTick(function(){
+        viewItem.gaffa = null;
+    });
 };
 ViewItem.prototype.triggerActions = function(actionName, scope, event){
     if(!this.gaffa){

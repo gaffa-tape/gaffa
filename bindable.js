@@ -1,7 +1,8 @@
 var createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
     Consuela = require('consuela'),
-    jsonConverter = require('./jsonConverter');
+    jsonConverter = require('./jsonConverter'),
+    nextTick = require('next-tick');
 
 function getItemPath(item){
     var gedi = item.gaffa.gedi,
@@ -70,9 +71,14 @@ Bindable.prototype.debind = function(){
     this.removeAllListeners('debind');
 };
 Bindable.prototype.destroy = function(){
+    var bindable = this;
+
     this.emit('destroy');
-    this.consuela.cleanup();
-    this.removeAllListeners('destroy');
+    // Let any children bound to 'destroy' do their thing before actually destroying this.
+    nextTick(function(){
+        bindable.consuela.cleanup();
+        bindable.removeAllListeners('destroy');
+    });
 };
 
 module.exports = Bindable;

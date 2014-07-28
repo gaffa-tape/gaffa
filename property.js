@@ -6,7 +6,8 @@ var createSpec = require('spec-js'),
     Consuela = require('consuela'),
     WhatChanged = require('what-changed'),
     merge = require('merge'),
-    resolvePath = require('./resolvePath');
+    resolvePath = require('./resolvePath'),
+    nextTick = require('next-tick');
 
 var nextFrame;
 function updateFrame() {
@@ -230,9 +231,15 @@ Property.prototype.destroy = function(){
     if(this._bound){
         this.debind();
     }
-    this.gaffa = null;
-    this.parent = null;
     Bindable.prototype.destroy.call(this);
+
+    var property = this;
+
+    // Let any children bound to 'destroy' do their thing before actually destroying this.
+    nextTick(function(){
+        property.gaffa = null;
+        property.parent = null;
+    });
 };
 Property.prototype.__serialiseExclude__ = ['_lastValue'];
 
