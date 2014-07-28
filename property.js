@@ -174,7 +174,7 @@ Property.prototype.set = function(value, isDirty){
 
 };
 Property.prototype.get = function(scope, asTokens){
-    scope = merge(this.scope, scope);
+    scope = merge(false, this.scope, scope);
 
     if(this.binding){
         var value = this.gaffa.model.get(this.binding, this, scope, asTokens);
@@ -196,7 +196,7 @@ Property.prototype.bind = function(parent, scope) {
 
     this._lastValue = new WhatChanged();
     this.parent = parent;
-    this.scope = merge(scope, this.scope);
+    this.scope = merge(false, scope, this.scope);
     this.gaffa = parent.gaffa;
 
     parent.once('destroy', this.destroy.bind(this));

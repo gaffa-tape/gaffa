@@ -121,7 +121,7 @@ ViewItem.prototype.bind = function(parent, scope){
 
 
     this.parent = parent;
-    this.scope = merge(scope, this.scope);
+    this.scope = merge(false, scope, this.scope);
     this.gaffa = parent && parent.gaffa || this.gaffa;
 
 
@@ -165,7 +165,7 @@ ViewItem.prototype.triggerActions = function(actionName, scope, event){
     if(!this.gaffa){
         return;
     }
-    scope = merge(this.scope, scope);
+    scope = merge(false, this.scope, scope);
     this.gaffa.actions.trigger(this.actions[actionName], this, scope, event);
 };
 
