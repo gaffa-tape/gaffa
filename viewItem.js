@@ -130,7 +130,7 @@ ViewItem.prototype.bind = function(parent, scope){
     for(var propertyKey in this.constructor.prototype){
         property = this[propertyKey];
         if(property instanceof Property){
-            property.bind(this, scope);
+            property.bind(this, this.scope);
         }
     }
 
