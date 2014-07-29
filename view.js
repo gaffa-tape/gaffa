@@ -82,11 +82,11 @@ View.prototype.bind = function(parent, scope){
         var actions = this.actions[key],
             off;
 
-        if(actions.__bound){
+        if(actions._bound){
             continue;
         }
 
-        actions.__bound = true;
+        actions._bound = true;
 
         bindViewEvent(this, key);
     }
@@ -117,7 +117,7 @@ View.prototype.debind = function () {
     this.triggerActions('unload');
 
     for(var key in this.actions){
-        this.actions[key].__bound = false;
+        this.actions[key]._bound = false;
     }
     this.renderedElement.viewModel = null;
     for(var key in this){

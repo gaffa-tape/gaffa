@@ -3,11 +3,9 @@ var createSpec = require('spec-js'),
     IdentifierToken = require('gel-js').IdentifierToken,
     jsonConverter = require('./jsonConverter'),
     createModelScope = require('./createModelScope'),
-    Consuela = require('consuela'),
     WhatChanged = require('what-changed'),
     merge = require('merge'),
-    resolvePath = require('./resolvePath'),
-    nextTick = require('next-tick');
+    resolvePath = require('./resolvePath');
 
 var nextFrame;
 function updateFrame() {
@@ -188,19 +186,12 @@ Property.prototype.get = function(scope, asTokens){
     }
 };
 Property.prototype.bind = function(parent, scope) {
-    if(this._bound){
-        return;
-    }
-
-    Bindable.prototype.bind.call(this);
-
     this._lastValue = new WhatChanged();
     this.parent = parent;
     this.scope = merge(false, scope, this.scope);
     this.gaffa = parent.gaffa;
 
-    parent.once('destroy', this.destroy.bind(this));
-    parent.once('debind', this.debind.bind(this));
+    Bindable.prototype.bind.apply(this, arguments);
 
     // Shortcut for properties that have no binding.
     // This has a significant impact on performance.
@@ -220,26 +211,13 @@ Property.prototype.bind = function(parent, scope) {
 };
 Property.prototype.debind = function(){
     if(this._currentBinding){
-        this.gaffa.gedi.debind.apply(null, this._currentBinding);
+        this.gaffa.gedi.debind.apply(this.gaffa.gedi, this._currentBinding);
         this._currentBinding = null;
     }
 
-    Bindable.prototype.debind.call(this);
     this._lastValue = null;
-};
-Property.prototype.destroy = function(){
-    if(this._bound){
-        this.debind();
-    }
-    Bindable.prototype.destroy.call(this);
 
-    var property = this;
-
-    // Let any children bound to 'destroy' do their thing before actually destroying this.
-    nextTick(function(){
-        property.gaffa = null;
-        property.parent = null;
-    });
+    Bindable.prototype.debind.call(this);
 };
 Property.prototype.__serialiseExclude__ = ['_lastValue'];
 

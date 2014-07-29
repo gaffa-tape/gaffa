@@ -2,7 +2,6 @@ var createSpec = require('spec-js'),
     Bindable = require('./bindable'),
     View = require('./view'),
     initialiseViewItem = require('./initialiseViewItem'),
-    Consuela = require('consuela'),
     removeViews = require('./removeViews'),
     arrayProto = Array.prototype;
 
@@ -22,13 +21,11 @@ for(var key in Bindable.prototype){
 }
 ViewContainer.prototype.constructor = ViewContainer;
 ViewContainer.prototype.bind = function(parent){
-    Bindable.prototype.bind.call(this);
 
     this.parent = parent;
     this.gaffa = parent.gaffa;
 
-    parent.once('debind', this.debind.bind(this));
-    parent.once('destroy', this.destroy.bind(this));
+    Bindable.prototype.bind.apply(this, arguments);
 
     for(var i = 0; i < this.length; i++){
         this.add(this[i], i);
@@ -73,15 +70,18 @@ ViewContainer.prototype.add = function(view, insertIndex){
     view.parentContainer = this;
 
     if(this._bound){
+        if(!(view instanceof View)){
+            view = this[this.indexOf(view)] = this.gaffa.initialiseView(view);
+        }
         if(view._bound){
             view.debind();
         }
-        if(!(view instanceof View)){
-            view = this[this.indexOf(view)] = initialiseViewItem(view, this.gaffa, this.gaffa.views._constructors);
-        }
-        view.gaffa = this.gaffa;
 
-        this.gaffa.namedViews[view.name] = view;
+        if(view.name){
+            this.gaffa.namedViews[view.name] = view;
+        }
+
+        view.gaffa = this.parent.gaffa;
 
         if(!view.renderedElement){
             view.render();
@@ -95,11 +95,11 @@ ViewContainer.prototype.add = function(view, insertIndex){
 };
 
 /*
-    adds 5 (5 is arbitrary) views at a time to the target viewContainer,
+    adds 10 (10 is arbitrary) views at a time to the target viewContainer,
     then queues up another add.
 */
 function executeDeferredAdd(viewContainer){
-    var currentOpperation = viewContainer._deferredViews.splice(0,5);
+    var currentOpperation = viewContainer._deferredViews.splice(0,10);
 
     if(!currentOpperation.length){
         return;

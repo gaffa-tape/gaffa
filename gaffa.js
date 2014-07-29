@@ -180,6 +180,8 @@ function ajax(settings){
 }
 
 function triggerAction(action, parent, scope, event) {
+    // clone
+    action = parent.gaffa.initialiseAction(statham.revive(JSON.parse(statham.stringify(action))));
 
     action.bind(parent, scope);
 

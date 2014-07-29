@@ -2,8 +2,7 @@ var createSpec = require('spec-js'),
     Bindable = require('./bindable'),
     jsonConverter = require('./jsonConverter'),
     Property = require('./property'),
-    merge = require('merge'),
-    nextTick = require('next-tick');
+    merge = require('merge');
 
 function copyProperties(source, target){
     if(
@@ -109,21 +108,16 @@ ViewItem = createSpec(ViewItem, Bindable);
     */
 ViewItem.prototype.path = '[]';
 ViewItem.prototype.bind = function(parent, scope){
-    Bindable.prototype.bind.call(this);
 
     var viewItem = this,
         property;
-
-    if(parent){
-        parent.once('debind', this.debind.bind(this));
-        parent.once('destroy', this.destroy.bind(this));
-    }
 
 
     this.parent = parent;
     this.scope = merge(false, scope, this.scope);
     this.gaffa = parent && parent.gaffa || this.gaffa;
 
+    Bindable.prototype.bind.apply(this, arguments);
 
     // Only set up properties that were on the prototype.
     // Faster and 'safer'
@@ -151,18 +145,8 @@ ViewItem.prototype.remove = function(){
 
     this.destroy();
 };
-ViewItem.prototype.destroy = function(){
-    Bindable.prototype.destroy.call(this);
-
-    var viewItem = this;
-
-    // Let any children bound to 'destroy' do their thing before actually destroying this.
-    nextTick(function(){
-        viewItem.gaffa = null;
-    });
-};
 ViewItem.prototype.triggerActions = function(actionName, scope, event){
-    if(!this.gaffa){
+    if(!this._bound){
         return;
     }
     scope = merge(false, this.scope, scope);

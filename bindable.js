@@ -1,8 +1,19 @@
 var createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
     Consuela = require('consuela'),
-    jsonConverter = require('./jsonConverter'),
-    nextTick = require('next-tick');
+    jsonConverter = require('./jsonConverter');
+
+var stack = [];
+function eventually(fn){
+    stack.push(fn);
+    if(stack.length === 1){
+        setTimeout(function(){
+            while(stack.length){
+                stack.pop()();
+            }
+        },100);
+    }
+}
 
 function getItemPath(item){
     var gedi = item.gaffa.gedi,
@@ -52,32 +63,75 @@ Bindable.prototype.toJSON = function(){
 
     return tempObject;
 };
-Bindable.prototype.bind = function(){
-    if(this._bound){
-        this.debind();
+Bindable.prototype.bind = function(parent){
+    var bindable = this;
+
+    if(parent && !parent._bound){
+        console.warn('Attempted to bind to a parent who was not bound.');
+        return;
     }
+    if(this._bound){
+        console.warn('Attempted to bind an already bound item.');
+        return;
+    }
+
     this._bound = true;
-    this.emit('bind');
-    this.removeAllListeners('bind');
+
+    if(parent){
+        var debind = function(){
+                bindable.debind();
+            };
+            destroy = function(){
+                bindable.destroy();
+            };
+        parent.on('debind', debind);
+        this.on('debind', function(){
+            eventually(function(){
+                parent.removeListener('debind', debind);
+            });
+        });
+        parent.on('destroy', destroy);
+        this.on('destroy', function(){
+            eventually(function(){
+                parent.removeListener('destroy', destroy);
+            });
+        });
+    }
+
+    bindable.emit('bind');
+    bindable.removeAllListeners('bind');
 };
 Bindable.prototype.debind = function(){
+    var bindable = this;
+
     if(!this._bound){
+        // ToDo: This happens with actions, resolve.
         return;
     }
     this._bound = false;
 
     this.emit('debind');
-    this.consuela.cleanup();
     this.removeAllListeners('debind');
+
+    eventually(function(){
+        bindable.consuela.cleanup();
+    });
 };
 Bindable.prototype.destroy = function(){
     var bindable = this;
 
+    if(this._bound){
+        this.debind();
+    }
+
     this.emit('destroy');
+    this.removeAllListeners('destroy');
+
     // Let any children bound to 'destroy' do their thing before actually destroying this.
-    nextTick(function(){
+    eventually(function(){
         bindable.consuela.cleanup();
-        bindable.removeAllListeners('destroy');
+        bindable.gaffa = null;
+        bindable.parent = null;
     });
 };
 
