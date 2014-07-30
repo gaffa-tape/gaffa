@@ -149,16 +149,19 @@ Property.prototype.hasChanged = function(){
         }
     }
 };
-Property.prototype.set = function(value, isDirty){
+Property.prototype.set = function(value, isDirty, scope){
+    scope = merge(false, this.scope, scope);
+
     var gaffa = this.gaffa;
 
     if(this.binding){
-        var setValue = this.setTransform ? gaffa.model.get(this.setTransform, this, {value: value}) : value;
+        var setValue = this.setTransform ? gaffa.model.get(this.setTransform, this, merge(false, this.scope, {value: value})) : value;
         gaffa.model.set(
             this.binding,
             setValue,
             this,
-            isDirty
+            typeof this.cleans === 'string' ? gaffa.model.get(this.cleans, this) === false :  this.cleans === false || isDirty,
+            scope
         );
     }else{
         this.value = value;
