@@ -120,6 +120,8 @@ Bindable.prototype.debind = function(){
 Bindable.prototype.destroy = function(){
     var bindable = this;
 
+    this._destroyed = true;
+
     if(this._bound){
         this.debind();
     }

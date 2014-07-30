@@ -191,9 +191,7 @@ function triggerAction(action, parent, scope, event) {
         action.trigger(parent, scope, event);
     }
 
-    if(!action._async){
-        action.complete();
-    }
+    action.debind();
 }
 
 function triggerActions(actions, parent, scope, event) {

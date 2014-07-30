@@ -11,8 +11,16 @@ Action.prototype.trigger = function(){
 Action.prototype.condition = new Property({
     value: true
 });
+Action.prototype.debind = function(){
+    // Some actions are asynchronous.
+    // They should not debind until they are truely complete,
+    // or they are destroyed.
+    if(!this._async || this._destroyed){
+        this.complete();
+    }
+};
 Action.prototype.complete = function(){
-    this.debind();
+    ViewItem.prototype.debind.apply(this, arguments);
 };
 
 module.exports = Action;
