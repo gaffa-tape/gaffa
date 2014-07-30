@@ -86,7 +86,8 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
 
             if(!existingChild){
                 newView = statham.revive(this._templateCache);
-                newView.sourcePath = sourcePath;
+                newView.scope = {item: value[key], key: key};
+                newView.sourcePath = property.ignorePaths ? null : sourcePath;
                 newView.containerName = viewsName;
                 childViews.deferredAdd(newView, itemIndex);
             }else if(itemIndex !== existingIndex){
