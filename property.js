@@ -90,35 +90,32 @@ function createPropertyCallback(property){
             scope,
             valueTokens;
 
-        if(event){
+        scope = createModelScope(property.parent, event);
 
-            scope = createModelScope(property.parent, event);
+        if(event === true || event === false){ // Non-model update.
 
-            if(event === true){ // Initial update.
+            valueTokens = property.get(scope, true);
 
-                valueTokens = property.get(scope, true);
+        }else if(event.captureType === 'bubble' && property.ignoreBubbledEvents){
 
-            }else if(event.captureType === 'bubble' && property.ignoreBubbledEvents){
+            return;
 
+        }else if(property.binding){ // Model change update.
+
+            if(property.ignoreTargets && event.target.match(property.ignoreTargets)){
                 return;
-
-            }else if(property.binding){ // Model change update.
-
-                if(property.ignoreTargets && event.target.match(property.ignoreTargets)){
-                    return;
-                }
-
-                valueTokens = property.get(scope, true);
             }
 
-            if(valueTokens){
-                var valueToken = valueTokens[valueTokens.length - 1];
-                value = valueToken.result;
-                property._sourcePathInfo = valueToken.sourcePathInfo;
-            }
-
-            property.value = value;
+            valueTokens = property.get(scope, true);
         }
+
+        if(valueTokens){
+            var valueToken = valueTokens[valueTokens.length - 1];
+            value = valueToken.result;
+            property._sourcePathInfo = valueToken.sourcePathInfo;
+        }
+
+        property.value = value;
 
         // Call the properties update function, if it has one.
         // Only call if the changed value is an object, or if it actually changed.
@@ -208,6 +205,31 @@ Property.prototype.bind = function(parent, scope) {
     this._currentBinding = [this.binding, propertyCallback, parentPath];
     this.gaffa.gedi.bind(this.binding, propertyCallback, parentPath);
     propertyCallback(true, scope);
+
+    if(this.interval){
+        function intervalUpdate(){
+            if(!property._bound){
+                return true;
+            }
+            propertyCallback(false, property.scope);
+        }
+        var property = this;
+        if(!isNaN(this.interval)){
+            function timeoutUpdate(){
+                if(!intervalUpdate()){
+                    setTimeout(timeoutUpdate,property.interval);
+                }
+            };
+            timeoutUpdate();
+        }else if(this.interval === 'frame'){
+            function frameUpdate(){
+                if(!intervalUpdate()){
+                    requestAnimationFrame(frameUpdate);
+                }
+            };
+            frameUpdate();
+        }
+    }
 };
 Property.prototype.debind = function(){
     if(this._currentBinding){
