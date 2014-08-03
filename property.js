@@ -150,6 +150,11 @@ Property.prototype.hasChanged = function(){
     }
 };
 Property.prototype.set = function(value, isDirty, scope){
+    if(!this._bound){
+        this.value = value;
+        return;
+    }
+
     scope = merge(false, this.scope, scope);
 
     var gaffa = this.gaffa;
@@ -172,6 +177,10 @@ Property.prototype.set = function(value, isDirty, scope){
 
 };
 Property.prototype.get = function(scope, asTokens){
+    if(!this._bound){
+        return this.value;
+    }
+    
     scope = merge(false, this.scope, scope);
 
     if(this.binding){
