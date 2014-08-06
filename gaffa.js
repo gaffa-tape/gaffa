@@ -147,11 +147,10 @@ function ajax(settings){
                 settings.success && settings.success(data, event);
             }
         }
-
+        settings.complete.apply(this, arguments);
     }, false);
     request.addEventListener("error", settings.error, false);
     request.addEventListener("abort", settings.abort, false);
-    request.addEventListener("loadend", settings.complete, false);
 
     request.open(settings.type || "get", settings.url, true);
 
@@ -160,7 +159,6 @@ function ajax(settings){
         request.setRequestHeader('Content-Type', settings.contentType || 'application/json; charset=utf-8');
     }
     request.setRequestHeader('X-Requested-With', settings.requestedWith || 'XMLHttpRequest');
-    request.setRequestHeader('x-gaffa', 'request');
     if(settings.auth){
         request.setRequestHeader('Authorization', settings.auth);
     }
