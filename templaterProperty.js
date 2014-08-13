@@ -19,7 +19,46 @@ function findValueIn(value, source){
 }
 
 TemplaterProperty.prototype.watchChanges = 'keys';
+TemplaterProperty.prototype.hasChanged = function(){
+    var changes = this._lastValue.update(this.value),
+        watched = this.watchChanges.split(' '),
+        newKeys = [],
+        keysChanged;
 
+    if(!this._lastValue._lastKeys){
+        this._lastValue._lastKeys = [];
+    }
+
+    if(this._sourcePathInfo && this._sourcePathInfo.subPaths){
+        for(var key in this._sourcePathInfo.subPaths){
+            newKeys.push(this._sourcePathInfo.subPaths[key]);
+        }
+
+        if(
+            this._lastValue._lastKeys.length !== newKeys.length
+        ){
+            keysChanged = true;
+        }else{
+            for (var i = newKeys.length - 1; i >= 0; i--) {
+                if(newKeys[i] !== this._lastValue._lastKeys[i]){
+                    keysChanged = true;
+                    break;
+                }
+            }
+        }
+
+        if(keysChanged){
+            changes['keys'] = true;
+        }
+        this._lastValue._lastKeys = newKeys;
+    }
+
+    for(var i = 0; i < watched.length; i++){
+        if(changes[watched[i]]){
+            return true;
+        }
+    }
+};
 TemplaterProperty.prototype.update =function (viewModel, value) {
     if(!this.template){
         return;
