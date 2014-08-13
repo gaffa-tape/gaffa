@@ -157,7 +157,12 @@ Property.prototype.set = function(value, isDirty, scope){
 
     scope = merge(false, this.scope, scope);
 
-    var gaffa = this.gaffa;
+    var gaffa = this.gaffa,
+        dirty = isDirty;
+
+    if(this.cleans != null){
+        dirty = (this.cleans === 'string' ? gaffa.model.get(this.cleans, this) :  this.cleans) === false ;
+    }
 
     if(this.binding){
         var setValue = this.setTransform ? gaffa.model.get(this.setTransform, this, merge(false, this.scope, {value: value})) : value;
@@ -165,7 +170,7 @@ Property.prototype.set = function(value, isDirty, scope){
             this.binding,
             setValue,
             this,
-            typeof this.cleans === 'string' ? gaffa.model.get(this.cleans, this) === false :  this.cleans === false || isDirty,
+            dirty,
             scope
         );
     }else{
@@ -180,7 +185,7 @@ Property.prototype.get = function(scope, asTokens){
     if(!this._bound){
         return this.value;
     }
-    
+
     scope = merge(false, this.scope, scope);
 
     if(this.binding){
