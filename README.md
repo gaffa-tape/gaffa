@@ -1,6 +1,6 @@
-# gaffa.js
+# ![logo](logosmall.png)affa.js
 
-![logo](logosmall.png)
+
 
 ## Recently changed
 
