@@ -20,6 +20,7 @@ Action.prototype.debind = function(){
     }
 };
 Action.prototype.complete = function(){
+    this.emit('complete');
     ViewItem.prototype.debind.apply(this, arguments);
 };
 
