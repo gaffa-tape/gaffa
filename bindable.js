@@ -71,8 +71,9 @@ Bindable.prototype.bind = function(parent){
         return;
     }
     if(this._bound){
+        this.debind();
+        this.consuela.cleanup();
         console.warn('Attempted to bind an already bound item.');
-        return;
     }
 
     this._bound = true;
@@ -114,6 +115,10 @@ Bindable.prototype.debind = function(){
     this.removeAllListeners('debind');
 
     eventually(function(){
+        if(this._bound){
+            // The item was rebound
+            return;
+        }
         bindable.consuela.cleanup();
     });
 };

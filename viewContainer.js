@@ -60,12 +60,13 @@ ViewContainer.prototype.add = function(view, insertIndex){
         return this;
     }
 
-    // Is already in the tree somewhere? remove it.
-    if(view.parentContainer instanceof ViewContainer){
-        view.parentContainer.splice(view.parentContainer.indexOf(view),1);
-    }
+    if(view.parentContainer !== this || this.indexOf(view) !== insertIndex){
+        if(view.parentContainer instanceof ViewContainer){
+            view.parentContainer.splice(view.parentContainer.indexOf(view),1);
+        }
 
-    this.splice(insertIndex >= 0 ? insertIndex : this.length,0,view);
+        this.splice(insertIndex >= 0 ? insertIndex : this.length,0,view);
+    }
 
     view.parentContainer = this;
 
@@ -74,7 +75,7 @@ ViewContainer.prototype.add = function(view, insertIndex){
             view = this[this.indexOf(view)] = this.gaffa.initialiseView(view);
         }
         if(view._bound){
-            view.debind();
+            return;
         }
 
         if(view.name){

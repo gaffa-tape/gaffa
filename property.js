@@ -200,12 +200,13 @@ Property.prototype.get = function(scope, asTokens){
     }
 };
 Property.prototype.bind = function(parent, scope) {
-    this._lastValue = new WhatChanged();
     this.parent = parent;
     this.scope = merge(false, scope, this.scope);
     this.gaffa = parent.gaffa;
 
     Bindable.prototype.bind.apply(this, arguments);
+
+    this._lastValue = new WhatChanged();
 
     // Shortcut for properties that have no binding.
     // This has a significant impact on performance.
