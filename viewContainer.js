@@ -136,6 +136,21 @@ ViewContainer.prototype.deferredAdd = function(view, insertIndex){
 ViewContainer.prototype.abortDeferredAdd = function(){
     this._deferredViews = [];
 };
+ViewContainer.prototype.render = function(){
+    for(var i = 0; i < this.length; i++){
+        this.deferredAdd(this[i], i);
+    };
+};
+ViewContainer.prototype.derender = function(){
+    for(var i = 0; i < this.length; i++){
+        var childView = this[i];
+
+        if(childView._bound){
+            childView.detach();
+            childView.debind();
+        }
+    };
+};
 ViewContainer.prototype.remove = function(view){
     view.remove();
 };
