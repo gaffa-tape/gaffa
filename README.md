@@ -34,6 +34,8 @@ Gaffa must be compiled with browserify [browserify](https://github.com/substack/
 
 ### Example minimal usage
 
+	``` javascript
+
 	var Gaffa = require('../'),
 	    Text = require('gaffa-text'),
 	    Textbox = require('gaffa-textbox'),
@@ -71,3 +73,5 @@ Gaffa must be compiled with browserify [browserify](https://github.com/substack/
 
 	// Globalise gaffa for easy debugging.
 	window.gaffa = gaffa;
+
+	```
