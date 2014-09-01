@@ -20,6 +20,7 @@ for(var key in Bindable.prototype){
     ViewContainer.prototype[key] = Bindable.prototype[key];
 }
 ViewContainer.prototype.constructor = ViewContainer;
+ViewContainer.prototype._render = true;
 ViewContainer.prototype.bind = function(parent){
     Bindable.prototype.bind.apply(this, arguments);
 
@@ -66,7 +67,7 @@ ViewContainer.prototype.add = function(view, insertIndex){
 
     view.parentContainer = this;
 
-    if(this._bound){
+    if(this._bound && this._render){
         if(!(view instanceof View)){
             view = this[this.indexOf(view)] = this.gaffa.initialiseView(view);
         }
@@ -133,11 +134,13 @@ ViewContainer.prototype.abortDeferredAdd = function(){
     this._deferredViews = [];
 };
 ViewContainer.prototype.render = function(){
+    this._render = true;
     for(var i = 0; i < this.length; i++){
         this.deferredAdd(this[i], i);
-    };
+    }
 };
 ViewContainer.prototype.derender = function(){
+    this._render = false;
     for(var i = 0; i < this.length; i++){
         var childView = this[i];
 
@@ -145,7 +148,7 @@ ViewContainer.prototype.derender = function(){
             childView.detach();
             childView.debind();
         }
-    };
+    }
 };
 ViewContainer.prototype.remove = function(view){
     view.remove();

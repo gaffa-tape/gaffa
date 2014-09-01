@@ -10,7 +10,8 @@
 
 var createSpec = require('spec-js'),
     View = require('./view'),
-    ViewContainer = require('./viewContainer');
+    ViewContainer = require('./viewContainer'),
+    Property = require('./property');
 
 function ContainerView(viewDescription){
     this.views = this.views || {};
@@ -27,5 +28,13 @@ ContainerView.prototype.bind = function(parent){
         }
     }
 };
+ContainerView.prototype.renderChildren = new Gaffa.Property({
+    update: function(view, value){
+        for(var key in view.views){
+            view.views[key][value ? 'render' : 'derender']();
+        }
+    },
+    value: true
+})
 
 module.exports = ContainerView;
