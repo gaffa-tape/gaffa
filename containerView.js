@@ -28,7 +28,7 @@ ContainerView.prototype.bind = function(parent){
         }
     }
 };
-ContainerView.prototype.renderChildren = new Gaffa.Property({
+ContainerView.prototype.renderChildren = new Property({
     update: function(view, value){
         for(var key in view.views){
             view.views[key][value ? 'render' : 'derender']();
