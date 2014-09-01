@@ -112,10 +112,7 @@ ViewItem.prototype.bind = function(parent, scope){
     var viewItem = this,
         property;
 
-
-    this.parent = parent;
     this.scope = merge(false, scope, this.scope);
-    this.gaffa = parent && parent.gaffa || this.gaffa;
 
     Bindable.prototype.bind.apply(this, arguments);
 

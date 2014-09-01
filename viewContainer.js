@@ -21,10 +21,6 @@ for(var key in Bindable.prototype){
 }
 ViewContainer.prototype.constructor = ViewContainer;
 ViewContainer.prototype.bind = function(parent){
-
-    this.parent = parent;
-    this.gaffa = parent.gaffa;
-
     Bindable.prototype.bind.apply(this, arguments);
 
     for(var i = 0; i < this.length; i++){

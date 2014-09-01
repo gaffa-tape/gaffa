@@ -79,24 +79,10 @@ Bindable.prototype.bind = function(parent){
     this._bound = true;
 
     if(parent){
-        var debind = function(){
-                bindable.debind();
-            };
-            destroy = function(){
-                bindable.destroy();
-            };
-        parent.on('debind', debind);
-        this.on('debind', function(){
-            eventually(function(){
-                parent.removeListener('debind', debind);
-            });
-        });
-        parent.on('destroy', destroy);
-        this.on('destroy', function(){
-            eventually(function(){
-                parent.removeListener('destroy', destroy);
-            });
-        });
+        this.gaffa = parent.gaffa;
+        this.parent = parent;
+        parent.once('debind', this.debind.bind(this));
+        parent.once('destroy', this.destroy.bind(this));
     }
 
     bindable.emit('bind');
