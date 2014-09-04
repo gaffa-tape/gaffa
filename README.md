@@ -34,40 +34,43 @@ Gaffa must be compiled with browserify [browserify](https://github.com/substack/
 
 ### Example minimal usage
 
-	var Gaffa = require('../'),
-	    Text = require('gaffa-text'),
-	    Textbox = require('gaffa-textbox'),
-	    gaffa = new Gaffa();
+```javascript
 
-	// Register used viewItems with gaffa
-	gaffa.registerConstructor(Text);
-	gaffa.registerConstructor(Textbox);
+var Gaffa = require('../'),
+    Text = require('gaffa-text'),
+    Textbox = require('gaffa-textbox'),
+    gaffa = new Gaffa();
 
-	// create a text view
-	var text = new Text();
-	text.text.binding = '(join " " "Current value of [value]:" [value])';
+// Register used viewItems with gaffa
+gaffa.registerConstructor(Text);
+gaffa.registerConstructor(Textbox);
 
-	// create a textbox view
-	var textbox = new Textbox();
+// create a text view
+var text = new Text();
+text.text.binding = '(join " " "Current value of [value]:" [value])';
 
-	// Bind the textbox's value to model.value
-	textbox.value.binding = '[value]';
+// create a textbox view
+var textbox = new Textbox();
 
-	// Tell the textbox to set it's value on keyup
-	textbox.updateEventName = 'keyup';
+// Bind the textbox's value to model.value
+textbox.value.binding = '[value]';
 
-	// An example model
-	gaffa.model.set({
-	    value:'things'
-	})
+// Tell the textbox to set it's value on keyup
+textbox.updateEventName = 'keyup';
 
-	// Add the view on load.
-	window.onload = function(){
-	    gaffa.views.add([
-	        text,
-	        textbox
-	    ]);
-	};
+// An example model
+gaffa.model.set({
+    value:'things'
+})
 
-	// Globalise gaffa for easy debugging.
-	window.gaffa = gaffa;
+// Add the view on load.
+window.onload = function(){
+    gaffa.views.add([
+        text,
+        textbox
+    ]);
+};
+
+// Globalise gaffa for easy debugging.
+window.gaffa = gaffa;
+```
