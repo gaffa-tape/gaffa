@@ -16,6 +16,7 @@ var createSpec = require('spec-js'),
     Property = require('./property'),
     createModelScope = require('./createModelScope'),
     getClosestItem = require('./getClosestItem'),
+    Consuela = require('consuela'),
     Behaviour = require('./behaviour');
 
 function insertFunction(selector, renderedElement, insertIndex){
@@ -66,6 +67,7 @@ function View(viewDescription){
     var view = this;
 
     view.behaviours = view.behaviours || [];
+    this.consuela = new Consuela();
 }
 View = createSpec(View, ViewItem);
 
@@ -116,16 +118,22 @@ View.prototype.debind = function () {
     }
     this.triggerActions('unload');
 
+    this.consuela.cleanup();
+
     for(var key in this.actions){
         this.actions[key]._bound = false;
     }
-    this.renderedElement.viewModel = null;
+    ViewItem.prototype.debind.call(this);
+};
+
+View.prototype.destroy = function() {
+    ViewItem.prototype.destroy.call(this);
+
     for(var key in this){
         if(crel.isNode(this[key])){
             this[key] = null;
         }
     }
-    ViewItem.prototype.debind.call(this);
 };
 
 View.prototype.render = function(){};

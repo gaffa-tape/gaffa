@@ -1,6 +1,5 @@
 var createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
-    Consuela = require('consuela'),
     jsonConverter = require('./jsonConverter');
 
 var stack = [];
@@ -42,9 +41,6 @@ function getItemPath(item){
 var iuid = 0;
 function Bindable(){
     this.setMaxListeners(1000);
-    var consuela = new Consuela();
-    this.consuela = consuela;
-
     // instance unique ID
     this.__iuid = iuid++;
 }
@@ -72,11 +68,8 @@ Bindable.prototype.bind = function(parent){
     }
     if(this._bound){
         this.debind();
-        this.consuela.cleanup();
         console.warn('Attempted to bind an already bound item.');
     }
-
-    this._bound = true;
 
     if(parent){
         this.gaffa = parent.gaffa;
@@ -85,8 +78,47 @@ Bindable.prototype.bind = function(parent){
         parent.once('destroy', this.destroy.bind(this));
     }
 
-    bindable.emit('bind');
-    bindable.removeAllListeners('bind');
+    this.updatePath();
+
+    this._bound = true;
+    this.emit('bind');
+    this.removeAllListeners('bind');
+};
+Bindable.prototype.getSourcePath = function(){
+    return this.gaffa.gedi.paths.resolve(this.parent && this.parent.getPath(), this.sourcePath);
+}
+Bindable.prototype.updatePath = function(){
+    if(!this.pathBinding){
+        return;
+    }
+
+    var bindable = this,
+        absoluteSourcePath = this.getSourcePath(),
+        lastPath = this.path,
+        gaffa = this.gaffa;
+
+    function setPath(valueTokens){
+        if(valueTokens){
+            var valueToken = valueTokens[valueTokens.length - 1];
+            bindable.path = valueToken.sourcePathInfo && valueToken.sourcePathInfo.path;
+        }
+
+        if(lastPath !== bindable.path && bindable._bound){
+            bindable.debind();
+            bindable.bind(bindable.parent);
+        }
+    }
+
+    setPath(gaffa.gedi.get(this.pathBinding, absoluteSourcePath, null, true));
+
+    function handlePathChange(event){
+        setPath(event.getValue(null, true));
+    }
+
+    gaffa.gedi.bind(this.pathBinding, handlePathChange, absoluteSourcePath);
+    this.on('debind', function(){
+        gaffa.gedi.debind(bindable.pathBinding, handlePathChange, absoluteSourcePath);
+    });
 };
 Bindable.prototype.debind = function(){
     var bindable = this;
@@ -99,14 +131,6 @@ Bindable.prototype.debind = function(){
 
     this.emit('debind');
     this.removeAllListeners('debind');
-
-    eventually(function(){
-        if(this._bound){
-            // The item was rebound
-            return;
-        }
-        bindable.consuela.cleanup();
-    });
 };
 Bindable.prototype.destroy = function(){
     var bindable = this;
@@ -122,7 +146,6 @@ Bindable.prototype.destroy = function(){
 
     // Let any children bound to 'destroy' do their thing before actually destroying this.
     eventually(function(){
-        bindable.consuela.cleanup();
         bindable.gaffa = null;
         bindable.parent = null;
     });
