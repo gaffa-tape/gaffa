@@ -47,8 +47,8 @@ function parseQueryString(url){
 
         for(var i = 0; i < queryStringData.length; i++) {
             var parts = queryStringData[i].split("="),
-                key = window.unescape(parts[0]),
-                value = window.unescape(parts[1]);
+                key = unescape(parts[0]),
+                value = unescape(parts[1]);
 
             result[key] = value;
         }
@@ -256,16 +256,6 @@ function Gaffa(){
 
         app = statham.revive(app);
 
-        var targetView = gaffa.views;
-
-        if(target){
-            var targetParts = target.split('.'),
-                targetName = targetParts[0],
-                targetViewContainer = targetParts[1];
-
-            targetView = gaffa.namedViews[targetName].views[targetViewContainer];
-        }
-
         while(internalIntervals.length){
             clearInterval(internalIntervals.pop());
         }
@@ -296,85 +286,8 @@ function Gaffa(){
         gaffa.emit("load");
     }
 
-
-    var pageCache = {};
-
-    function navigate(url, target, pushState, data) {
-
-        // Data will be passed to the route as a querystring
-        // but will not be displayed visually in the address bar.
-        // This is to help resolve caching issues.
-
-        // default target
-        if(target === undefined){
-            target = gaffa.navigateTarget;
-        }
-
-        function success (data) {
-            var title;
-
-            data.target = target;
-
-            if(data !== undefined && data !== null && data.title){
-                title = data.title;
-            }
-
-            // Always use pushstate unless triggered by onpopstate
-            if(pushState !== false) {
-                gaffa.pushState(data, title, url);
-            }
-
-            pageCache[url] = data;
-
-            gaffa.load(data, target);
-
-            gaffa.emit("navigate.success");
-
-            window.scrollTo(0,0);
-        }
-
-        function error(error){
-            gaffa.emit("navigate.error", error);
-        }
-
-        function complete(){
-            gaffa.emit("navigate.complete");
-        }
-
-        gaffa.emit("navigate");
-
-        if(gaffa.cacheNavigates !== false && pageCache[url]){
-            success(pageCache[url]);
-            complete();
-            return;
-        }
-
-        gaffa.ajax({
-            url: gaffa.createNavigateUrl(url),
-            type: "get",
-            data: data,
-            dataType: "json",
-            success: success,
-            error: error,
-            complete: complete
-        });
-    }
-
-    gaffa.createNavigateUrl = function(url){
-        return url;
-    };
-
-    gaffa.onpopstate = function(event){
-        if(event.state){
-            navigate(window.location.toString(), event.state.target, false);
-        }
-    };
-
-    // Overridable handler
-    window.onpopstate = gaffa.onpopstate;
-
     function addDefaultsToScope(scope){
-        scope.windowLocation = window.location.toString();
+        scope.windowLocation = location.toString();
     }
 
     function modelGet(path, viewItem, scope, asTokens) {
@@ -638,10 +551,6 @@ function Gaffa(){
                     return;
                 }
 
-                if(view.name){
-                    gaffa.namedViews[view.name] = view;
-                }
-
                 view.gaffa = gaffa;
                 view.parentContainer = internalViewItems;
                 view.render();
@@ -672,18 +581,6 @@ function Gaffa(){
 
             _constructors: {}
         },
-
-        /**
-            ### .namedViews
-
-            Storage for named views.
-            Any views with a .name property will be put here, with the name as the key.
-
-            This is used for navigation, where you can specify a view to navigate into.
-
-            See gaffa.navitate();
-        */
-        namedViews: {},
 
         /**
             ## .actions
@@ -759,25 +656,6 @@ function Gaffa(){
             }
         },
 
-        /**
-
-            ## Navigate
-
-            Navigates the app to a gaffa-app endpoint
-
-                gaffa.navigate(url);
-
-            To navigate into a named view:
-
-                gaffa.navigate(url, target);
-
-            Where target is: [viewName].[viewContainerName], eg:
-
-                gaffa.navigate('/someroute', 'myPageContainer.content');
-
-            myPageContainer would be a named ContainerView and content is the viewContainer on the view to target.
-        */
-        navigate: navigate,
         load: load,
         extend: merge, // DEPRICATED
         merge: merge,
@@ -786,9 +664,7 @@ function Gaffa(){
         crel: crel,
         doc: doc,
         getClosestItem: getClosestItem,
-        pushState: function(state, title, location){
-            window.history.pushState(state, title, location);
-        }
+        browser: require('bowser')
     };
 
     merge(gaffa, gaffaPublicObject);

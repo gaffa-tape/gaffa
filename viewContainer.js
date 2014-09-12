@@ -75,15 +75,13 @@ ViewContainer.prototype.add = function(view, insertIndex){
             return;
         }
 
-        if(view.name){
-            this.gaffa.namedViews[view.name] = view;
-        }
-
         view.gaffa = this.parent.gaffa;
 
         if(!view.renderedElement){
             view.render();
-            view.renderedElement.viewModel = view;
+            if(view.gaffa.debug && !(view.gaffa.browser.msie && view.gaffa.browser.version <9)){
+                view.renderedElement.viewModel = view;
+            }
         }
         view.bind(this.parent, this.parent.scope);
         view.insert(this, insertIndex);

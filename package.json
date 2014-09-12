@@ -8,6 +8,7 @@
   "version": "1.17.0",
   "main": "gaffa.js",
   "dependencies": {
+    "bowser": "^0.7.1",
     "consuela": "^4.2.0",
     "crel": "^1.0.0",
     "deep-equal": "0.0.x",
