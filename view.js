@@ -75,7 +75,7 @@ View.prototype.bind = function(parent, scope){
     ViewItem.prototype.bind.apply(this, arguments);
 
     for(var key in this){
-        if(crel.isNode(this[key])){
+        if(crel.isElement(this[key])){
             this.consuela.watch(this[key]);
         }
     }
@@ -130,7 +130,7 @@ View.prototype.destroy = function() {
     ViewItem.prototype.destroy.call(this);
 
     for(var key in this){
-        if(crel.isNode(this[key])){
+        if(crel.isElement(this[key])){
             this[key] = null;
         }
     }

@@ -10,9 +10,9 @@
   "dependencies": {
     "bowser": "^0.7.1",
     "consuela": "^4.2.0",
-    "crel": "^1.0.0",
+    "crel": "^2.0.0",
     "deep-equal": "0.0.x",
-    "doc-js": "1.0.0",
+    "doc-js": "^1.0.0",
     "gedi": "^1.2.4",
     "laidout": "^1.0.0",
     "lang-js": "^2.1.0",
