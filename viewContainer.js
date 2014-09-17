@@ -130,7 +130,12 @@ ViewContainer.prototype.deferredAdd = function(view, insertIndex){
 };
 
 ViewContainer.prototype.abortDeferredAdd = function(){
-    this._deferredViews = [];
+    while(this._deferredViews.length){
+        var view = this._deferredViews.pop()[0];
+        if(view instanceof View && !view._bound){
+            view.destroy();
+        }
+    }
 };
 ViewContainer.prototype.render = function(){
     this._render = true;

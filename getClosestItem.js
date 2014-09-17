@@ -1,11 +1,15 @@
 function getClosestItem(target){
-    var iuid = target.iuid;
+	if(!target){
+		return;
+	}
+	
+    var iuid = target.__iuid;
 
     while(!iuid && target){
         target = target.parentNode;
 
         if(target){
-            iuid = target.iuid;
+            iuid = target.__iuid;
         }
     }
 

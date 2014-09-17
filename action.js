@@ -1,5 +1,6 @@
 var createSpec = require('spec-js'),
     Property = require('./property'),
+    statham = require('statham'),
     ViewItem = require('./viewItem');
 
 function triggerAction(action, parent, scope, event) {
@@ -41,13 +42,19 @@ Action.prototype.debind = function(){
     // Some actions are asynchronous.
     // They should not debind until they are truely complete,
     // or they are destroyed.
-    if(!this._async || this._destroyed){
-        this.complete();
+    if(this._async && !this._complete){
+        return this.on('complete', this.debind.bind(this));
     }
+    ViewItem.prototype.debind.call(this);
+    this.complete();
 };
 Action.prototype.complete = function(){
+    if(this._complete){
+        return;
+    }
+    this._complete = true;
     this.emit('complete');
-    ViewItem.prototype.debind.apply(this, arguments);
+    this.debind();
 };
 
 module.exports = Action;

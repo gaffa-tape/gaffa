@@ -38,18 +38,18 @@ function getItemPath(item){
     return gedi.paths.resolve.apply(this, paths.reverse());
 }
 
-var iuid = 0,
-    bindables = {};
+var iuid = 0;
 
 function Bindable(){
     this.setMaxListeners(1000);
     // instance unique ID
     this.__iuid = iuid++;
-    bindables[this.__iuid] = this;
+    Bindable.bindables[this.__iuid] = this;
 }
 Bindable = createSpec(Bindable, EventEmitter);
+Bindable.bindables = {};
 Bindable.getByIuid = function(id){
-    return bindables[id];
+    return this.bindables[id];
 };
 Bindable.prototype.getPath = function(){
     return getItemPath(this);
@@ -80,6 +80,7 @@ Bindable.prototype.bind = function(parent){
     if(parent){
         this.gaffa = parent.gaffa;
         this.parent = parent;
+        this._parentId = parent.__iuid;
         parent.once('debind', this.debind.bind(this));
         parent.once('destroy', this.destroy.bind(this));
     }
@@ -141,6 +142,7 @@ Bindable.prototype.debind = function(){
 Bindable.prototype.destroy = function(){
     var bindable = this;
 
+    delete Bindable.bindables[this.__iuid];
     this._destroyed = true;
 
     if(this._bound){

@@ -5,6 +5,9 @@ var createSpec = require('spec-js'),
     createModelScope = require('./createModelScope'),
     WhatChanged = require('what-changed'),
     merge = require('merge'),
+    animationFrame = require('./raf.js'),
+    requestAnimationFrame = animationFrame.requestAnimationFrame,
+    cancelAnimationFrame = animationFrame.cancelAnimationFrame,
     resolvePath = require('./resolvePath');
 
 var nextFrame;

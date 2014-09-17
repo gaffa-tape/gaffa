@@ -12,76 +12,29 @@
 
 var Gedi = require('gedi'),
     doc = require('doc-js'),
-    crel = require('crel'),
     createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
-    animationFrame = require('./raf.js'),
     merge = require('merge'),
     statham = require('statham'),
-    requestAnimationFrame = animationFrame.requestAnimationFrame,
-    cancelAnimationFrame = animationFrame.cancelAnimationFrame,
-    resolvePath = require('./resolvePath');
-
-var removeViews = require('./removeViews'),
+    resolvePath = require('./resolvePath'),
+    removeViews = require('./removeViews'),
     getClosestItem = require('./getClosestItem'),
-    jsonConverter = require('./jsonConverter');
-
-var Property = require('./property'),
+    jsonConverter = require('./jsonConverter'),
+    Property = require('./property'),
     ViewContainer = require('./viewContainer'),
     ViewItem = require('./viewItem'),
     View = require('./view'),
     ContainerView = require('./containerView'),
     Action = require('./action'),
-    Behaviour = require('./behaviour');
-
-function parseQueryString(url){
-    var urlParts = url.split('?'),
-        result = {};
-
-    if(urlParts.length>1){
-
-        var queryStringData = urlParts.pop().split("&");
-
-        for(var i = 0; i < queryStringData.length; i++) {
-            var parts = queryStringData[i].split("="),
-                key = unescape(parts[0]),
-                value = unescape(parts[1]);
-
-            result[key] = value;
-        }
-    }
-
-    return result;
-}
-
-function toQueryString(data){
-    var queryString = '';
-
-    for(var key in data){
-        if(data.hasOwnProperty(key) && data[key] !== undefined){
-            queryString += (queryString.length ? '&' : '?') + key + '=' + data[key];
-        }
-    }
-
-    return queryString;
-}
+    Behaviour = require('./behaviour'),
+    initialiseViewItem = require('./initialiseViewItem'),
+    initialiseView = require('./initialiseView'),
+    initialiseAction = require('./initialiseAction'),
+    initialiseBehaviour = require('./initialiseBehaviour');
 
 function clone(value){
     return statham.revive(value);
 }
-
-function tryParseJson(data){
-    try{
-        return JSON.parse(data);
-    }catch(error){
-        return error;
-    }
-}
-
-var initialiseViewItem = require('./initialiseViewItem');
-var initialiseView = require('./initialiseView');
-var initialiseAction = require('./initialiseAction');
-var initialiseBehaviour = require('./initialiseBehaviour');
 
 function Gaffa(){
     var gedi,
@@ -466,10 +419,34 @@ function Gaffa(){
             }
         },
 
+        ajax: function(settings){
+            console.warn('Ajax: This API is depricated and will be removed in a later version. Use a standalone module for XHR.');
+
+            var ajax = new (require('simple-ajax'))(settings);
+
+            ajax.on('complete', function(event){
+                var data,
+                    error;
+
+                try{
+                    data = JSON.parse(event.target.responseText);
+                }catch(error){
+                    error = error;
+                }
+
+                if(event.status <200 || event.status > 400){
+                    error = data || error;
+                }
+
+                !error && settings.success && settings.success(data);
+                error && settings.error && settings.error(error);
+                settings.complete && settings.complete(event);
+            });
+
+            ajax.send();
+        },
         merge: merge,
         clone: clone,
-        crel: crel,
-        doc: doc,
         getClosestItem: getClosestItem,
         browser: require('bowser')
     };
