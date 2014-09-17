@@ -38,13 +38,19 @@ function getItemPath(item){
     return gedi.paths.resolve.apply(this, paths.reverse());
 }
 
-var iuid = 0;
+var iuid = 0,
+    bindables = {};
+
 function Bindable(){
     this.setMaxListeners(1000);
     // instance unique ID
     this.__iuid = iuid++;
+    bindables[this.__iuid] = this;
 }
 Bindable = createSpec(Bindable, EventEmitter);
+Bindable.getByIuid = function(id){
+    return bindables[id];
+};
 Bindable.prototype.getPath = function(){
     return getItemPath(this);
 };

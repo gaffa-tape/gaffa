@@ -74,11 +74,6 @@ function updateProperty(property, firstUpdate){
     // and it will be false anyway.
 
     if(property.hasChanged()){
-        if(property.gaffa.debug){
-            property.update(property.parent, property.value);
-            return;
-        }
-
         requestUpdate(property);
     }
 }

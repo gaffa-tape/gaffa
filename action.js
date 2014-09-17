@@ -2,9 +2,35 @@ var createSpec = require('spec-js'),
     Property = require('./property'),
     ViewItem = require('./viewItem');
 
+function triggerAction(action, parent, scope, event) {
+    // clone
+    action = parent.gaffa.initialiseAction(statham.revive(JSON.parse(statham.stringify(action))));
+
+    action.bind(parent, scope);
+
+    scope || (scope = {});
+
+    if(action.condition.value){
+        action.trigger(parent, scope, event);
+    }
+
+    action.debind();
+}
+
+function triggerActions(actions, parent, scope, event) {
+    if(Array.isArray(actions)){
+        for(var i = 0; i < actions.length; i++) {
+            triggerAction(actions[i], parent, scope, event);
+        }
+    }else if(actions instanceof Action){
+        triggerAction(actions, parent, scope, event);
+    }
+}
+
 function Action(actionDescription){
 }
 Action = createSpec(Action, ViewItem);
+Action.trigger = triggerActions;
 Action.prototype.trigger = function(){
     throw 'Nothing is implemented for this action (' + this.constructor.name + ')';
 };

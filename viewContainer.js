@@ -79,6 +79,7 @@ ViewContainer.prototype.add = function(view, insertIndex){
 
         if(!view.renderedElement){
             view.render();
+            view.renderedElement.__iuid = view.__iuid;
             if(view.gaffa.debug && !(view.gaffa.browser.msie && view.gaffa.browser.version <9)){
                 view.renderedElement.viewModel = view;
             }

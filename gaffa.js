@@ -22,9 +22,6 @@ var Gedi = require('gedi'),
     cancelAnimationFrame = animationFrame.cancelAnimationFrame,
     resolvePath = require('./resolvePath');
 
-// Storage for applications default styles.
-var defaultViewStyles;
-
 var removeViews = require('./removeViews'),
     getClosestItem = require('./getClosestItem'),
     jsonConverter = require('./jsonConverter');
@@ -81,125 +78,6 @@ function tryParseJson(data){
     }
 }
 
-function ajax(settings){
-    var queryStringData,
-        request = new XMLHttpRequest();
-    if(typeof settings !== 'object'){
-        settings = {};
-    }
-
-    if(settings.cors){
-        //http://www.html5rocks.com/en/tutorials/cors/
-
-        if ("withCredentials" in request) {
-
-            // all good.
-
-        } else if (typeof XDomainRequest != "undefined") {
-
-            // Otherwise, check if XDomainRequest.
-            // XDomainRequest only exists in IE, and is IE's way of making CORS requests.
-            request = new XDomainRequest();
-        } else {
-
-            // Otherwise, CORS is not supported by the browser.
-            throw "Cors is not supported by this browser";
-        }
-    }else{
-        request = new XMLHttpRequest();
-    }
-
-    if(settings.cache === false){
-        settings.data = settings.data || {};
-        settings.data['_'] = new Date().getTime();
-    }
-
-    if(settings.type.toLowerCase() === 'get' && typeof settings.data === 'object'){
-        queryStringData = parseQueryString(settings.url);
-        for(var key in settings.data){
-            if(settings.data.hasOwnProperty(key)){
-                queryStringData[key] = settings.data[key];
-            }
-        }
-
-        settings.url  = settings.url.split('?').shift() + toQueryString(queryStringData);
-        settings.data = null;
-    }
-
-    request.addEventListener("progress", settings.progress, false);
-    request.addEventListener("load", function(event){
-        var data = event.target.responseText;
-
-        if(settings.dataType === 'json'){
-            if(data === ''){
-                data = undefined;
-            }else{
-                data = tryParseJson(data);
-            }
-        }
-
-        if(event.target.status >= 400){
-            settings.error && settings.error(event, data instanceof Error ? undefined : data);
-        }else{
-            if(data instanceof Error){
-                settings.error && settings.error(event, data);
-            }else{
-                settings.success && settings.success(data, event);
-            }
-        }
-        settings.complete.apply(this, arguments);
-    }, false);
-    request.addEventListener("error", settings.error, false);
-    request.addEventListener("abort", settings.abort, false);
-
-    request.open(settings.type || "get", settings.url, true);
-
-    // Set default headers
-    if(settings.contentType !== false){
-        request.setRequestHeader('Content-Type', settings.contentType || 'application/json; charset=utf-8');
-    }
-    request.setRequestHeader('X-Requested-With', settings.requestedWith || 'XMLHttpRequest');
-    if(settings.auth){
-        request.setRequestHeader('Authorization', settings.auth);
-    }
-
-    // Set custom headers
-    for(var key in settings.headers){
-        request.setRequestHeader(key, settings.headers[key]);
-    }
-
-    if(settings.processData !== false && settings.dataType === 'json'){
-        settings.data = JSON.stringify(settings.data);
-    }
-
-    request.send(settings.data && settings.data);
-
-    return request;
-}
-
-function triggerAction(action, parent, scope, event) {
-    // clone
-    action = parent.gaffa.initialiseAction(statham.revive(JSON.parse(statham.stringify(action))));
-
-    action.bind(parent, scope);
-
-    scope || (scope = {});
-
-    if(action.condition.value){
-        action.trigger(parent, scope, event);
-    }
-
-    action.debind();
-}
-
-function triggerActions(actions, parent, scope, event) {
-    if(Array.isArray(actions)){
-        for(var i = 0; i < actions.length; i++) {
-            triggerAction(actions[i], parent, scope, event);
-        }
-    }
-}
-
 var initialiseViewItem = require('./initialiseViewItem');
 var initialiseView = require('./initialiseView');
 var initialiseAction = require('./initialiseAction');
@@ -233,63 +111,6 @@ function Gaffa(){
     // Add gedi instance to gaffa.
     gaffa.gedi = gedi;
 
-    function addBehaviour(behaviour) {
-        //if the views isnt an array, make it one.
-        if (Array.isArray(behaviour)) {
-            for(var i = 0; i < behaviour.length; i++) {
-                addBehaviour(behaviour[i]);
-            }
-            return;
-        }
-
-        behaviour.gaffa = gaffa;
-        behaviour.parentContainer = internalBehaviours;
-
-        Behaviour.prototype.bind.call(behaviour);
-        behaviour.bind();
-
-        internalBehaviours.push(behaviour);
-    }
-
-
-    function load(app, target){
-
-        app = statham.revive(app);
-
-        while(internalIntervals.length){
-            clearInterval(internalIntervals.pop());
-        }
-
-        //clear state first
-        if (app.views) {
-            targetView.empty();
-        }
-
-        //set up state
-        if (app.model) {
-            gedi.set({});
-            gaffa.model.set(app.model, null, null, false);
-        }
-        if (app.views) {
-            for(var i = 0; i < app.views.length; i++) {
-                app.views[i] = initialiseView(app.views[i], gaffa);
-            }
-            targetView.add(app.views);
-        }
-        if (app.behaviours) {
-            for(var i = 0; i < app.behaviours.length; i++) {
-                app.behaviours[i] = initialiseBehaviour(app.behaviours[i], gaffa);
-            }
-            gaffa.behaviours.add(app.behaviours);
-        }
-
-        gaffa.emit("load");
-    }
-
-    function addDefaultsToScope(scope){
-        scope.windowLocation = location.toString();
-    }
-
     function modelGet(path, viewItem, scope, asTokens) {
         if(!(viewItem instanceof ViewItem || viewItem instanceof Property)){
             scope = viewItem;
@@ -298,7 +119,6 @@ function Gaffa(){
 
         scope = scope || {};
 
-        addDefaultsToScope(scope);
         var parentPath = resolvePath(viewItem);
 
         return gedi.get(path, parentPath, scope, asTokens);
@@ -601,7 +421,7 @@ function Gaffa(){
                  - scope is an arbitrary object to be passed in as scope to all expressions in the action
                  - event is an arbitrary event object that may have triggered the action, such as a DOM event.
             */
-            trigger: triggerActions,
+            trigger: Action.trigger,
 
             _constructors: {}
         },
@@ -614,16 +434,6 @@ function Gaffa(){
             contains functions and properties for manipulating the application's behaviours.
         */
         behaviours: {
-
-            /**
-                ### .add(behaviour)
-
-                add a behaviour to the root of the appliaction
-
-                    gaffa.behaviours.add(someBehaviour);
-            */
-            add: addBehaviour,
-
             _constructors: {}
         },
 
@@ -656,11 +466,8 @@ function Gaffa(){
             }
         },
 
-        load: load,
-        extend: merge, // DEPRICATED
         merge: merge,
         clone: clone,
-        ajax: ajax,
         crel: crel,
         doc: doc,
         getClosestItem: getClosestItem,
