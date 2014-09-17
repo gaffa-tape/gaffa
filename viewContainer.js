@@ -30,12 +30,6 @@ ViewContainer.prototype.bind = function(parent){
 
     return this;
 };
-ViewContainer.prototype.debind = function(){
-    for (var i = 0; i < this.length; i++) {
-        this[i].detach();
-    }
-    Bindable.prototype.debind.call(this);
-};
 ViewContainer.prototype.getPath = function(){
     return getItemPath(this);
 };
@@ -71,20 +65,19 @@ ViewContainer.prototype.add = function(view, insertIndex){
         if(!(view instanceof View)){
             view = this[this.indexOf(view)] = this.gaffa.initialiseView(view);
         }
-        if(view._bound){
-            return;
-        }
+        if(!view._bound){
 
-        view.gaffa = this.parent.gaffa;
+            view.gaffa = this.parent.gaffa;
 
-        if(!view.renderedElement){
-            view.render();
-            view.renderedElement.__iuid = view.__iuid;
-            if(view.gaffa.debug && !(view.gaffa.browser.msie && view.gaffa.browser.version <9)){
-                view.renderedElement.viewModel = view;
+            if(!view.renderedElement){
+                view.render();
+                view.renderedElement.__iuid = view.__iuid;
+                if(view.gaffa.debug && !(view.gaffa.browser.msie && view.gaffa.browser.version <9)){
+                    view.renderedElement.viewModel = view;
+                }
             }
+            view.bind(this.parent, this.parent.scope);
         }
-        view.bind(this.parent, this.parent.scope);
         view.insert(this, insertIndex);
     }
 
