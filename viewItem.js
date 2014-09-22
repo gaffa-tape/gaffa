@@ -116,6 +116,10 @@ ViewItem.prototype.bind = function(parent, scope){
 
     Bindable.prototype.bind.apply(this, arguments);
 
+    for(var key in this.scopeBindings){
+        this.scope[key] = this.gaffa.model.get(this.scopeBindings[key], this, this.scope);
+    }
+
     // Only set up properties that were on the prototype.
     // Faster and 'safer'
     for(var propertyKey in this.constructor.prototype){
