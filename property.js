@@ -66,15 +66,13 @@ function updateProperty(property, firstUpdate){
     //  the element is inserted into the DOM
     if(firstUpdate){
         property.update(property.parent, property.value);
+        property.hasChanged();
+        return;
     }
 
     if(!property._bound){
         return;
     }
-
-    // Still run the _lastValue.update(),
-    // because it sets up the state of the last value,
-    // and it will be false anyway.
 
     if(property.hasChanged()){
         requestUpdate(property);
