@@ -15,7 +15,9 @@ function triggerAction(action, parent, scope, event) {
         action.trigger(parent, scope, event);
     }
 
-    action.debind();
+    if(!action._async){
+        action.complete();
+    }
 }
 
 function triggerActions(actions, parent, scope, event) {
@@ -38,14 +40,13 @@ Action.prototype.trigger = function(){
 Action.prototype.condition = new Property({
     value: true
 });
+
+// Because actions shoudln't neccisarily debind untill they are complete,
+// They have an odd debind impementation.
 Action.prototype.debind = function(){
-    // Some actions are asynchronous.
-    // They should not debind until they are truely complete,
-    // or they are destroyed.
-    if(this._async && !this._complete){
-        return this.on('complete', this.debind.bind(this));
+    if(!this._complete && !this._destroyed){
+        return;
     }
-    ViewItem.prototype.debind.call(this);
     this.complete();
 };
 Action.prototype.complete = function(){
@@ -54,8 +55,7 @@ Action.prototype.complete = function(){
     }
     this._complete = true;
     this.emit('complete');
-    this.debind();
-    this.destroy();
+    ViewItem.prototype.debind.call(this);
 };
 
 module.exports = Action;
