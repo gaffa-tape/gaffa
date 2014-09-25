@@ -44,7 +44,6 @@ function Bindable(){
     this.setMaxListeners(1000);
     // instance unique ID
     this.__iuid = iuid++;
-    Bindable.bindables[this.__iuid] = this;
 }
 Bindable = createSpec(Bindable, EventEmitter);
 Bindable.bindables = {};
@@ -88,6 +87,7 @@ Bindable.prototype.bind = function(parent){
     this.updatePath();
 
     this._bound = true;
+    Bindable.bindables[this.__iuid] = this;
     this.emit('bind');
     this.removeAllListeners('bind');
 };
@@ -138,24 +138,28 @@ Bindable.prototype.debind = function(){
 
     this.emit('debind');
     this.removeAllListeners('debind');
+    delete Bindable.bindables[this.__iuid];
 };
 Bindable.prototype.destroy = function(){
     var bindable = this;
 
-    delete Bindable.bindables[this.__iuid];
     this._destroyed = true;
 
     if(this._bound){
         this.debind();
     }
 
-    this.emit('destroy');
-    this.removeAllListeners('destroy');
-
-    // Let any children bound to 'destroy' do their thing before actually destroying this.
+    // Destroy bindables asynchonously.
     eventually(function(){
-        bindable.gaffa = null;
-        bindable.parent = null;
+
+        bindable.emit('destroy');
+        bindable.removeAllListeners('destroy');
+
+        // Let any children bound to 'destroy' do their thing before actually destroying this.
+        eventually(function(){
+            bindable.gaffa = null;
+            bindable.parent = null;
+        });
     });
 };
 

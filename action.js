@@ -55,6 +55,7 @@ Action.prototype.complete = function(){
     this._complete = true;
     this.emit('complete');
     this.debind();
+    this.destroy();
 };
 
 module.exports = Action;

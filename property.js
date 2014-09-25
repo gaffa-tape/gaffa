@@ -11,18 +11,27 @@ var createSpec = require('spec-js'),
     resolvePath = require('./resolvePath');
 
 var nextFrame;
+
+function callPropertyUpdate(property){
+    if(property._bound){
+        property.update(property.parent, property.value);
+    }
+    property._queuedForUpdate = false;
+}
+
 function updateFrame() {
     while(nextFrame.length){
-        var property = nextFrame.pop();
-        if(property._bound){
-            property.update(property.parent, property.value);
-        }
-        property._queuedForUpdate = false;
+        callPropertyUpdate(nextFrame.pop());
     }
     nextFrame = null;
 }
 
 function requestUpdate(property){
+    if(property._immediate){
+        callPropertyUpdate(property);
+        return;
+    }
+
     if(!nextFrame){
         nextFrame = [];
 

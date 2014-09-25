@@ -150,6 +150,9 @@ ViewItem.prototype.triggerActions = function(actionName, scope, event){
     if(!this._bound){
         return;
     }
+    if(!this.actions[actionName] || !this.actions[actionName].length){
+        return;
+    }
     scope = merge(false, this.scope, scope);
     this.gaffa.actions.trigger(this.actions[actionName], this, scope, event);
 };
