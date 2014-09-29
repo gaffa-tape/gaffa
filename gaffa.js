@@ -38,7 +38,9 @@ function clone(value){
 
 function Gaffa(){
     var gedi,
-        gaffa = Object.create(EventEmitter.prototype);
+        gaffa = this;
+
+    this.gaffa = this;
 
     // internal varaibles
 
@@ -46,7 +48,7 @@ function Gaffa(){
     var internalModel = {},
 
         // Storage for the applications view.
-        internalViewItems = [],
+        rootViewContainer = new ViewContainer(),
 
         // Storage for application actions.
         internalActions = {},
@@ -57,12 +59,21 @@ function Gaffa(){
         // Storage for interval based behaviours.
         internalIntervals = [];
 
+    rootViewContainer.gaffa = this;
+    rootViewContainer.renderTarget = 'body';
+
+    if(typeof window !== 'undefined'){
+        window.addEventListener('load', function(){
+            gaffa._bound = true;
+            rootViewContainer.bind(gaffa);
+        });
+    }
 
     // Gedi initialisation
     gedi = new Gedi(internalModel);
 
     // Add gedi instance to gaffa.
-    gaffa.gedi = gedi;
+    this.gedi = gedi;
 
     function modelGet(path, viewItem, scope, asTokens) {
         if(!(viewItem instanceof ViewItem || viewItem instanceof Property)){
@@ -133,328 +144,243 @@ function Gaffa(){
         var gaffa = new Gaffa();
 */
 
-    var gaffaPublicObject = {
+    /**
+        ### .events
+
+        used throughout gaffa for binding DOM events.
+    */
+    this.events = {
 
         /**
-            ### .createSpec
+            ### .on
 
-                function myConstructor(){}
-                myConstructor = gaffa.createSpec(myConstructor, inheritedConstructor);
+            usage:
 
-            npm module: [spec-js](https://npmjs.org/package/spec-js)
+                gaffa.events.on('eventname', target, callback);
         */
-        createSpec: createSpec,
-
-        /**
-            ### .jsonConverter
-
-            default jsonification for ViewItems
-        */
-        jsonConverter: jsonConverter,
-
-        /**
-            ### .initialiseViewItem
-
-            takes the plain old object representation of a viewItem and returns an instance of ViewItem with all the settings applied.
-
-            Also recurses through the ViewItem's tree and inflates children.
-        */
-        initialiseViewItem: function(viewItem, specCollection, references){
-            return initialiseViewItem(viewItem, this, specCollection, references);
-        },
-
-        initialiseView: function(view, references){
-            return initialiseView(view, this, references);
-        },
-
-        initialiseAction: function(action, references){
-            return initialiseAction(action, this, references);
-        },
-
-        initialiseBehaviour: function(behaviour, references){
-            return initialiseBehaviour(behaviour, this, references);
-        },
-
-        /**
-            ### .initialiseViewItem
-
-            takes the plain old object representation of a viewItem and returns an instance of ViewItem with all the settings applied.
-
-            Also recurses through the ViewItem's tree and inflates children.
-        */
-        registerConstructor: function(constructor){
-            if(Array.isArray(constructor)){
-                for(var i = 0; i < constructor.length; i++){
-                    gaffa.registerConstructor(constructor[i]);
-                }
+        on: function(eventName, target, callback){
+            if('on' + eventName.toLowerCase() in target){
+                return doc.on(eventName, target, callback);
             }
-
-            var constructorType = constructor.prototype instanceof View && 'views' ||
-                constructor.prototype instanceof Action && 'actions' ||
-                constructor.prototype instanceof Behaviour && 'behaviours';
-
-            if(constructorType){
-                // ToDo: Deprecate .type
-                gaffa[constructorType]._constructors[constructor.prototype._type || constructor.prototype.type] = constructor;
-            }else{
-                throw "The provided constructor was not an instance of a View, Action, or Behaviour" +
-                    "\n This is likely due to having two version of Gaffa installed" +
-                    "\n Run 'npm ls gaffa' to check, and 'npm dedupe to fix'";
-            }
-        },
-
-        /**
-            ### .events
-
-            used throughout gaffa for binding DOM events.
-        */
-        events:{
-
-            /**
-                ### .on
-
-                usage:
-
-                    gaffa.events.on('eventname', target, callback);
-            */
-            on: function(eventName, target, callback){
-                if('on' + eventName.toLowerCase() in target){
-                    return doc.on(eventName, target, callback);
-                }
-            }
-        },
-
-        /**
-            ## .model
-
-            access to the applications model
-        */
-        model: {
-
-            /**
-                ### .get(path, viewItem, scope, asTokens)
-
-                used to get data from the model.
-                path is relative to the viewItems path.
-
-                    gaffa.model.get('[someProp]', parentViewItem);
-            */
-            get: modelGet,
-
-            /**
-                ### .set(path, value, viewItem, dirty)
-
-                used to set data into the model.
-                path is relative to the viewItems path.
-
-                    gaffa.model.set('[someProp]', 'hello', parentViewItem);
-            */
-            set: modelSet,
-
-            /**
-                ### .remove(path, viewItem, dirty)
-
-                used to remove data from the model.
-                path is relative to the viewItems path.
-
-                    gaffa.model.remove('[someProp]', parentViewItem);
-            */
-            remove: modelRemove,
-
-            /**
-                ### .isDirty(path, viewItem)
-
-                check if a part of the model is dirty.
-                path is relative to the viewItems path.
-
-                    gaffa.model.isDirty('[someProp]', viewItem); // true/false?
-            */
-            isDirty: modelIsDirty,
-
-            /**
-                ### .setDirtyState(path, value, viewItem)
-
-                set a part of the model to be dirty or not.
-                path is relative to the viewItems path.
-
-                    gaffa.model.setDirtyState('[someProp]', true, viewItem);
-            */
-            setDirtyState: modelSetDirtyState
-        },
-
-        /**
-            ## .views
-
-                gaffa.views //Object.
-
-            contains functions and properties for manipulating the application's views.
-        */
-        views: {
-
-            /**
-                ### .renderTarget
-
-                Overrideable DOM selector that top level view items will be inserted into.
-
-                    gaffa.views.renderTarget = 'body';
-            */
-            renderTarget: 'body',
-
-            /**
-                ### .add(View/viewModel, insertIndex)
-
-                Add a view or views to the root list of viewModels.
-                When a view is added, it will be rendered _bound, and inserted into the DOM.
-
-                    gaffa.views.add(myView);
-
-                Or:
-
-                    gaffa.views.add([
-                        myView1,
-                        myView1,
-                        myView1
-                    ]);
-            */
-            add: function(view, insertIndex){
-                if(Array.isArray(view)){
-                    for(var i = 0; i < view.length; i++) {
-                        gaffa.views.add(view[i]);
-                    }
-                    return;
-                }
-
-                view.gaffa = gaffa;
-                view.parentContainer = internalViewItems;
-                view.render();
-                view.renderedElement.viewModel = view;
-                view.bind();
-                view.insert(internalViewItems, insertIndex);
-            },
-
-            /**
-                ### .remove(view/views)
-
-                Remove a view or views from anywhere in the application.
-
-                    gaffa.views.remove(myView);
-            */
-            remove: removeViews,
-
-            /**
-                ### .empty()
-
-                empty the application of all views.
-
-                    gaffa.views.empty();
-            */
-            empty: function(){
-                removeViews(internalViewItems);
-            },
-
-            _constructors: {}
-        },
-
-        /**
-            ## .actions
-
-                gaffa.actions //Object.
-
-            contains functions and properties for manipulating the application's actions.
-        */
-        actions: {
-
-            /**
-                ### .trigger(actions, parent, scope, event)
-
-                trigger a gaffa action where:
-
-                 - actions is an array of actions to trigger.
-                 - parent is an instance of ViewItem that the action is on.
-                 - scope is an arbitrary object to be passed in as scope to all expressions in the action
-                 - event is an arbitrary event object that may have triggered the action, such as a DOM event.
-            */
-            trigger: Action.trigger,
-
-            _constructors: {}
-        },
-
-        /**
-            ## .behaviours
-
-                gaffa.behaviours //Object.
-
-            contains functions and properties for manipulating the application's behaviours.
-        */
-        behaviours: {
-            _constructors: {}
-        },
-
-        utils: {
-            // Get a deep property on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
-            getProp: function (object, propertiesString) {
-                var properties = propertiesString.split(Gaffa.pathSeparator).reverse();
-                while (properties.length) {
-                    var nextProp = properties.pop();
-                    if (object[nextProp] !== undefined && object[nextProp] !== null) {
-                        object = object[nextProp];
-                    } else {
-                        return;
-                    }
-                }
-                return object;
-            },
-            // See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
-            propExists: function (object, propertiesString) {
-                var properties = propertiesString.split(".").reverse();
-                while (properties.length) {
-                    var nextProp = properties.pop();
-                    if (object[nextProp] !== undefined && object[nextProp] !== null) {
-                        object = object[nextProp];
-                    } else {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        },
-
-        ajax: function(settings){
-            console.warn('Ajax: This API is depricated and will be removed in a later version. Use a standalone module for XHR.');
-
-            var ajax = new (require('simple-ajax'))(settings);
-
-            ajax.on('complete', function(event){
-                var data,
-                    error;
-
-                try{
-                    data = JSON.parse(event.target.responseText);
-                }catch(error){
-                    error = error;
-                }
-
-                if(event.status <200 || event.status > 400){
-                    error = data || error;
-                }
-
-                !error && settings.success && settings.success(data);
-                error && settings.error && settings.error(error);
-                settings.complete && settings.complete(event);
-            });
-
-            ajax.send();
-        },
-        merge: merge,
-        clone: clone,
-        getClosestItem: getClosestItem,
-        browser: require('bowser')
+        }
     };
 
-    merge(gaffa, gaffaPublicObject);
+    /**
+        ## .model
 
-    return gaffa;
+        access to the applications model
+    */
+    this.model = {
+
+        /**
+            ### .get(path, viewItem, scope, asTokens)
+
+            used to get data from the model.
+            path is relative to the viewItems path.
+
+                gaffa.model.get('[someProp]', parentViewItem);
+        */
+        get: modelGet,
+
+        /**
+            ### .set(path, value, viewItem, dirty)
+
+            used to set data into the model.
+            path is relative to the viewItems path.
+
+                gaffa.model.set('[someProp]', 'hello', parentViewItem);
+        */
+        set: modelSet,
+
+        /**
+            ### .remove(path, viewItem, dirty)
+
+            used to remove data from the model.
+            path is relative to the viewItems path.
+
+                gaffa.model.remove('[someProp]', parentViewItem);
+        */
+        remove: modelRemove,
+
+        /**
+            ### .isDirty(path, viewItem)
+
+            check if a part of the model is dirty.
+            path is relative to the viewItems path.
+
+                gaffa.model.isDirty('[someProp]', viewItem); // true/false?
+        */
+        isDirty: modelIsDirty,
+
+        /**
+            ### .setDirtyState(path, value, viewItem)
+
+            set a part of the model to be dirty or not.
+            path is relative to the viewItems path.
+
+                gaffa.model.setDirtyState('[someProp]', true, viewItem);
+        */
+        setDirtyState: modelSetDirtyState
+    };
+
+    /**
+        ## .views
+
+            gaffa.views // ViewContainer.
+
+        the Gaffa instances top viewContainer.
+    */
+    this.views = rootViewContainer;
+
+    /**
+        ## .actions
+
+            gaffa.actions // Object.
+
+        contains functions and properties for manipulating the application's actions.
+    */
+    this.actions = {
+
+        /**
+            ### .trigger(actions, parent, scope, event)
+
+            trigger a gaffa action where:
+
+             - actions is an array of actions to trigger.
+             - parent is an instance of ViewItem that the action is on.
+             - scope is an arbitrary object to be passed in as scope to all expressions in the action
+             - event is an arbitrary event object that may have triggered the action, such as a DOM event.
+        */
+        trigger: Action.trigger,
+
+    };
+    this._constructors = {
+        views: {},
+        actions: {},
+        behaviours: {}
+    };
 }
+Gaffa.prototype = Object.create(EventEmitter.prototype);
+Gaffa.prototype.constructor = Gaffa;
+Gaffa.prototype.merge = merge;
+Gaffa.prototype.clone = clone;
+Gaffa.prototype.getClosestItem = getClosestItem;
+Gaffa.prototype.browser = require('bowser');
+Gaffa.prototype.ajax = function(settings){
+    console.warn('Ajax: This API is depricated and will be removed in a later version. Use a standalone module for XHR.');
+
+    var ajax = new (require('simple-ajax'))(settings);
+
+    ajax.on('complete', function(event){
+        var data,
+            error;
+
+        try{
+            data = JSON.parse(event.target.responseText);
+        }catch(error){
+            error = error;
+        }
+
+        if(event.status <200 || event.status > 400){
+            error = data || error;
+        }
+
+        !error && settings.success && settings.success(data);
+        error && settings.error && settings.error(error);
+        settings.complete && settings.complete(event);
+    });
+
+    ajax.send();
+};
+Gaffa.prototype.utils = {
+    // Get a deep property on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
+    getProp: function (object, propertiesString) {
+        var properties = propertiesString.split(Gaffa.pathSeparator).reverse();
+        while (properties.length) {
+            var nextProp = properties.pop();
+            if (object[nextProp] !== undefined && object[nextProp] !== null) {
+                object = object[nextProp];
+            } else {
+                return;
+            }
+        }
+        return object;
+    },
+    // See if a property exists on an object without doing if(obj && obj.prop && obj.prop.prop) etc...
+    propExists: function (object, propertiesString) {
+        var properties = propertiesString.split(".").reverse();
+        while (properties.length) {
+            var nextProp = properties.pop();
+            if (object[nextProp] !== undefined && object[nextProp] !== null) {
+                object = object[nextProp];
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+
+/**
+    ### .initialiseViewItem
+
+    takes the plain old object representation of a viewItem and returns an instance of ViewItem with all the settings applied.
+
+    Also recurses through the ViewItem's tree and inflates children.
+*/
+Gaffa.prototype.initialiseViewItem = function(viewItem, specCollection, references){
+    return initialiseViewItem(viewItem, this, specCollection, references);
+};
+
+Gaffa.prototype.initialiseView = function(view, references){
+    return initialiseView(view, this, references);
+};
+
+Gaffa.prototype.initialiseAction = function(action, references){
+    return initialiseAction(action, this, references);
+};
+
+Gaffa.prototype.initialiseBehaviour = function(behaviour, references){
+    return initialiseBehaviour(behaviour, this, references);
+};
+
+Gaffa.prototype.registerConstructor = function(constructor){
+    if(Array.isArray(constructor)){
+        for(var i = 0; i < constructor.length; i++){
+            this.registerConstructor(constructor[i]);
+        }
+    }
+
+    var constructorType = constructor.prototype instanceof View && 'views' ||
+        constructor.prototype instanceof Action && 'actions' ||
+        constructor.prototype instanceof Behaviour && 'behaviours';
+
+    if(constructorType){
+        // ToDo: Deprecate .type
+        this._constructors[constructorType][constructor.prototype._type || constructor.prototype.type] = constructor;
+    }else{
+        throw "The provided constructor was not an instance of a View, Action, or Behaviour" +
+            "\n This is likely due to having two version of Gaffa installed" +
+            "\n Run 'npm ls gaffa' to check, and 'npm dedupe to fix'";
+    }
+};
+
+/**
+    ### .createSpec
+
+        function myConstructor(){}
+        myConstructor = gaffa.createSpec(myConstructor, inheritedConstructor);
+
+    npm module: [spec-js](https://npmjs.org/package/spec-js)
+*/
+Gaffa.prototype.createSpec = createSpec;
+
+/**
+    ### .jsonConverter
+
+    default jsonification for ViewItems
+*/
+Gaffa.prototype.jsonConverter = jsonConverter;
 
 
 // "constants"

@@ -122,7 +122,7 @@ View.prototype.bind = function(parent, scope){
 };
 View.prototype.rebind = function(parent, scope){
     this._rebind = true;
-    this.bind();
+    this.bind(parent, scope);
     this._rebind = null;
 };
 View.prototype.detach = function(){
@@ -168,10 +168,6 @@ function insert(view, viewContainer, insertIndex){
         laidout(view.renderedElement, function(){
             view.afterInsert();
         });
-    }
-
-    if(viewContainer.indexOf(view) !== insertIndex){
-        viewContainer.splice(insertIndex, 1, view);
     }
 
     view.insertFunction(view.insertSelector || renderTarget, view.renderedElement, insertIndex);
