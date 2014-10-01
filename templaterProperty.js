@@ -19,7 +19,7 @@ function findValueIn(value, source){
 }
 
 TemplaterProperty.prototype._immediate = true;
-TemplaterProperty.prototype.watchChanges = 'structure';
+TemplaterProperty.prototype.watchChanges = 'structure value';
 TemplaterProperty.prototype.hasChanged = function(){
     var changes = this._lastValue.update(this.value),
         watched = this.watchChanges.split(' '),
