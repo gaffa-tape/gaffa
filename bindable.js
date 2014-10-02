@@ -39,12 +39,17 @@ function getItemPath(item){
 }
 
 var iuid = 0;
+
 function Bindable(){
     this.setMaxListeners(1000);
     // instance unique ID
     this.__iuid = iuid++;
 }
 Bindable = createSpec(Bindable, EventEmitter);
+Bindable.bindables = {};
+Bindable.getByIuid = function(id){
+    return this.bindables[id];
+};
 Bindable.prototype.getPath = function(){
     return getItemPath(this);
 };
@@ -74,6 +79,7 @@ Bindable.prototype.bind = function(parent){
     if(parent){
         this.gaffa = parent.gaffa;
         this.parent = parent;
+        this._parentId = parent.__iuid;
         parent.once('debind', this.debind.bind(this));
         parent.once('destroy', this.destroy.bind(this));
     }
@@ -81,6 +87,7 @@ Bindable.prototype.bind = function(parent){
     this.updatePath();
 
     this._bound = true;
+    Bindable.bindables[this.__iuid] = this;
     this.emit('bind');
     this.removeAllListeners('bind');
 };
@@ -109,10 +116,10 @@ Bindable.prototype.updatePath = function(){
         }
     }
 
-    setPath(gaffa.gedi.get(this.pathBinding, absoluteSourcePath, null, true));
+    setPath(gaffa.gedi.get(this.pathBinding, absoluteSourcePath, bindable.scope, true));
 
     function handlePathChange(event){
-        setPath(event.getValue(null, true));
+        setPath(gaffa.model.get(bindable.pathBinding, bindable, bindable.scope, true));
     }
 
     gaffa.gedi.bind(this.pathBinding, handlePathChange, absoluteSourcePath);
@@ -131,6 +138,7 @@ Bindable.prototype.debind = function(){
 
     this.emit('debind');
     this.removeAllListeners('debind');
+    delete Bindable.bindables[this.__iuid];
 };
 Bindable.prototype.destroy = function(){
     var bindable = this;
@@ -141,13 +149,17 @@ Bindable.prototype.destroy = function(){
         this.debind();
     }
 
-    this.emit('destroy');
-    this.removeAllListeners('destroy');
-
-    // Let any children bound to 'destroy' do their thing before actually destroying this.
+    // Destroy bindables asynchonously.
     eventually(function(){
-        bindable.gaffa = null;
-        bindable.parent = null;
+
+        bindable.emit('destroy');
+        bindable.removeAllListeners('destroy');
+
+        // Let any children bound to 'destroy' do their thing before actually destroying this.
+        eventually(function(){
+            bindable.gaffa = null;
+            bindable.parent = null;
+        });
     });
 };
 

@@ -5,21 +5,33 @@ var createSpec = require('spec-js'),
     createModelScope = require('./createModelScope'),
     WhatChanged = require('what-changed'),
     merge = require('merge'),
+    animationFrame = require('./raf.js'),
+    requestAnimationFrame = animationFrame.requestAnimationFrame,
+    cancelAnimationFrame = animationFrame.cancelAnimationFrame,
     resolvePath = require('./resolvePath');
 
 var nextFrame;
+
+function callPropertyUpdate(property){
+    if(property._bound){
+        property.update(property.parent, property.value);
+    }
+    property._queuedForUpdate = false;
+}
+
 function updateFrame() {
     while(nextFrame.length){
-        var property = nextFrame.pop();
-        if(property._bound){
-            property.update(property.parent, property.value);
-        }
-        property._queuedForUpdate = false;
+        callPropertyUpdate(nextFrame.pop());
     }
     nextFrame = null;
 }
 
 function requestUpdate(property){
+    if(property._immediate){
+        callPropertyUpdate(property);
+        return;
+    }
+
     if(!nextFrame){
         nextFrame = [];
 
@@ -63,22 +75,15 @@ function updateProperty(property, firstUpdate){
     //  the element is inserted into the DOM
     if(firstUpdate){
         property.update(property.parent, property.value);
+        property.hasChanged();
+        return;
     }
 
     if(!property._bound){
         return;
     }
 
-    // Still run the _lastValue.update(),
-    // because it sets up the state of the last value,
-    // and it will be false anyway.
-
     if(property.hasChanged()){
-        if(property.gaffa.debug){
-            property.update(property.parent, property.value);
-            return;
-        }
-
         requestUpdate(property);
     }
 }

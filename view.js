@@ -26,9 +26,13 @@ function insertFunction(selector, renderedElement, insertIndex){
     if(target && target.childNodes){
         referenceSibling = target.childNodes[insertIndex];
     }
-    if (referenceSibling){
+    if(referenceSibling){
+        if(referenceSibling === renderedElement){
+            // don't do anything, element is already in the correct location.
+            return;
+        }
         target.insertBefore(renderedElement, referenceSibling);
-    }  else {
+    }else{
         target.appendChild(renderedElement);
     }
 }
@@ -71,17 +75,17 @@ function View(viewDescription){
 }
 View = createSpec(View, ViewItem);
 
-View.prototype.bind = function(parent, scope){
-    ViewItem.prototype.bind.apply(this, arguments);
-
-    for(var key in this){
-        if(crel.isElement(this[key])){
-            this.consuela.watch(this[key]);
+function watchElements(view){
+    for(var key in view){
+        if(crel.isElement(view[key])){
+            view.consuela.watch(view[key]);
         }
     }
+}
 
-    for(var key in this.actions){
-        var actions = this.actions[key],
+function bindViewEvents(view){
+    for(var key in view.actions){
+        var actions = view.actions[key],
             off;
 
         if(actions._bound){
@@ -90,19 +94,39 @@ View.prototype.bind = function(parent, scope){
 
         actions._bound = true;
 
-        bindViewEvent(this, key);
+        bindViewEvent(view, key);
     }
+}
 
-    this.triggerActions('load');
-
-    for(var i = 0; i < this.behaviours.length; i++){
-        Behaviour.prototype.bind.call(this.behaviours[i], this, scope);
-        if(this.behaviours[i].bind !== Behaviour.prototype.bind){
-            this.behaviours[i].bind(this, scope);
+function bindBehaviours(view, scope){
+    for(var i = 0; i < view.behaviours.length; i++){
+        Behaviour.prototype.bind.call(view.behaviours[i], view, scope);
+        if(view.behaviours[i].bind !== Behaviour.prototype.bind){
+            view.behaviours[i].bind(view, scope);
         }
     }
-};
+}
 
+View.prototype.bind = function(parent, scope){
+    var isRebind = this._rebind;
+    if(isRebind){
+        this.debind();
+    }
+    ViewItem.prototype.bind.apply(this, arguments);
+    watchElements(this);
+    bindViewEvents(this);
+    if(!isRebind){
+        this.triggerActions('load');
+    }
+    bindBehaviours(this, scope);
+};
+View.prototype.rebind = function(parent, scope){
+    parent = parent || this.parent;
+    scope = scope || this.scope;
+    this._rebind = true;
+    this.bind(parent, scope);
+    this._rebind = null;
+};
 View.prototype.detach = function(){
     this.renderedElement && this.renderedElement.parentNode && this.renderedElement.parentNode.removeChild(this.renderedElement);
 };
@@ -146,10 +170,6 @@ function insert(view, viewContainer, insertIndex){
         laidout(view.renderedElement, function(){
             view.afterInsert();
         });
-    }
-
-    if(viewContainer.indexOf(view) !== insertIndex){
-        viewContainer.splice(insertIndex, 1, view);
     }
 
     view.insertFunction(view.insertSelector || renderTarget, view.renderedElement, insertIndex);

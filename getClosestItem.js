@@ -1,15 +1,19 @@
 function getClosestItem(target){
-    var viewModel = target.viewModel;
+	if(!target){
+		return;
+	}
+	
+    var iuid = target.__iuid;
 
-    while(!viewModel && target){
+    while(!iuid && target){
         target = target.parentNode;
 
         if(target){
-            viewModel = target.viewModel;
+            iuid = target.__iuid;
         }
     }
 
-    return viewModel;
+    return require('./bindable').getByIuid(iuid);
 }
 
 module.exports = getClosestItem;
