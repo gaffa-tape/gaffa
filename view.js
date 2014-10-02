@@ -121,6 +121,8 @@ View.prototype.bind = function(parent, scope){
     bindBehaviours(this, scope);
 };
 View.prototype.rebind = function(parent, scope){
+    parent = parent || this.parent;
+    scope = scope || this.scope;
     this._rebind = true;
     this.bind(parent, scope);
     this._rebind = null;
