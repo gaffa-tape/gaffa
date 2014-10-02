@@ -60,7 +60,7 @@ TemplaterProperty.prototype.hasChanged = function(){
         }
     }
 };
-TemplaterProperty.prototype.update =function (viewModel, value) {
+TemplaterProperty.prototype.update =function (view, value) {
     if(!this.template){
         return;
     }
@@ -70,7 +70,7 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
         gaffa = this.gaffa,
         paths = gaffa.gedi.paths,
         viewsName = this.viewsName,
-        childViews = viewModel.views[viewsName],
+        childViews = view.views[viewsName],
         sourcePathInfo = this._sourcePathInfo,
         viewsToRemove = childViews.slice(),
         isEmpty = true;
@@ -138,13 +138,13 @@ TemplaterProperty.prototype.update =function (viewModel, value) {
                 if(existingChild.sourcePath !== sourcePath){
                     existingChild.scope = {item: existingChild._item, key: key};
                     existingChild.sourcePath = property.ignorePaths ? null : sourcePath;
-                    existingChild.rebind(property);
+                    existingChild.rebind();
                 }
 
                 if(itemIndex !== existingIndex){
                     childViews.add(existingChild, itemIndex);
                 }
-            } 
+            }
 
             itemIndex++;
         }
