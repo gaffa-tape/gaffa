@@ -1,5 +1,5 @@
 var insertionRequests,
-    insertionWindow = 1000/240; // Only insert for part of frame, allow time for other opperations.
+    insertionWindow = 1000/480; // Only insert for part of a frame, allow time for other opperations.
 
 var now = typeof performance !== 'undefined' ? performance.now.bind(performance): Date.now.bind(Date);
 
@@ -8,7 +8,7 @@ function updateFrame() {
         return;
     }
 
-    var insertionRequest = insertionRequests[0],
+    var insertionRequest = insertionRequests[insertionRequests.length-1],
         startTime = now();
 
     do{
@@ -17,8 +17,8 @@ function updateFrame() {
         }
 
         if(!insertionRequest.opperations.length){
-            insertionRequests.shift();
-            insertionRequest = insertionRequests[0];
+            insertionRequests.pop();
+            insertionRequest = insertionRequests[insertionRequests.length-1];
             continue;
         }
 
