@@ -2,7 +2,7 @@ var createSpec = require('spec-js'),
     Bindable = require('./bindable'),
     jsonConverter = require('./jsonConverter'),
     Property = require('./property'),
-    merge = require('merge');
+    merge = require('./flatMerge');
 
 function copyProperties(source, target){
     if(
@@ -55,7 +55,7 @@ function inflateViewItem(viewItem, description){
                 // actions to trigger when a 'click' event is raised by the views renderedElement
             ];
     */
-    viewItem.actions = viewItem.actions ? clone(viewItem.actions) : {};
+    viewItem.actions = merge(viewItem.actions);
 
     for(var key in description){
         var prop = viewItem[key];
@@ -109,10 +109,9 @@ ViewItem = createSpec(ViewItem, Bindable);
 ViewItem.prototype.path = '[]';
 ViewItem.prototype.bind = function(parent, scope){
 
-    var viewItem = this,
-        property;
+    var viewItem = this;
 
-    this.scope = merge(false, scope, this.scope);
+    this.scope = merge(scope, this.scope);
 
     Bindable.prototype.bind.apply(this, arguments);
 
@@ -123,9 +122,8 @@ ViewItem.prototype.bind = function(parent, scope){
     // Only set up properties that were on the prototype.
     // Faster and 'safer'
     for(var propertyKey in this.constructor.prototype){
-        property = this[propertyKey];
-        if(property instanceof Property){
-            property.bind(this, this.scope);
+        if(this[propertyKey] instanceof Property){
+            this[propertyKey].bind(this, this.scope);
         }
     }
 
@@ -153,7 +151,7 @@ ViewItem.prototype.triggerActions = function(actionName, scope, event){
     if(!this.actions[actionName] || !this.actions[actionName].length){
         return;
     }
-    scope = merge(false, this.scope, scope);
+    scope = merge(this.scope, scope);
     this.gaffa.actions.trigger(this.actions[actionName], this, scope, event);
 };
 

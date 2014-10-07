@@ -53,7 +53,12 @@ Action.prototype.complete = function(){
     if(this._complete){
         return;
     }
+
     this._complete = true;
+    var action = this;
+    this.on('debind', function(){
+        action.destroy();
+    });
     this.emit('complete');
     ViewItem.prototype.debind.call(this);
 };

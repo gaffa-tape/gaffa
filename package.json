@@ -9,6 +9,7 @@
   "main": "gaffa.js",
   "dependencies": {
     "bowser": "^0.7.1",
+    "clean-merge": "^1.0.0",
     "consuela": "^4.2.0",
     "crel": "^2.1.1",
     "deep-equal": "0.0.x",

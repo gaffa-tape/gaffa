@@ -1,10 +1,10 @@
-var deepEqual = require('deep-equal');
+var deepEqual = require('deep-equal'),
+    excludeProps = require('./excludeProps'),
+    includeProps = require('./includeProps');
 
 function jsonConverter(object, exclude, include){
     var plainInstance = new object.constructor(),
-        tempObject = (Array.isArray(object) || object instanceof Array) ? [] : {},
-        excludeProps = ["_trackedListeners", "__iuid", "gaffa", "parent", "parentContainer", "renderedElement", "_removeHandlers", "gediCallbacks", "__super__", "_events", "consuela"],
-        includeProps = ["type", "_type"];
+        tempObject = (Array.isArray(object) || object instanceof Array) ? [] : {};
 
     //console.log(object.constructor.name);
 

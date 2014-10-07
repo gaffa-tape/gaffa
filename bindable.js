@@ -64,9 +64,22 @@ Bindable.prototype.toJSON = function(){
 
     return tempObject;
 };
-Bindable.prototype.bind = function(parent){
-    var bindable = this;
 
+function setupCleanup(bindable, parent){
+    var onDebind = bindable.debind.bind(bindable);
+    parent.once('debind', onDebind);
+    bindable.once('debind', function(){
+        bindable.parent.removeListener('debind', onDebind);
+    });
+
+    var onDestroy = bindable.destroy.bind(bindable);
+    parent.once('destroy', onDestroy);
+    bindable.once('destroy', function(){
+        bindable.parent.removeListener('destroy', onDestroy);
+    });
+}
+
+Bindable.prototype.bind = function(parent){
     if(parent && !parent._bound){
         console.warn('Attempted to bind to a parent who was not bound.');
         return;
@@ -80,8 +93,8 @@ Bindable.prototype.bind = function(parent){
         this.gaffa = parent.gaffa;
         this.parent = parent;
         this._parentId = parent.__iuid;
-        parent.once('debind', this.debind.bind(this));
-        parent.once('destroy', this.destroy.bind(this));
+
+        setupCleanup(this, parent);
     }
 
     this.updatePath();
@@ -147,6 +160,12 @@ Bindable.prototype.destroy = function(){
 
     if(this._bound){
         this.debind();
+    }
+
+    for(var key in this){
+        if(key !== 'parent' && this[key] instanceof Bindable && this[key]._bound){
+            console.log(key);
+        }
     }
 
     // Destroy bindables asynchonously.

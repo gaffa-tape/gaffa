@@ -35,6 +35,6 @@ ContainerView.prototype.renderChildren = new Property({
         }
     },
     value: true
-})
+});
 
 module.exports = ContainerView;

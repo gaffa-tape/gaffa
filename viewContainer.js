@@ -3,6 +3,7 @@ var createSpec = require('spec-js'),
     View = require('./view'),
     initialiseViewItem = require('./initialiseViewItem'),
     removeViews = require('./removeViews'),
+    requestInsersion = require('./requestInsersion'),
     arrayProto = Array.prototype;
 
 function ViewContainer(viewContainerDescription){
@@ -85,41 +86,11 @@ ViewContainer.prototype.add = function(view, insertIndex){
 };
 
 /*
-    adds 10 (10 is arbitrary) views at a time to the target viewContainer,
-    then queues up another add.
-*/
-function executeDeferredAdd(viewContainer){
-    var currentOpperation = viewContainer._deferredViews.splice(0,10);
-
-    if(!currentOpperation.length){
-        return;
-    }
-
-    for (var i = 0; i < currentOpperation.length; i++) {
-        viewContainer.add(currentOpperation[i][0], currentOpperation[i][1]);
-    };
-    requestAnimationFrame(function(time){
-        executeDeferredAdd(viewContainer);
-    });
-}
-
-/*
-    Adds children to the view container over time, via RAF.
-    Will only begin the render cycle if there are no _deferredViews,
-    because if _deferredViews.length is > 0, the render loop will
-    already be going.
+    Adds children to the view container over time.
 */
 ViewContainer.prototype.deferredAdd = function(view, insertIndex){
-    var viewContainer = this,
-        shouldStart = !this._deferredViews.length;
-
     this._deferredViews.push([view, insertIndex]);
-
-    if(shouldStart){
-        requestAnimationFrame(function(){
-            executeDeferredAdd(viewContainer);
-        });
-    }
+    requestInsersion(this, this._deferredViews);
 };
 
 ViewContainer.prototype.abortDeferredAdd = function(){

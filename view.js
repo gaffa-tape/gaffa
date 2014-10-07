@@ -77,6 +77,9 @@ View = createSpec(View, ViewItem);
 
 function watchElements(view){
     for(var key in view){
+        if(!view.hasOwnProperty(key)){
+            return;
+        }
         if(crel.isElement(view[key])){
             view.consuela.watch(view[key]);
         }

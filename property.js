@@ -4,11 +4,13 @@ var createSpec = require('spec-js'),
     jsonConverter = require('./jsonConverter'),
     createModelScope = require('./createModelScope'),
     WhatChanged = require('what-changed'),
-    merge = require('merge'),
+    merge = require('./flatMerge'),
     animationFrame = require('./raf.js'),
     requestAnimationFrame = animationFrame.requestAnimationFrame,
     cancelAnimationFrame = animationFrame.cancelAnimationFrame,
-    resolvePath = require('./resolvePath');
+    resolvePath = require('./resolvePath'),
+    excludeProps = require('./excludeProps'),
+    includeProps = require('./includeProps');
 
 var nextFrame;
 
@@ -134,10 +136,23 @@ function createPropertyCallback(property){
 
 
 function Property(propertyDescription){
+    if(!propertyDescription){
+        return this;
+    }
+
     if(typeof propertyDescription === 'function'){
         this.update = propertyDescription;
     }else{
         for(var key in propertyDescription){
+            if(
+                !propertyDescription.hasOwnProperty(key) ||
+                propertyDescription instanceof Property && (
+                    ~propertyDescription.__serialiseExclude__.indexOf(key) || 
+                    ~excludeProps.indexOf(key)
+                )
+            ){
+                continue;
+            }
             this[key] = propertyDescription[key];
         }
     }
@@ -160,7 +175,7 @@ Property.prototype.set = function(value, isDirty, scope){
         return;
     }
 
-    scope = merge(false, this.scope, scope);
+    scope = merge(this.scope, scope);
 
     var gaffa = this.gaffa,
         dirty = isDirty;
@@ -170,7 +185,7 @@ Property.prototype.set = function(value, isDirty, scope){
     }
 
     if(this.binding){
-        var setValue = this.setTransform ? gaffa.model.get(this.setTransform, this, merge(false, this.scope, {value: value})) : value;
+        var setValue = this.setTransform ? gaffa.model.get(this.setTransform, this, merge(this.scope, {value: value})) : value;
         gaffa.model.set(
             this.binding,
             setValue,
@@ -191,7 +206,7 @@ Property.prototype.get = function(scope, asTokens){
         return this.value;
     }
 
-    scope = merge(false, this.scope, scope);
+    scope = merge(this.scope, scope);
 
     if(this.binding){
         var value = this.gaffa.model.get(this.binding, this, scope, asTokens);
@@ -205,7 +220,7 @@ Property.prototype.get = function(scope, asTokens){
     }
 };
 Property.prototype.bind = function(parent, scope) {
-    this.scope = merge(false, scope, this.scope);
+    this.scope = merge(scope, this.scope);
 
     Bindable.prototype.bind.apply(this, arguments);
 
