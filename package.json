@@ -5,7 +5,7 @@
   "tags": [
     "DOM"
   ],
-  "version": "1.19.10",
+  "version": "1.19.11",
   "main": "gaffa.js",
   "dependencies": {
     "bowser": "^0.7.1",
