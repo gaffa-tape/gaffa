@@ -41,7 +41,7 @@ Action.prototype.condition = new Property({
     value: true
 });
 
-// Because actions shoudln't neccisarily debind untill they are complete,
+// Because actions shouldn't neccisarily debind untill they are complete,
 // They have an odd debind impementation.
 Action.prototype.debind = function(){
     if(!this._complete && !this._destroyed){
@@ -61,6 +61,20 @@ Action.prototype.complete = function(){
     });
     this.emit('complete');
     ViewItem.prototype.debind.call(this);
+};
+
+// Only actually destroy if either the actions parent was not an Action,
+// Or if its Action parent was explicitly destroyed.
+Action.prototype.destroy = function(){
+    if(!this._complete && (this.parent instanceof Action ? this.parent._canceled : true)){
+        this._canceled = true;
+    }
+
+    if(!this._complete && !this._canceled){
+        return;
+    }
+
+    ViewItem.prototype.destroy.call(this);
 };
 
 module.exports = Action;
