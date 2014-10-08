@@ -120,6 +120,14 @@ View.prototype.bind = function(parent, scope){
     bindViewEvents(this);
     if(!isRebind){
         this.triggerActions('load');
+
+        var view = this,
+            onDetach = this.detach.bind(this);
+
+        parent.once('detach', onDetach);
+        this.once('destroy', function(){
+            view.parent.removeListener('detach', onDetach);
+        });
     }
     bindBehaviours(this, scope);
 };
@@ -136,6 +144,7 @@ View.prototype.detach = function(){
 
 View.prototype.remove = function(){
     this.detach();
+    this.emit('detach');
     ViewItem.prototype.remove.call(this);
 }
 
