@@ -8,6 +8,7 @@ function triggerAction(action, parent, scope, event) {
     action = parent.gaffa.initialiseAction(statham.revive(JSON.parse(statham.stringify(action))));
 
     action.bind(parent, scope);
+    action.path = action.getPath();
 
     scope || (scope = {});
 
