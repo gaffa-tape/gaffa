@@ -63,7 +63,7 @@ function Gaffa(){
     rootViewContainer.renderTarget = 'body';
 
     if(typeof window !== 'undefined'){
-        window.addEventListener('load', function(){
+        doc.ready(function(){
             gaffa._bound = true;
             rootViewContainer.bind(gaffa);
         });
