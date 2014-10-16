@@ -10,9 +10,13 @@ var createSpec = require('spec-js'),
     cancelAnimationFrame = animationFrame.cancelAnimationFrame,
     resolvePath = require('./resolvePath'),
     excludeProps = require('./excludeProps'),
-    includeProps = require('./includeProps');
+    includeProps = require('./includeProps'),
+    Sched = require('sched');
 
-var nextFrame;
+var nextFrame,
+    sched = new Sched();
+
+sched.start();
 
 function callPropertyUpdate(property){
     if(property._bound){
@@ -251,12 +255,13 @@ Property.prototype.bind = function(parent, scope) {
         }
         var property = this;
         if(!isNaN(this.interval)){
-            function timeoutUpdate(){
-                if(!intervalUpdate()){
-                    setTimeout(timeoutUpdate,property.interval);
+            var interval;
+            function schedUpdate(){
+                if(intervalUpdate()){
+                    interval.kill();
                 }
             };
-            timeoutUpdate();
+            interval = sched.interval(this.interval, schedUpdate);
         }else if(this.interval === 'frame'){
             function frameUpdate(){
                 if(!intervalUpdate()){
