@@ -150,7 +150,6 @@ Bindable.prototype.debind = function(){
     this._bound = false;
 
     this.emit('debind');
-    this.removeAllListeners('debind');
     delete Bindable.bindables[this.__iuid];
 };
 Bindable.prototype.destroy = function(){
@@ -172,6 +171,7 @@ Bindable.prototype.destroy = function(){
     eventually(function(){
 
         bindable.emit('destroy');
+        bindable.removeAllListeners('debind');
         bindable.removeAllListeners('destroy');
 
         // Let any children bound to 'destroy' do their thing before actually destroying this.
