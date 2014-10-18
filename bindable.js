@@ -171,7 +171,8 @@ Bindable.prototype.destroy = function(){
     eventually(function(){
 
         bindable.emit('destroy');
-        bindable.removeAllListeners();
+        bindable.removeAllListeners('debind');
+        bindable.removeAllListeners('destroy');
 
         // Let any children bound to 'destroy' do their thing before actually destroying this.
         eventually(function(){
