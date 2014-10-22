@@ -1,5 +1,5 @@
 var insertionRequests,
-    insertionWindow = 1000/480; // Only insert for part of a frame, allow time for other opperations.
+    insertionWindow = 1000/120; // Only insert for part of a frame, allow time for other opperations.
 
 var now = typeof performance !== 'undefined' ? performance.now.bind(performance): Date.now.bind(Date);
 

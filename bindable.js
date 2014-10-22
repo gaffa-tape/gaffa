@@ -105,7 +105,6 @@ Bindable.prototype.bind = function(parent){
     this._bound = true;
     Bindable.bindables[this.__iuid] = this;
     this.emit('bind');
-    this.removeAllListeners('bind');
 };
 Bindable.prototype.getSourcePath = function(){
     return this.gaffa.gedi.paths.resolve(this.parent && this.parent.getPath(), this.sourcePath);
@@ -153,7 +152,6 @@ Bindable.prototype.debind = function(){
     this._bound = false;
 
     this.emit('debind');
-    this.removeAllListeners('debind');
     delete Bindable.bindables[this.__iuid];
 };
 Bindable.prototype.destroy = function(){
@@ -175,7 +173,7 @@ Bindable.prototype.destroy = function(){
     eventually(function(){
 
         bindable.emit('destroy');
-        bindable.removeAllListeners('destroy');
+        bindable.removeAllListeners();
 
         // Let any children bound to 'destroy' do their thing before actually destroying this.
         eventually(function(){
