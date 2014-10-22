@@ -25,6 +25,9 @@ function getItemPath(item){
         // item.path should be a child ref after item.sourcePath
         if(referenceItem.path != null){
             paths.push(referenceItem.path);
+            if(gedi.paths.isAbsolute(referenceItem.path)){
+                break;
+            }
         }
 
         // item.sourcePath is most root level path
