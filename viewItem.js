@@ -24,7 +24,7 @@ function inflateViewItem(viewItem, description){
 
     for(var key in viewItem){
         if(viewItem[key] instanceof Property){
-            viewItem[key] = new viewItem[key].constructor(viewItem[key]);
+            viewItem[key] = new viewItem[key].constructor(merge(viewItem[key], description && description[key]));
         }
     }
 
@@ -57,9 +57,19 @@ function inflateViewItem(viewItem, description){
     */
     viewItem.actions = merge(viewItem.actions);
 
-    for(var key in description){
-        var prop = viewItem[key];
-        if(prop instanceof Property || prop instanceof ViewContainer){
+    if(description == null || typeof description !== 'object'){
+        return;
+    }
+
+    var keys = Object.keys(description);
+
+    for(var i = 0; i < keys.length; i++){
+        var key = keys[i],
+            prop = viewItem[key];
+
+        if(prop instanceof Property){
+            continue;
+        }else if(prop instanceof ViewContainer){
             copyProperties(description[key], prop);
         }else{
             viewItem[key] = description[key];

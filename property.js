@@ -134,6 +134,24 @@ function createPropertyCallback(property){
     }
 }
 
+function inflateProperty(property, propertyDescription){
+    var keys = Object.keys(propertyDescription),
+        isProperty = propertyDescription instanceof Property;
+
+    for(var i = 0; i < keys.length; i++){
+        var key = keys[i];
+
+        if(
+            isProperty && (
+                ~propertyDescription.__serialiseExclude__.indexOf(key) || 
+                ~excludeProps.indexOf(key)
+            )
+        ){
+            continue;
+        }
+        property[key] = propertyDescription[key];
+    }
+}
 
 function Property(propertyDescription){
     if(!propertyDescription){
@@ -143,18 +161,7 @@ function Property(propertyDescription){
     if(typeof propertyDescription === 'function'){
         this.update = propertyDescription;
     }else{
-        for(var key in propertyDescription){
-            if(
-                !propertyDescription.hasOwnProperty(key) ||
-                propertyDescription instanceof Property && (
-                    ~propertyDescription.__serialiseExclude__.indexOf(key) || 
-                    ~excludeProps.indexOf(key)
-                )
-            ){
-                continue;
-            }
-            this[key] = propertyDescription[key];
-        }
+        inflateProperty(this, propertyDescription);
     }
 }
 Property = createSpec(Property, Bindable);
