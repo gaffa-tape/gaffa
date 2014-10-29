@@ -24,7 +24,7 @@ function inflateViewItem(viewItem, description){
 
     for(var key in viewItem){
         if(viewItem[key] instanceof Property){
-            viewItem[key] = new viewItem[key].constructor(merge(viewItem[key], description && description[key]));
+            viewItem[key] = new viewItem[key].constructor(viewItem[key]);
         }
     }
 
@@ -67,9 +67,7 @@ function inflateViewItem(viewItem, description){
         var key = keys[i],
             prop = viewItem[key];
 
-        if(prop instanceof Property){
-            continue;
-        }else if(prop instanceof ViewContainer){
+        if(prop instanceof Property || prop instanceof ViewContainer){
             copyProperties(description[key], prop);
         }else{
             viewItem[key] = description[key];
