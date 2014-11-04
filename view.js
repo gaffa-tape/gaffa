@@ -163,6 +163,7 @@ View.prototype.debind = function () {
 };
 
 View.prototype.destroy = function() {
+    this.detach();
     ViewItem.prototype.destroy.call(this);
 
     for(var key in this){
