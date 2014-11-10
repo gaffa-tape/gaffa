@@ -120,7 +120,11 @@ View.prototype.bind = function(parent, scope){
     bindViewEvents(this);
     if(!isRebind){
         this.triggerActions('load');
-
+        
+        if(!this._bound) {
+            return;
+        }
+        
         var view = this,
             onDetach = this.detach.bind(this);
 
