@@ -72,6 +72,29 @@ function View(viewDescription){
 
     view.behaviours = view.behaviours || [];
     this.consuela = new Consuela();
+
+    this.on('bind', function(parent, scope){
+        var isRebind = this._rebind;
+
+        watchElements(this);
+        bindViewEvents(this);
+        if(!isRebind){
+            this.triggerActions('load');
+            
+            if(!this._bound) {
+                return;
+            }
+            
+            var view = this,
+                onDetach = this.detach.bind(this);
+
+            parent.once('detach', onDetach);
+            this.once('destroy', function(){
+                view.parent.removeListener('detach', onDetach);
+            });
+        }
+        bindBehaviours(this, scope);
+    });
 }
 View = createSpec(View, ViewItem);
 
@@ -110,31 +133,6 @@ function bindBehaviours(view, scope){
     }
 }
 
-View.prototype.bind = function(parent, scope){
-    var isRebind = this._rebind;
-    if(isRebind){
-        this.debind();
-    }
-    ViewItem.prototype.bind.apply(this, arguments);
-    watchElements(this);
-    bindViewEvents(this);
-    if(!isRebind){
-        this.triggerActions('load');
-        
-        if(!this._bound) {
-            return;
-        }
-        
-        var view = this,
-            onDetach = this.detach.bind(this);
-
-        parent.once('detach', onDetach);
-        this.once('destroy', function(){
-            view.parent.removeListener('detach', onDetach);
-        });
-    }
-    bindBehaviours(this, scope);
-};
 View.prototype.rebind = function(parent, scope){
     parent = parent || this.parent;
     scope = scope || this.scope;

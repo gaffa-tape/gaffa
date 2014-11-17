@@ -163,6 +163,63 @@ function Property(propertyDescription){
     }else{
         inflateProperty(this, propertyDescription);
     }
+
+    this.on('bind', function(parent, scope) {
+        this._lastValue = new WhatChanged();
+
+        // Shortcut for properties that have no binding.
+        // This has a significant impact on performance.
+        if(this.binding == null){
+            if(this.update){
+                this.update(parent, this.value);
+            }
+            return;
+        }
+
+        var propertyCallback = createPropertyCallback(this),
+            parentPath = resolvePath(parent);
+
+        this._currentBinding = [this.binding, propertyCallback, parentPath];
+        this.gaffa.gedi.bind(this.binding, propertyCallback, parentPath);
+        propertyCallback(true, scope);
+
+        if(this.interval){
+            function intervalUpdate(){
+                if(!property._bound){
+                    return true;
+                }
+                propertyCallback(false, property.scope);
+            }
+            var property = this;
+            if(!isNaN(this.interval)){
+                function timeoutUpdate(){
+                    if(!intervalUpdate()){
+                        setTimeout(timeoutUpdate,property.interval);
+                    }
+                };
+                timeoutUpdate();
+            }else if(this.interval === 'frame'){
+                function frameUpdate(){
+                    if(!intervalUpdate()){
+                        requestAnimationFrame(frameUpdate);
+                    }
+                };
+                frameUpdate();
+            }
+        }
+    });
+
+    this.on('debind', function(){
+        if(this._currentBinding){
+            this.gaffa.gedi.debind.apply(this.gaffa.gedi, this._currentBinding);
+            this._currentBinding = null;
+        }
+    });
+
+    this.on('destroy', function(){
+        this._lastValue = null;
+    });
+
 }
 Property = createSpec(Property, Bindable);
 Property.prototype.watchChanges = 'value keys structure reference type';
@@ -225,64 +282,6 @@ Property.prototype.get = function(scope, asTokens){
     }else{
         return this.value;
     }
-};
-Property.prototype.bind = function(parent, scope) {
-    this.scope = merge(scope, this.scope);
-
-    Bindable.prototype.bind.apply(this, arguments);
-
-    this._lastValue = new WhatChanged();
-
-    // Shortcut for properties that have no binding.
-    // This has a significant impact on performance.
-    if(this.binding == null){
-        if(this.update){
-            this.update(parent, this.value);
-        }
-        return;
-    }
-
-    var propertyCallback = createPropertyCallback(this),
-        parentPath = resolvePath(parent);
-
-    this._currentBinding = [this.binding, propertyCallback, parentPath];
-    this.gaffa.gedi.bind(this.binding, propertyCallback, parentPath);
-    propertyCallback(true, scope);
-
-    if(this.interval){
-        function intervalUpdate(){
-            if(!property._bound){
-                return true;
-            }
-            propertyCallback(false, property.scope);
-        }
-        var property = this;
-        if(!isNaN(this.interval)){
-            function timeoutUpdate(){
-                if(!intervalUpdate()){
-                    setTimeout(timeoutUpdate,property.interval);
-                }
-            };
-            timeoutUpdate();
-        }else if(this.interval === 'frame'){
-            function frameUpdate(){
-                if(!intervalUpdate()){
-                    requestAnimationFrame(frameUpdate);
-                }
-            };
-            frameUpdate();
-        }
-    }
-};
-Property.prototype.debind = function(){
-    if(this._currentBinding){
-        this.gaffa.gedi.debind.apply(this.gaffa.gedi, this._currentBinding);
-        this._currentBinding = null;
-    }
-
-    this._lastValue = null;
-
-    Bindable.prototype.debind.call(this);
 };
 Property.prototype.__serialiseExclude__ = ['_lastValue'];
 

@@ -84,6 +84,22 @@ function inflateViewItem(viewItem, description){
 */
 function ViewItem(viewItemDescription){
     inflateViewItem(this, viewItemDescription);
+
+    this.on('bind', function(parent, scope){
+        var viewItem = this;
+
+        for(var key in this.scopeBindings){
+            this.scope[key] = this.gaffa.model.get(this.scopeBindings[key], this, this.scope);
+        }
+
+        // Only set up properties that were on the prototype.
+        // Faster and 'safer'
+        for(var propertyKey in this.constructor.prototype){
+            if(this[propertyKey] instanceof Property){
+                this[propertyKey].bind(this, this.scope);
+            }
+        }
+    });
 }
 ViewItem = createSpec(ViewItem, Bindable);
 
@@ -115,28 +131,6 @@ ViewItem = createSpec(ViewItem, Bindable);
             '[/things/stuff/majigger]'
     */
 ViewItem.prototype.path = '[]';
-ViewItem.prototype.bind = function(parent, scope){
-
-    var viewItem = this;
-
-    this.scope = merge(scope, this.scope);
-
-    Bindable.prototype.bind.apply(this, arguments);
-
-    for(var key in this.scopeBindings){
-        this.scope[key] = this.gaffa.model.get(this.scopeBindings[key], this, this.scope);
-    }
-
-    // Only set up properties that were on the prototype.
-    // Faster and 'safer'
-    for(var propertyKey in this.constructor.prototype){
-        if(this[propertyKey] instanceof Property){
-            this[propertyKey].bind(this, this.scope);
-        }
-    }
-
-    // Create item scope
-};
 ViewItem.prototype.remove = function(){
     if(this.parentContainer){
         var index = this.parentContainer.indexOf(this);

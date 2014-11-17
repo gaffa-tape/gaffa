@@ -7,18 +7,21 @@ function triggerAction(action, parent, scope, event) {
     // clone
     action = parent.gaffa.initialiseAction(statham.revive(JSON.parse(statham.stringify(action))));
 
+    action.on('bind', function(parent, scope){
+        action.path = action.getPath();
+
+        scope || (scope = {});
+
+        if(action.condition.value){
+            action.trigger(parent, scope, event);
+        }
+
+        if(!action._async){
+            action.complete();
+        }
+    });
+
     action.bind(parent, scope);
-    action.path = action.getPath();
-
-    scope || (scope = {});
-
-    if(action.condition.value){
-        action.trigger(parent, scope, event);
-    }
-
-    if(!action._async){
-        action.complete();
-    }
 }
 
 function triggerActions(actions, parent, scope, event) {

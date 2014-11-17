@@ -16,18 +16,17 @@ var createSpec = require('spec-js'),
 function ContainerView(viewDescription){
     this.views = this.views || {};
     this.views.content = new ViewContainer(this.views.content);
+    this.on('bind', function(){
+        for(var key in this.views){
+            var viewContainer = this.views[key];
+
+            if(viewContainer instanceof ViewContainer){
+                viewContainer.bind(this);
+            }
+        }
+    });
 }
 ContainerView = createSpec(ContainerView, View);
-ContainerView.prototype.bind = function(parent){
-    View.prototype.bind.apply(this, arguments);
-    for(var key in this.views){
-        var viewContainer = this.views[key];
-
-        if(viewContainer instanceof ViewContainer){
-            viewContainer.bind(this);
-        }
-    }
-};
 ContainerView.prototype.renderChildren = new Property({
     update: function(view, value){
         for(var key in view.views){
