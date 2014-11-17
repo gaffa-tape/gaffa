@@ -1,5 +1,6 @@
 var createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
+    merge = require('./flatMerge'),
     jsonConverter = require('./jsonConverter');
 
 var stack = [];
@@ -82,7 +83,11 @@ function setupCleanup(bindable, parent){
     });
 }
 
-Bindable.prototype.bind = function(parent){
+Bindable.prototype.bind = function(parent, scope){
+    if(scope){
+        this.scope = merge(scope, this.scope);
+    }
+
     if(parent && !parent._bound){
         console.warn('Attempted to bind to a parent who was not bound.');
         return;
@@ -102,17 +107,24 @@ Bindable.prototype.bind = function(parent){
 
     this.updatePath();
 
+    if('path' in this && !this.path){
+        this._invalidPath = true;
+        return;
+    }
+
     this._bound = true;
     Bindable.bindables[this.__iuid] = this;
-    this.emit('bind');
+    this.emit('bind', parent, scope);
 };
 Bindable.prototype.getSourcePath = function(){
     return this.gaffa.gedi.paths.resolve(this.parent && this.parent.getPath(), this.sourcePath);
 }
 Bindable.prototype.updatePath = function(){
-    if(!this.pathBinding){
+    if(!this.pathBinding || this._pathBindingBound){
         return;
     }
+
+    this._pathBindingBound = true;
 
     var bindable = this,
         absoluteSourcePath = this.getSourcePath(),
@@ -125,9 +137,21 @@ Bindable.prototype.updatePath = function(){
             bindable.path = valueToken.sourcePathInfo && valueToken.sourcePathInfo.path;
         }
 
-        if(lastPath !== bindable.path && bindable._bound){
-            bindable.debind();
-            bindable.bind(bindable.parent);
+        if(lastPath !== bindable.path){
+            lastPath = bindable.path;
+            
+            if(bindable._bound || bindable._invalidPath){
+                bindable.debind();
+
+                if(bindable.path == null){
+                    bindable._invalidPath = true;
+                    return;
+                }
+
+                bindable._invalidPath = false;
+
+                bindable.bind(bindable.parent, bindable.scope);
+            }
         }
     }
 
@@ -138,7 +162,7 @@ Bindable.prototype.updatePath = function(){
     }
 
     gaffa.gedi.bind(this.pathBinding, handlePathChange, absoluteSourcePath);
-    this.on('debind', function(){
+    this.on('destroy', function(){
         gaffa.gedi.debind(bindable.pathBinding, handlePathChange, absoluteSourcePath);
     });
 };
