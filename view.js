@@ -61,6 +61,21 @@ function createEventedActionScope(view, event){
     return scope;
 }
 
+function bindViewEvents(view){
+    for(var key in view.actions){
+        var actions = view.actions[key],
+            off;
+
+        if(actions._eventsBound){
+            continue;
+        }
+
+        actions._eventsBound = true;
+
+        bindViewEvent(view, key);
+    }
+}
+
 function bindViewEvent(view, eventName){
     return view.gaffa.events.on(eventName, view.renderedElement, function (event) {
         view.triggerActions(eventName, createEventedActionScope(view, event), event);
@@ -95,6 +110,16 @@ function View(viewDescription){
         }
         bindBehaviours(this, scope);
     });
+
+    this.on('debind', function () {
+        this.triggerActions('unload');
+
+        for(var key in this.actions){
+            this.actions[key]._eventsBound = null;
+        }
+
+        this.consuela.cleanup();
+    });
 }
 View = createSpec(View, ViewItem);
 
@@ -106,21 +131,6 @@ function watchElements(view){
         if(crel.isElement(view[key])){
             view.consuela.watch(view[key]);
         }
-    }
-}
-
-function bindViewEvents(view){
-    for(var key in view.actions){
-        var actions = view.actions[key],
-            off;
-
-        if(actions._bound){
-            continue;
-        }
-
-        actions._bound = true;
-
-        bindViewEvent(view, key);
     }
 }
 
@@ -149,20 +159,6 @@ View.prototype.remove = function(){
     this.emit('detach');
     ViewItem.prototype.remove.call(this);
 }
-
-View.prototype.debind = function () {
-    if(!this._bound){
-        return;
-    }
-    this.triggerActions('unload');
-
-    this.consuela.cleanup();
-
-    for(var key in this.actions){
-        this.actions[key]._bound = false;
-    }
-    ViewItem.prototype.debind.call(this);
-};
 
 View.prototype.destroy = function() {
     this.detach();
