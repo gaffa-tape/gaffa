@@ -18,7 +18,6 @@ function eventually(fn){
 function getItemPath(item){
     var gedi = item.gaffa.gedi,
         paths = [],
-        referencePath,
         referenceItem = item;
 
     while(referenceItem){
@@ -118,7 +117,7 @@ Bindable.prototype.bind = function(parent, scope){
 };
 Bindable.prototype.getSourcePath = function(){
     return this.gaffa.gedi.paths.resolve(this.parent && this.parent.getPath(), this.sourcePath);
-}
+};
 Bindable.prototype.updatePath = function(){
     if(!this.pathBinding || this._pathBindingBound){
         return;
@@ -132,27 +131,35 @@ Bindable.prototype.updatePath = function(){
         gaffa = this.gaffa;
 
     function setPath(valueTokens){
+        var newPath;
+
         if(valueTokens){
             var valueToken = valueTokens[valueTokens.length - 1];
-            bindable.path = valueToken.sourcePathInfo && valueToken.sourcePathInfo.path;
+            newPath = valueToken.sourcePathInfo && valueToken.sourcePathInfo.path;
         }
 
-        if(lastPath !== bindable.path){
-            lastPath = bindable.path;
-            
-            if(bindable._bound || bindable._invalidPath){
-                bindable.debind();
-
-                if(bindable.path == null){
-                    bindable._invalidPath = true;
-                    return;
-                }
-
-                bindable._invalidPath = false;
-
-                bindable.bind(bindable.parent, bindable.scope);
-            }
+        if(newPath === lastPath){
+            return;
         }
+
+        lastPath = newPath;
+
+
+        if(!bindable._bound && !bindable._invalidPath){
+            bindable.path = newPath;
+            return;
+        }
+
+        bindable.debind();
+        bindable.path = newPath;
+
+        if(newPath == null){
+            bindable._invalidPath = true;
+            return;
+        }
+
+        bindable._invalidPath = false;
+        bindable.bind(bindable.parent, bindable.scope);
     }
 
     setPath(gaffa.gedi.get(this.pathBinding, absoluteSourcePath, bindable.scope, true));
@@ -173,9 +180,11 @@ Bindable.prototype.debind = function(){
         // ToDo: This happens with actions, resolve.
         return;
     }
-    this._bound = false;
 
     this.emit('debind');
+
+    this._bound = false;
+
     delete Bindable.bindables[this.__iuid];
 };
 Bindable.prototype.destroy = function(){
