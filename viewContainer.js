@@ -124,9 +124,11 @@ ViewContainer.prototype.derender = function(){
 };
 ViewContainer.prototype.remove = function(view){
     view.remove();
+    this.emit('removed', view);
 };
 ViewContainer.prototype.empty = function(){
     removeViews(this);
+    this.emit('empty');
 };
 ViewContainer.prototype.__serialiseExclude__ = ['element'];
 
