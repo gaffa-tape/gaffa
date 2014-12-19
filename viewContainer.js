@@ -57,6 +57,7 @@ ViewContainer.prototype.add = function(view, insertIndex){
         }
 
         this.splice(insertIndex >= 0 ? insertIndex : this.length,0,view);
+        this.emit('inserted', view);
     }
 
     view.parentContainer = this;
