@@ -196,12 +196,6 @@ Bindable.prototype.destroy = function(){
         this.debind();
     }
 
-    for(var key in this){
-        if(key !== 'parent' && this[key] instanceof Bindable && this[key]._bound){
-            console.log(key);
-        }
-    }
-
     // Destroy bindables asynchonously.
     eventually(function(){
 
