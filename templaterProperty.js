@@ -21,14 +21,11 @@ function findValueIn(value, source){
 TemplaterProperty.prototype._immediate = true;
 TemplaterProperty.prototype.watchChanges = 'structure value';
 TemplaterProperty.prototype.hasChanged = function(){
-    var changes = this._lastValue.update(this.value),
+    var lastKeys = this._lastValue._lastKeys || [],
+        changes = this._lastValue.update(this.value),
         watched = this.watchChanges.split(' '),
         newKeys = [],
         keysChanged;
-
-    if(!this._lastValue._lastKeys){
-        this._lastValue._lastKeys = [];
-    }
 
     if(this._sourcePathInfo && this._sourcePathInfo.subPaths){
         for(var key in this._sourcePathInfo.subPaths){
@@ -36,12 +33,12 @@ TemplaterProperty.prototype.hasChanged = function(){
         }
 
         if(
-            this._lastValue._lastKeys.length !== newKeys.length
+            lastKeys.length !== newKeys.length
         ){
             keysChanged = true;
         }else{
             for (var i = newKeys.length - 1; i >= 0; i--) {
-                if(newKeys[i] !== this._lastValue._lastKeys[i]){
+                if(newKeys[i] !== lastKeys[i]){
                     keysChanged = true;
                     break;
                 }
