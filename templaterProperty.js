@@ -70,20 +70,21 @@ TemplaterProperty.prototype.update =function (view, value) {
         childViews = view.views[viewsName],
         sourcePathInfo = this._sourcePathInfo,
         viewsToRemove = childViews.slice(),
-        isEmpty = true;
+        isEmpty = true,
+        subPaths = sourcePathInfo.subPaths;
 
     childViews.abortDeferredAdd();
 
     if (value && typeof value === "object" && sourcePathInfo){
 
-        if(!sourcePathInfo.subPaths){
-            sourcePathInfo.subPaths = new value.constructor();
+        if(!subPaths){
+            subPaths = new value.constructor();
 
             for(var key in value){
                 if(Array.isArray(value) && isNaN(key)){
                     continue;
                 }
-                sourcePathInfo.subPaths[key] = paths.append(sourcePathInfo.path, paths.create(key));
+                subPaths[key] = paths.append(sourcePathInfo.path, paths.create(key));
             }
         }
 
@@ -104,12 +105,12 @@ TemplaterProperty.prototype.update =function (view, value) {
 
         var remainingChildViews = childViews.slice();
 
-        for(var key in sourcePathInfo.subPaths){
-            if(Array.isArray(sourcePathInfo.subPaths) && isNaN(key)){
+        for(var key in subPaths){
+            if(Array.isArray(subPaths) && isNaN(key)){
                 continue;
             }
             isEmpty = false;
-            var sourcePath = sourcePathInfo.subPaths[key],
+            var sourcePath = subPaths[key],
                 existingChild = null,
                 existingIndex = null;
 
