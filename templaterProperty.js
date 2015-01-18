@@ -71,7 +71,7 @@ TemplaterProperty.prototype.update =function (view, value) {
         sourcePathInfo = this._sourcePathInfo,
         viewsToRemove = childViews.slice(),
         isEmpty = true,
-        subPaths = sourcePathInfo.subPaths;
+        subPaths = sourcePathInfo && sourcePathInfo.subPaths;
 
     childViews.abortDeferredAdd();
 
