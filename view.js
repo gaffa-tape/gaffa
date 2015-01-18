@@ -61,6 +61,21 @@ function createEventedActionScope(view, event){
     return scope;
 }
 
+function bindViewEvents(view){
+    for(var key in view.actions){
+        var actions = view.actions[key],
+            off;
+
+        if(actions._eventsBound){
+            continue;
+        }
+
+        actions._eventsBound = true;
+
+        bindViewEvent(view, key);
+    }
+}
+
 function bindViewEvent(view, eventName){
     return view.gaffa.events.on(eventName, view.renderedElement, function (event) {
         view.triggerActions(eventName, createEventedActionScope(view, event), event);
@@ -72,6 +87,39 @@ function View(viewDescription){
 
     view.behaviours = view.behaviours || [];
     this.consuela = new Consuela();
+
+    this.on('bind', function(parent, scope){
+        var isRebind = this._rebind;
+
+        watchElements(this);
+        bindViewEvents(this);
+        if(!isRebind){
+            this.triggerActions('load');
+            
+            if(!this._bound) {
+                return;
+            }
+            
+            var view = this,
+                onDetach = this.detach.bind(this);
+
+            parent.once('detach', onDetach);
+            this.once('destroy', function(){
+                view.parent.removeListener('detach', onDetach);
+            });
+        }
+        bindBehaviours(this, scope);
+    });
+
+    this.on('debind', function () {
+        this.triggerActions('unload');
+
+        for(var key in this.actions){
+            this.actions[key]._eventsBound = null;
+        }
+
+        this.consuela.cleanup();
+    });
 }
 View = createSpec(View, ViewItem);
 
@@ -86,21 +134,6 @@ function watchElements(view){
     }
 }
 
-function bindViewEvents(view){
-    for(var key in view.actions){
-        var actions = view.actions[key],
-            off;
-
-        if(actions._bound){
-            continue;
-        }
-
-        actions._bound = true;
-
-        bindViewEvent(view, key);
-    }
-}
-
 function bindBehaviours(view, scope){
     for(var i = 0; i < view.behaviours.length; i++){
         Behaviour.prototype.bind.call(view.behaviours[i], view, scope);
@@ -110,27 +143,6 @@ function bindBehaviours(view, scope){
     }
 }
 
-View.prototype.bind = function(parent, scope){
-    var isRebind = this._rebind;
-    if(isRebind){
-        this.debind();
-    }
-    ViewItem.prototype.bind.apply(this, arguments);
-    watchElements(this);
-    bindViewEvents(this);
-    if(!isRebind){
-        this.triggerActions('load');
-
-        var view = this,
-            onDetach = this.detach.bind(this);
-
-        parent.once('detach', onDetach);
-        this.once('destroy', function(){
-            view.parent.removeListener('detach', onDetach);
-        });
-    }
-    bindBehaviours(this, scope);
-};
 View.prototype.rebind = function(parent, scope){
     parent = parent || this.parent;
     scope = scope || this.scope;
@@ -148,21 +160,8 @@ View.prototype.remove = function(){
     ViewItem.prototype.remove.call(this);
 }
 
-View.prototype.debind = function () {
-    if(!this._bound){
-        return;
-    }
-    this.triggerActions('unload');
-
-    this.consuela.cleanup();
-
-    for(var key in this.actions){
-        this.actions[key]._bound = false;
-    }
-    ViewItem.prototype.debind.call(this);
-};
-
 View.prototype.destroy = function() {
+    this.detach();
     ViewItem.prototype.destroy.call(this);
 
     for(var key in this){

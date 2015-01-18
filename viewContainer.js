@@ -15,6 +15,14 @@ function ViewContainer(viewContainerDescription){
     if(viewContainerDescription instanceof Array){
         viewContainer.add(viewContainerDescription);
     }
+
+    this.on('bind', function(parent){
+        for(var i = 0; i < this.length; i++){
+            this.add(this[i], i);
+        }
+
+        return this;
+    });
 }
 ViewContainer = createSpec(ViewContainer, Array);
 for(var key in Bindable.prototype){
@@ -22,15 +30,6 @@ for(var key in Bindable.prototype){
 }
 ViewContainer.prototype.constructor = ViewContainer;
 ViewContainer.prototype._render = true;
-ViewContainer.prototype.bind = function(parent){
-    Bindable.prototype.bind.apply(this, arguments);
-
-    for(var i = 0; i < this.length; i++){
-        this.add(this[i], i);
-    }
-
-    return this;
-};
 ViewContainer.prototype.getPath = function(){
     return getItemPath(this);
 };
@@ -58,6 +57,7 @@ ViewContainer.prototype.add = function(view, insertIndex){
         }
 
         this.splice(insertIndex >= 0 ? insertIndex : this.length,0,view);
+        this.emit('inserted', view);
     }
 
     view.parentContainer = this;
@@ -77,9 +77,13 @@ ViewContainer.prototype.add = function(view, insertIndex){
                     view.renderedElement.viewModel = view;
                 }
             }
+            view.once('bind', function(){
+                view.insert(view.parentContainer, insertIndex);
+            });
             view.bind(this.parent, this.parent.scope);
+        }else{
+            view.insert(this, insertIndex);
         }
-        view.insert(this, insertIndex);
     }
 
     return view;
@@ -120,9 +124,11 @@ ViewContainer.prototype.derender = function(){
 };
 ViewContainer.prototype.remove = function(view){
     view.remove();
+    this.emit('removed', view);
 };
 ViewContainer.prototype.empty = function(){
     removeViews(this);
+    this.emit('empty');
 };
 ViewContainer.prototype.__serialiseExclude__ = ['element'];
 
