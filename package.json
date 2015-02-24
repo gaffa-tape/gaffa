@@ -48,7 +48,8 @@
     "mockery": "^1.0.0"
   },
   "scripts": {
-    "test": "node ./test/test.js"
+    "test": "node ./test/index.js",
+    "buildTest": "browserify ./test/index.js > ./test/index.b.js"
   },
   "testling": {
     "files": "test/*.js",

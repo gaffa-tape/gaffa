@@ -12,6 +12,10 @@ function ViewContainer(viewContainerDescription){
 
     this._deferredViews = [];
 
+    if(viewContainerDescription instanceof ViewContainer){
+        return viewContainerDescription._clone();
+    }
+
     if(viewContainerDescription instanceof Array){
         viewContainer.add(viewContainerDescription);
     }
@@ -42,7 +46,7 @@ ViewContainer.prototype.getPath = function(){
 */
 ViewContainer.prototype.add = function(view, insertIndex){
     // If passed an array
-    if(Array.isArray(view)){
+    if(view instanceof Array){
         // Clone the array so splicing can't cause issues
         var views = view.slice();
         for(var i = 0; i < view.length; i++){

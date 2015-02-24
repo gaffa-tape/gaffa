@@ -2,31 +2,32 @@ var deepEqual = require('deep-equal'),
     excludeProps = require('./excludeProps'),
     includeProps = require('./includeProps');
 
-function jsonConverter(object, exclude, include){
+function addProp(plainInstance, object, key, extraExclude, extraInclude){
+    var item = object[key]
+    if(typeof item === 'function'){
+        return;
+    }
+    if(
+        item !== undefined &&
+        (includeProps && (key in includeProps)) ||
+        (extraInclude && ~extraInclude.indexOf(key)) ||
+        object.hasOwnProperty(key) &&
+        (excludeProps ? !(key in excludeProps) : true) &&
+        (extraExclude ? !~extraExclude.indexOf(key) : true) &&
+        !deepEqual(plainInstance[key], item)
+    ){
+        return item;
+    }
+}
+
+function jsonConverter(object, extraExclude, extraInclude){
     var plainInstance = new object.constructor(),
         tempObject = (Array.isArray(object) || object instanceof Array) ? [] : {};
 
-    //console.log(object.constructor.name);
-
-    if(exclude){
-        excludeProps = excludeProps.concat(exclude);
-    }
-
-    if(include){
-        includeProps = includeProps.concat(include);
-    }
-
     for(var key in object){
-        if(typeof object[key] === 'function'){
-            continue;
-        }
-        if(
-            includeProps.indexOf(key)>=0 ||
-            object.hasOwnProperty(key) &&
-            excludeProps.indexOf(key)<0 &&
-            !deepEqual(plainInstance[key], object[key])
-        ){
-            tempObject[key] = object[key];
+        var item = addProp(plainInstance, object, key, extraExclude, extraInclude);
+        if(item !== undefined){
+            tempObject[key] = item;
         }
     }
 

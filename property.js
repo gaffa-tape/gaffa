@@ -9,8 +9,7 @@ var createSpec = require('spec-js'),
     requestAnimationFrame = animationFrame.requestAnimationFrame,
     cancelAnimationFrame = animationFrame.cancelAnimationFrame,
     resolvePath = require('./resolvePath'),
-    excludeProps = require('./excludeProps'),
-    includeProps = require('./includeProps');
+    excludeProps = require('./excludeProps');
 
 var nextFrame;
 
@@ -143,8 +142,8 @@ function inflateProperty(property, propertyDescription){
 
         if(
             isProperty && (
-                ~propertyDescription.__serialiseExclude__.indexOf(key) || 
-                ~excludeProps.indexOf(key)
+                ~propertyDescription.__serialiseExclude__.indexOf(key) ||
+                key in excludeProps
             )
         ){
             continue;

@@ -5,7 +5,12 @@ var createSpec = require('spec-js'),
 
 function triggerAction(action, parent, scope, event) {
     // clone
-    action = parent.gaffa.initialiseAction(statham.revive(JSON.parse(statham.stringify(action))));
+
+    if(action instanceof ViewItem){
+        action = action._clone();
+    }
+
+    action = parent.gaffa.initialiseAction(action);
 
     action.on('bind', function(parent, scope){
         action.path = action.getPath();

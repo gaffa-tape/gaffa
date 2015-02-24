@@ -1,4 +1,5 @@
 var Property = require('./property'),
+    View = require('./view'),
     statham = require('statham'),
     createSpec = require('spec-js');
 
@@ -61,8 +62,6 @@ TemplaterProperty.prototype.update =function (view, value) {
     if(!this.template){
         return;
     }
-    this._templateCache || (this._templateCache = this.template && JSON.parse(statham.stringify(this.template)));
-    this._emptyTemplateCache || (this._emptyTemplateCache = this.emptyTemplate && JSON.parse(statham.stringify(this.emptyTemplate)));
     var property = this,
         gaffa = this.gaffa,
         paths = gaffa.gedi.paths,
@@ -72,6 +71,12 @@ TemplaterProperty.prototype.update =function (view, value) {
         viewsToRemove = childViews.slice(),
         isEmpty = true,
         subPaths = sourcePathInfo && sourcePathInfo.subPaths;
+
+    this.template = gaffa.initialiseView(this.template);
+
+    if(this.emptyTemplate){
+        this.emptyTemplate = gaffa.initialiseView(this.emptyTemplate);
+    }
 
     childViews.abortDeferredAdd();
 
@@ -126,7 +131,7 @@ TemplaterProperty.prototype.update =function (view, value) {
             }
 
             if(!existingChild){
-                newView = statham.revive(this._templateCache);
+                newView = this.template._clone();
                 newView._item = value[key];
                 newView.scope = {item: newView._item, key: key};
                 newView.sourcePath = property.ignorePaths ? null : sourcePath;
@@ -155,8 +160,8 @@ TemplaterProperty.prototype.update =function (view, value) {
                 i--;
             }
         }
-        if(this._emptyTemplateCache){
-            newView = gaffa.initialiseView(statham.revive(this._emptyTemplateCache));
+        if(this.emptyTemplate){
+            newView = this.emptyTemplate._clone();
             newView.containerName = viewsName;
             childViews.add(newView, itemIndex);
         }

@@ -1,7 +1,29 @@
 var createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
     merge = require('./flatMerge'),
+    statham = require('statham'),
     jsonConverter = require('./jsonConverter');
+
+function clone(object){
+    var copy = jsonConverter(object, object.__serialiseExclude__, object.__serialiseInclude__);
+
+    for(var key in copy){
+        var item = copy[key];
+        if(!item || typeof item !== 'object'){
+            continue;
+        }else if(typeof copy[key]._clone === 'function'){
+            copy[key] = item._clone();
+        }else{
+            copy[key] = clone(item);
+        }
+
+        if(copy[key] === undefined){
+            delete copy[key];
+        }
+    }
+
+    return copy;
+}
 
 var stack = [];
 function eventually(fn){
@@ -67,6 +89,9 @@ Bindable.prototype.toJSON = function(){
 
     return tempObject;
 };
+Bindable.prototype._clone = function(){
+    return new this.constructor(clone(this));
+};
 
 function setupCleanup(bindable, parent){
     var onDebind = bindable.debind.bind(bindable);
@@ -93,7 +118,7 @@ Bindable.prototype.bind = function(parent, scope){
     }
     if(this._bound){
         this.debind();
-        console.warn('Attempted to bind an already bound item.');
+        // console.warn('Attempted to bind an already bound item.');
     }
 
     if(parent){

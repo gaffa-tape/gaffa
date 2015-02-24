@@ -1,4 +1,5 @@
 var test = require('grape'),
+    Gaffa = require('../'),
     Text = require('gaffa-text'),
     Container = require('gaffa-container');
 
