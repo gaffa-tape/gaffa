@@ -1,8 +1,8 @@
 var insertionRequests,
     frameTime = 1000/60, // 60fps
-    insertionWindow = frameTime * 0.8; // Only insert for part of a frame, allow time for other opperations.
+    insertionWindow = frameTime * 1.2; // Only insert for just over a frame, allow time for other opperations.
 
-var now = typeof performance !== 'undefined' ? performance.now.bind(performance): Date.now.bind(Date);
+var now = Date.now.bind(Date);
 
 function updateFrame() {
     if(!insertionRequests){

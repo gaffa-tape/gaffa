@@ -22,16 +22,18 @@ function addProp(plainInstance, object, key, extraExclude, extraInclude){
 
 function jsonConverter(object, extraExclude, extraInclude){
     var plainInstance = new object.constructor(),
-        tempObject = (Array.isArray(object) || object instanceof Array) ? [] : {};
+        tempObject = (Array.isArray(object) || object instanceof Array) ? [] : {},
+        hasKeys;
 
     for(var key in object){
         var item = addProp(plainInstance, object, key, extraExclude, extraInclude);
         if(item !== undefined){
             tempObject[key] = item;
+            hasKeys = true;
         }
     }
 
-    if(!Object.keys(tempObject).length){
+    if(!hasKeys){
         return;
     }
 
