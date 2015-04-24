@@ -35,7 +35,6 @@ function requestUpdate(property){
 
     if(!nextFrame){
         nextFrame = [];
-
         requestAnimationFrame(updateFrame);
     }
 
@@ -93,12 +92,10 @@ function createPropertyCallback(property){
     return function (event) {
 
         var value,
-            scope,
+            scope = createModelScope(property.parent, event),
             valueTokens;
 
-        scope = createModelScope(property.parent, event);
-
-        if(event === true || event === false){ // Non-model update.
+        if(typeof event === 'boolean'){ // Non-model update.
 
             valueTokens = property.get(scope, true);
 
@@ -124,13 +121,12 @@ function createPropertyCallback(property){
         property.value = value;
 
         // Call the properties update function, if it has one.
-        // Only call if the changed value is an object, or if it actually changed.
         if(!property.update){
             return;
         }
 
         updateProperty(property, event === true);
-    }
+    };
 }
 
 function inflateProperty(property, propertyDescription){

@@ -95,8 +95,9 @@ function ViewItem(viewItemDescription){
         // Only set up properties that were on the prototype.
         // Faster and 'safer'
         for(var propertyKey in this.constructor.prototype){
-            if(this[propertyKey] instanceof Property){
-                this[propertyKey].bind(this, this.scope);
+            var property = this[propertyKey];
+            if(property instanceof Property && (property.binding || 'value' in property)){
+                property.bind(this, this.scope);
             }
         }
     });

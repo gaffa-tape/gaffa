@@ -1,6 +1,5 @@
 var insertionRequests,
-    frameTime = 1000/60, // 60fps
-    insertionWindow = frameTime * 1.2; // Only insert for just over a frame, allow time for other opperations.
+    insertionWindow = 1000/60*2; // Drop a maximum of 2 frames while inserting views.
 
 var now = Date.now.bind(Date);
 
