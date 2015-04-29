@@ -9,16 +9,19 @@
   "main": "gaffa.js",
   "dependencies": {
     "bowser": "^0.7.1",
+    "cherrypick": "^1.1.2",
     "clean-merge": "^1.0.0",
     "consuela": "^4.2.0",
     "crel": "^2.1.1",
     "deep-equal": "0.0.x",
     "doc-js": "^1.0.0",
+    "flat-merge": "^1.0.0",
     "gedi": "^1.2.4",
     "laidout": "^1.0.0",
     "lang-js": "^2.1.0",
     "merge": "^1.1.3",
     "next-tick": "^0.2.2",
+    "same-value": "^1.0.0",
     "simple-ajax": "0.0.1",
     "spec-js": "^1.0.0",
     "statham": "^1.0.0",
@@ -35,18 +38,7 @@
     "url": "http://github.com/gaffa-tape/gaffa-js/issues"
   },
   "contributors": [],
-  "devDependencies": {
-    "gaffa": "^1.10.0",
-    "gaffa-container": "^1.0.0",
-    "gaffa-formelement": "^1.0.3",
-    "gaffa-heading": "^1.0.0",
-    "gaffa-list": "^1.2.0",
-    "gaffa-text": "^1.0.0",
-    "gaffa-textbox": "^1.3.0",
-    "gel-js": "^1.5.0",
-    "grape": "^1.0.0",
-    "mockery": "^1.0.0"
-  },
+  "devDependencies": {},
   "scripts": {
     "test": "node ./test/index.js",
     "buildTest": "browserify ./test/index.js > ./test/index.b.js"

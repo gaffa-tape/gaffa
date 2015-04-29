@@ -1,5 +1,5 @@
 var insertionRequests,
-    insertionWindow = 1000/60*2; // Drop a maximum of 2 frames while inserting views.
+    insertionWindow = 1000/60*0.8; // Drop a maximum of 2 frames while inserting views.
 
 var now = Date.now.bind(Date);
 

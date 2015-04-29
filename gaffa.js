@@ -19,7 +19,6 @@ var Gedi = require('gedi'),
     resolvePath = require('./resolvePath'),
     removeViews = require('./removeViews'),
     getClosestItem = require('./getClosestItem'),
-    jsonConverter = require('./jsonConverter'),
     Property = require('./property'),
     ViewContainer = require('./viewContainer'),
     ViewItem = require('./viewItem'),
@@ -374,13 +373,6 @@ Gaffa.prototype.registerConstructor = function(constructor){
     npm module: [spec-js](https://npmjs.org/package/spec-js)
 */
 Gaffa.prototype.createSpec = createSpec;
-
-/**
-    ### .jsonConverter
-
-    default jsonification for ViewItems
-*/
-Gaffa.prototype.jsonConverter = jsonConverter;
 
 
 // "constants"

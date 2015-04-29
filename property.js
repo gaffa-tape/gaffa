@@ -1,7 +1,6 @@
 var createSpec = require('spec-js'),
     Bindable = require('./bindable'),
     IdentifierToken = require('gel-js').IdentifierToken,
-    jsonConverter = require('./jsonConverter'),
     createModelScope = require('./createModelScope'),
     WhatChanged = require('what-changed'),
     merge = require('./flatMerge'),
@@ -9,6 +8,8 @@ var createSpec = require('spec-js'),
     requestAnimationFrame = animationFrame.requestAnimationFrame,
     cancelAnimationFrame = animationFrame.cancelAnimationFrame,
     resolvePath = require('./resolvePath'),
+    clone = require('./clone'),
+    cherrypick = require('cherrypick'),
     excludeProps = require('./excludeProps');
 
 var nextFrame;
@@ -134,17 +135,10 @@ function inflateProperty(property, propertyDescription){
         isProperty = propertyDescription instanceof Property;
 
     for(var i = 0; i < keys.length; i++){
-        var key = keys[i];
-
-        if(
-            isProperty && (
-                ~propertyDescription.__serialiseExclude__.indexOf(key) ||
-                key in excludeProps
-            )
-        ){
+        if(keys[i] === '_events'){
             continue;
         }
-        property[key] = propertyDescription[key];
+        property[keys[i]] = propertyDescription[keys[i]];
     }
 }
 
@@ -160,6 +154,13 @@ function Property(propertyDescription){
     }
 
     this.on('bind', function(parent, scope) {
+            
+        if(this.lastInitBind){
+            debugger;
+        }
+
+        this.lastInitBind = new Error().stack;
+
         this._lastValue = new WhatChanged();
 
         // Shortcut for properties that have no binding.
@@ -278,6 +279,14 @@ Property.prototype.get = function(scope, asTokens){
         return this.value;
     }
 };
-Property.prototype.__serialiseExclude__ = ['_lastValue'];
+Property.prototype._toPOJO = function(){
+    return cherrypick(
+        Bindable.prototype._toPOJO.call(this), 
+        true, 
+        [
+            '_lastValue'
+        ]
+    )
+};
 
 module.exports = Property;

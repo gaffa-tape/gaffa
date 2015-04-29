@@ -17,6 +17,7 @@ var createSpec = require('spec-js'),
     createModelScope = require('./createModelScope'),
     getClosestItem = require('./getClosestItem'),
     Consuela = require('consuela'),
+    cherrypick = require('cherrypick'),
     Behaviour = require('./behaviour');
 
 function insertFunction(selector, renderedElement, insertIndex){
@@ -226,5 +227,18 @@ Title.prototype.update = function(view, value) {
 View.prototype.title = new Title();
 
 View.prototype.insertFunction = insertFunction;
+View.prototype._toPOJO = function(){
+    var copy = ViewItem.prototype._toPOJO.call(this);
+
+    delete copy['_previousClasses'];
+
+    for(var key in copy){
+        if(crel.isNode(copy[key])){
+            delete copy[key];
+        }
+    }
+
+    return copy;
+};
 
 module.exports = View;

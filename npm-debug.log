@@ -1,0 +1,140 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/bin/node', '/usr/bin/npm', 'link' ]
+2 info using npm@1.4.28
+3 info using node@v0.10.38
+4 verbose node symlink /usr/bin/node
+5 verbose linkPkg /home/kory/dev/gaffa
+6 verbose link build target /usr/lib/node_modules/gaffa
+7 verbose install where,what [ '/home/kory/dev/gaffa', [] ]
+8 verbose readDependencies using package.json deps
+9 verbose install where, deps [ '/home/kory/dev/gaffa',
+9 verbose install   [ 'bowser',
+9 verbose install     'cherrypick',
+9 verbose install     'clean-merge',
+9 verbose install     'consuela',
+9 verbose install     'crel',
+9 verbose install     'deep-equal',
+9 verbose install     'doc-js',
+9 verbose install     'flat-merge',
+9 verbose install     'gedi',
+9 verbose install     'laidout',
+9 verbose install     'lang-js',
+9 verbose install     'merge',
+9 verbose install     'next-tick',
+9 verbose install     'same-value',
+9 verbose install     'simple-ajax',
+9 verbose install     'spec-js',
+9 verbose install     'statham',
+9 verbose install     'what-changed',
+9 verbose install     'gaffa-test' ] ]
+10 info preinstall gaffa@1.22.2
+11 warn package.json gaffa-container@1.0.0 No description
+12 warn package.json gaffa-container@1.0.0 No README data
+13 warn package.json gaffa-heading@1.0.0 No description
+14 warn package.json gaffa-heading@1.0.0 No README data
+15 warn package.json gaffa-text@1.0.0 No description
+16 warn package.json gaffa-text@1.0.0 No README data
+17 warn package.json same-value@1.0.0 No repository field.
+18 warn package.json statham@1.0.2 No repository field.
+19 verbose readDependencies using package.json deps
+20 verbose already installed skipping bowser@^0.7.1 /home/kory/dev/gaffa
+21 verbose already installed skipping cherrypick@^1.1.2 /home/kory/dev/gaffa
+22 verbose already installed skipping clean-merge@^1.0.0 /home/kory/dev/gaffa
+23 verbose already installed skipping consuela@^4.2.0 /home/kory/dev/gaffa
+24 verbose already installed skipping crel@^2.1.1 /home/kory/dev/gaffa
+25 verbose already installed skipping deep-equal@0.0.x /home/kory/dev/gaffa
+26 verbose already installed skipping doc-js@^1.0.0 /home/kory/dev/gaffa
+27 verbose already installed skipping flat-merge@^1.0.0 /home/kory/dev/gaffa
+28 verbose already installed skipping gedi@^1.2.4 /home/kory/dev/gaffa
+29 verbose already installed skipping laidout@^1.0.0 /home/kory/dev/gaffa
+30 verbose already installed skipping lang-js@^2.1.0 /home/kory/dev/gaffa
+31 verbose already installed skipping merge@^1.1.3 /home/kory/dev/gaffa
+32 verbose already installed skipping next-tick@^0.2.2 /home/kory/dev/gaffa
+33 verbose already installed skipping same-value@^1.0.0 /home/kory/dev/gaffa
+34 verbose already installed skipping simple-ajax@0.0.1 /home/kory/dev/gaffa
+35 verbose already installed skipping spec-js@^1.0.0 /home/kory/dev/gaffa
+36 verbose already installed skipping statham@^1.0.0 /home/kory/dev/gaffa
+37 verbose already installed skipping what-changed@^1.0.0 /home/kory/dev/gaffa
+38 verbose cache add [ 'gaffa-test@^1.0.0', null ]
+39 verbose cache add name=undefined spec="gaffa-test@^1.0.0" args=["gaffa-test@^1.0.0",null]
+40 verbose parsed url { protocol: null,
+40 verbose parsed url   slashes: null,
+40 verbose parsed url   auth: null,
+40 verbose parsed url   host: null,
+40 verbose parsed url   port: null,
+40 verbose parsed url   hostname: null,
+40 verbose parsed url   hash: null,
+40 verbose parsed url   search: null,
+40 verbose parsed url   query: null,
+40 verbose parsed url   pathname: 'gaffa-test@^1.0.0',
+40 verbose parsed url   path: 'gaffa-test@^1.0.0',
+40 verbose parsed url   href: 'gaffa-test@^1.0.0' }
+41 verbose cache add name="gaffa-test" spec="^1.0.0" args=["gaffa-test","^1.0.0"]
+42 verbose parsed url { protocol: null,
+42 verbose parsed url   slashes: null,
+42 verbose parsed url   auth: null,
+42 verbose parsed url   host: null,
+42 verbose parsed url   port: null,
+42 verbose parsed url   hostname: null,
+42 verbose parsed url   hash: null,
+42 verbose parsed url   search: null,
+42 verbose parsed url   query: null,
+42 verbose parsed url   pathname: '^1.0.0',
+42 verbose parsed url   path: '^1.0.0',
+42 verbose parsed url   href: '^1.0.0' }
+43 verbose addNamed [ 'gaffa-test', '^1.0.0' ]
+44 verbose addNamed [ null, '>=1.0.0-0 <2.0.0-0' ]
+45 silly lockFile a3c2a0a6-gaffa-test-1-0-0 gaffa-test@^1.0.0
+46 verbose lock gaffa-test@^1.0.0 /home/kory/.npm/a3c2a0a6-gaffa-test-1-0-0.lock
+47 silly addNameRange { name: 'gaffa-test',
+47 silly addNameRange   range: '>=1.0.0-0 <2.0.0-0',
+47 silly addNameRange   hasData: false }
+48 verbose request where is /gaffa-test
+49 verbose request registry https://npm.yoik.net:8888/
+50 verbose request id 00ed5ad855ad0920
+51 verbose url raw /gaffa-test
+52 verbose url resolving [ 'https://npm.yoik.net:8888/', './gaffa-test' ]
+53 verbose url resolved https://npm.yoik.net:8888/gaffa-test
+54 verbose request where is https://npm.yoik.net:8888/gaffa-test
+55 info trying registry request attempt 1 at 11:54:48
+56 http GET https://npm.yoik.net:8888/gaffa-test
+57 http 404 https://npm.yoik.net:8888/gaffa-test
+58 verbose headers { 'content-type': 'application/json; charset=utf-8',
+58 verbose headers   date: 'Wed, 29 Apr 2015 01:56:53 GMT',
+58 verbose headers   etag: '"412941920"',
+58 verbose headers   vary: 'Accept-Encoding',
+58 verbose headers   'x-powered-by': 'Sinopia/0.8.1',
+58 verbose headers   'x-status-cat': 'http://flic.kr/p/aV6juR',
+58 verbose headers   'content-length': '42',
+58 verbose headers   connection: 'keep-alive' }
+59 silly registry.get cb [ 404,
+59 silly registry.get   { 'content-type': 'application/json; charset=utf-8',
+59 silly registry.get     date: 'Wed, 29 Apr 2015 01:56:53 GMT',
+59 silly registry.get     etag: '"412941920"',
+59 silly registry.get     vary: 'Accept-Encoding',
+59 silly registry.get     'x-powered-by': 'Sinopia/0.8.1',
+59 silly registry.get     'x-status-cat': 'http://flic.kr/p/aV6juR',
+59 silly registry.get     'content-length': '42',
+59 silly registry.get     connection: 'keep-alive' } ]
+60 silly lockFile a3c2a0a6-gaffa-test-1-0-0 gaffa-test@^1.0.0
+61 silly lockFile a3c2a0a6-gaffa-test-1-0-0 gaffa-test@^1.0.0
+62 error Error: no such package available : gaffa-test
+62 error     at RegClient.<anonymous> (/usr/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:308:14)
+62 error     at Request._callback (/usr/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:246:65)
+62 error     at Request.self.callback (/usr/lib/node_modules/npm/node_modules/request/request.js:236:22)
+62 error     at Request.emit (events.js:98:17)
+62 error     at Request.<anonymous> (/usr/lib/node_modules/npm/node_modules/request/request.js:1142:14)
+62 error     at Request.emit (events.js:117:20)
+62 error     at IncomingMessage.<anonymous> (/usr/lib/node_modules/npm/node_modules/request/request.js:1096:12)
+62 error     at IncomingMessage.emit (events.js:117:20)
+62 error     at _stream_readable.js:944:16
+62 error     at process._tickCallback (node.js:448:13)
+63 error If you need help, you may report this *entire* log,
+63 error including the npm and node versions, at:
+63 error     <http://github.com/npm/npm/issues>
+64 error System Linux 3.13.0-49-generic
+65 error command "/usr/bin/node" "/usr/bin/npm" "link"
+66 error cwd /home/kory/dev/gaffa
+67 error node -v v0.10.38
+68 error npm -v 1.4.28
+69 verbose exit [ 1, true ]

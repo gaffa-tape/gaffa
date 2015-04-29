@@ -2,28 +2,9 @@ var createSpec = require('spec-js'),
     EventEmitter = require('events').EventEmitter,
     merge = require('./flatMerge'),
     statham = require('statham'),
-    jsonConverter = require('./jsonConverter');
-
-function clone(object){
-    var copy = jsonConverter(object, object.__serialiseExclude__, object.__serialiseInclude__);
-
-    for(var key in copy){
-        var item = copy[key];
-        if(!item || typeof item !== 'object'){
-            continue;
-        }else if(typeof copy[key]._clone === 'function'){
-            copy[key] = item._clone();
-        }else{
-            copy[key] = clone(item);
-        }
-
-        if(copy[key] === undefined){
-            delete copy[key];
-        }
-    }
-
-    return copy;
-}
+    cherrypick = require('cherrypick'),
+    excludeProps = require('./excludeProps'),
+    clone = require('./clone');
 
 var stack = [];
 function eventually(fn){
@@ -85,9 +66,21 @@ Bindable.prototype.getDataAtPath = function(){
     return this.gaffa.model.get(getItemPath(this));
 };
 Bindable.prototype.toJSON = function(){
-    var tempObject = jsonConverter(this, this.__serialiseExclude__, this.__serialiseInclude__);
+    return clone(this);
+};
+Bindable.prototype._toPOJO = function(){
+    var copy = {},
+        keys = Object.keys(this);
 
-    return tempObject;
+    for(var i = 0; i < keys.length; i++){
+        if(keys[i] in excludeProps){
+           continue; 
+        }
+
+        copy[keys[i]] = this[keys[i]];
+    }
+    
+    return copy;
 };
 Bindable.prototype._clone = function(){
     return new this.constructor(clone(this));

@@ -134,6 +134,6 @@ ViewContainer.prototype.empty = function(){
     removeViews(this);
     this.emit('empty');
 };
-ViewContainer.prototype.__serialiseExclude__ = ['element'];
+ViewContainer.prototype._toPOJO = ViewContainer.prototype.slice;
 
 module.exports = ViewContainer;

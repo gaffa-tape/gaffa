@@ -1,6 +1,5 @@
 var createSpec = require('spec-js'),
     Bindable = require('./bindable'),
-    jsonConverter = require('./jsonConverter'),
     Property = require('./property'),
     merge = require('./flatMerge');
 

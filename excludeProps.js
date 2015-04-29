@@ -9,5 +9,7 @@ module.exports = {
     "gediCallbacks":null,
     "__super__":null,
     "_events":null,
+    "_maxListeners": null,
+    "_lastValue":null,
     "consuela":null
 };
