@@ -72,10 +72,12 @@ TemplaterProperty.prototype.update =function (view, value) {
         isEmpty = true,
         subPaths = sourcePathInfo && sourcePathInfo.subPaths;
 
-    this.template = gaffa.initialiseView(this.template);
+    if(!this._template){
+        this._template = gaffa.initialiseView(this.template);
+    }
 
-    if(this.emptyTemplate){
-        this.emptyTemplate = gaffa.initialiseView(this.emptyTemplate);
+    if(this.emptyTemplate && !this._emptyTemplate){
+        this._emptyTemplate = gaffa.initialiseView(this.emptyTemplate);
     }
 
     childViews.abortDeferredAdd();
@@ -131,7 +133,7 @@ TemplaterProperty.prototype.update =function (view, value) {
             }
 
             if(!existingChild){
-                newView = this.template._clone();
+                newView = this._template._clone();
                 newView._item = value[key];
                 newView.scope = {item: newView._item, key: key};
                 newView.sourcePath = property.ignorePaths ? null : sourcePath;
@@ -160,8 +162,8 @@ TemplaterProperty.prototype.update =function (view, value) {
                 i--;
             }
         }
-        if(this.emptyTemplate){
-            newView = this.emptyTemplate._clone();
+        if(this._emptyTemplate){
+            newView = this._emptyTemplate._clone();
             newView.containerName = viewsName;
             childViews.add(newView, itemIndex);
         }
