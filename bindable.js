@@ -189,8 +189,8 @@ Bindable.prototype.updatePath = function(){
 
     setPath(gaffa.gedi.get(this.pathBinding, absoluteSourcePath, bindable.scope, true));
 
-    function handlePathChange(event){
-        setPath(gaffa.model.get(bindable.pathBinding, bindable, bindable.scope, true));
+    function handlePathChange(event){ 
+        setPath(gaffa.model.get(bindable.pathBinding, bindable.parent, bindable.scope, true));
     }
 
     gaffa.gedi.bind(this.pathBinding, handlePathChange, absoluteSourcePath);
