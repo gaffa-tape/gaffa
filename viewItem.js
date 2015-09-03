@@ -12,11 +12,9 @@ function copyProperties(source, target){
         return;
     }
 
-    for(var key in source){
-        if(source.hasOwnProperty(key)){
-            target[key] = source[key];
-        }
-    }
+    Object.keys(source).forEach(function(key){
+        target[key] = source[key];
+    });
 }
 
 function inflateViewItem(viewItem, description){

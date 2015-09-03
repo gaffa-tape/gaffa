@@ -139,7 +139,7 @@ function inflateProperty(property, propertyDescription){
         if(
             isProperty && (
                 ~propertyDescription.__serialiseExclude__.indexOf(key) ||
-                key in excludeProps
+                ~excludeProps.indexOf(key)
             )
         ){
             continue;
@@ -160,7 +160,7 @@ function Property(propertyDescription){
     }
 
     this.on('bind', function(parent, scope) {
-        this._lastValue = new WhatChanged();
+        this._lastValue = new WhatChanged(this.value, this.watchChanges);
 
         // Shortcut for properties that have no binding.
         // This has a significant impact on performance.
@@ -219,14 +219,7 @@ function Property(propertyDescription){
 Property = createSpec(Property, Bindable);
 Property.prototype.watchChanges = 'value keys structure reference type';
 Property.prototype.hasChanged = function(){
-    var changes = this._lastValue.update(this.value),
-        watched = this.watchChanges.split(' ');
-
-    for(var i = 0; i < watched.length; i++){
-        if(changes[watched[i]]){
-            return true;
-        }
-    }
+    return Object.keys(this._lastValue.update(this.value)).length > 0;
 };
 Property.prototype.set = function(value, isDirty, scope){
     if(!this._bound){

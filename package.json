@@ -12,7 +12,7 @@
     "clean-merge": "^1.0.0",
     "consuela": "^4.2.0",
     "crel": "^2.1.1",
-    "deep-equal": "0.0.x",
+    "deep-equal": "^1.0.1",
     "doc-js": "^1.0.0",
     "gedi": "^1.2.4",
     "laidout": "^1.0.0",
@@ -22,7 +22,7 @@
     "simple-ajax": "0.0.1",
     "spec-js": "^1.0.0",
     "statham": "^1.0.0",
-    "what-changed": "^1.0.0"
+    "what-changed": "^2.1.4"
   },
   "peerDependencies": {
     "gel-js": "^1.5.0"

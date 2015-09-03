@@ -1,13 +1,13 @@
-module.exports = {
-    "_trackedListeners":null,
-    "__iuid":null,
-    "gaffa":null,
-    "parent":null,
-    "parentContainer":null,
-    "renderedElement":null,
-    "_removeHandlers":null,
-    "gediCallbacks":null,
-    "__super__":null,
-    "_events":null,
-    "consuela":null
-};
+module.exports = [
+    "_trackedListeners",
+    "__iuid",
+    "gaffa",
+    "parent",
+    "parentContainer",
+    "renderedElement",
+    "_removeHandlers",
+    "gediCallbacks",
+    "__super__",
+    "_events",
+    "consuela"
+];

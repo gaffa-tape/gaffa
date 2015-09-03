@@ -1,4 +1,1 @@
-module.exports = {
-    "type":null,
-    "_type":null
-};
+module.exports = ["type", "_type"];

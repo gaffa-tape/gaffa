@@ -20,7 +20,7 @@ function findValueIn(value, source){
 }
 
 TemplaterProperty.prototype._immediate = true;
-TemplaterProperty.prototype.watchChanges = 'structure value';
+TemplaterProperty.prototype.watchChanges = 'keys shallowStructure value';
 TemplaterProperty.prototype.hasChanged = function(){
     var lastKeys = this._lastValue._lastKeys || [],
         changes = this._lastValue.update(this.value),
@@ -73,11 +73,17 @@ TemplaterProperty.prototype.update =function (view, value) {
         subPaths = sourcePathInfo && sourcePathInfo.subPaths;
 
     if(!this._template){
-        this._template = gaffa.initialiseView(this.template);
+        var templateJSON = statham.stringify(this.template);
+        this._template = function(){
+            return gaffa.initialiseView(statham.parse(templateJSON));
+        };
     }
 
     if(this.emptyTemplate && !this._emptyTemplate){
-        this._emptyTemplate = gaffa.initialiseView(this.emptyTemplate);
+        var emptyTemplateJSON = statham.stringify(this.emptyTemplate);
+        this._emptyTemplate = function(){
+            return gaffa.initialiseView(statham.parse(emptyTemplateJSON));
+        };
     }
 
     childViews.abortDeferredAdd();
@@ -133,7 +139,7 @@ TemplaterProperty.prototype.update =function (view, value) {
             }
 
             if(!existingChild){
-                newView = this._template._clone();
+                newView = this._template();
                 newView._item = value[key];
                 newView.scope = {item: newView._item, key: key};
                 newView.sourcePath = property.ignorePaths ? null : sourcePath;
@@ -163,7 +169,7 @@ TemplaterProperty.prototype.update =function (view, value) {
             }
         }
         if(this._emptyTemplate){
-            newView = this._emptyTemplate._clone();
+            newView = this._emptyTemplate();
             newView.containerName = viewsName;
             childViews.add(newView, itemIndex);
         }

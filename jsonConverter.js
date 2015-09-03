@@ -2,29 +2,34 @@ var deepEqual = require('deep-equal'),
     excludeProps = require('./excludeProps'),
     includeProps = require('./includeProps');
 
-
 function processProperties(object, plainInstance, extraExclude, extraInclude, tempObject){
-
-    function processProperty(key){
+    Object.keys(object).forEach(function(key){
         var item = object[key];
 
         if(
             item !== undefined &&
             typeof item !== 'function' &&
-            (includeProps && (key in includeProps)) ||
-            (extraInclude && ~extraInclude.indexOf(key)) ||
-            object.hasOwnProperty(key) &&
-            (excludeProps ? !(key in excludeProps) : true) &&
-            (extraExclude ? !~extraExclude.indexOf(key) : true) &&
             !deepEqual(plainInstance[key], item)
         ){
             tempObject[key] = item;
         }
-    }
+    });
 
-    for(var key in object){
-        processProperty(key);
-    }
+    includeProps.forEach(function(key){
+        key in object && (tempObject[key] = object[key]);
+    });
+
+    extraInclude && extraInclude.forEach(function(key){
+        key in object && (tempObject[key] = object[key]);
+    });
+
+    excludeProps.forEach(function(key){
+        delete tempObject[key];
+    });
+
+    extraExclude && extraExclude.forEach(function(key){
+        delete tempObject[key];
+    });
 }
 
 function jsonConverter(object, extraExclude, extraInclude){

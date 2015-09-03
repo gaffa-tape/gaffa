@@ -7,10 +7,14 @@ var createSpec = require('spec-js'),
 function clone(object){
     var copy = jsonConverter(object, object.__serialiseExclude__, object.__serialiseInclude__);
 
-    for(var key in copy){
+    if(!copy){
+        return;
+    }
+
+    Object.keys(copy).forEach(function(key){
         var item = copy[key];
         if(!item || typeof item !== 'object'){
-            continue;
+            return;
         }else if(typeof copy[key]._clone === 'function'){
             copy[key] = item._clone();
         }else{
@@ -20,7 +24,7 @@ function clone(object){
         if(copy[key] === undefined){
             delete copy[key];
         }
-    }
+    });
 
     return copy;
 }
@@ -189,7 +193,7 @@ Bindable.prototype.updatePath = function(){
 
     setPath(gaffa.gedi.get(this.pathBinding, absoluteSourcePath, bindable.scope, true));
 
-    function handlePathChange(event){ 
+    function handlePathChange(event){
         setPath(gaffa.model.get(bindable.pathBinding, bindable.parent, bindable.scope, true));
     }
 
