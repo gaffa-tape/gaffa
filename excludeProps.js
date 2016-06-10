@@ -9,5 +9,6 @@ module.exports = [
     "gediCallbacks",
     "__super__",
     "_events",
+    "_eventsCount",
     "consuela"
 ];
