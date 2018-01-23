@@ -1,6 +1,10 @@
 # ![logo](logosmall.png)affa.js
 
+# This project is no longer under active development.
 
+I am happy to investigate issues and fix bugs, but no new development will be done.
+
+I have since created, and use https://github.com/KoryNunn/fastn which is the result of experience I gained while building large applications in Gaffa.
 
 ## Recently changed
 
